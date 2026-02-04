@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700 hover:shadow-md active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  
+  .btn-secondary {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-full bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 hover:shadow-md active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-2 rounded-xl border border-slate-200 bg-white shadow-sm text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
+  }
+  
+  .card {
+    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-lg border border-slate-100 p-6 transition-shadow duration-150;
+  }
+}
+
+@layer base {
+  body {
+    @apply selection:bg-primary-100 selection:text-primary-900;
+  }
+}
+
+@layer components {
+  /* Page chrome */
+  .page-shell {
+    @apply max-w-7xl mx-auto;
+  }
+
+  .page-header {
+    @apply mb-6 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .page-title {
+    @apply text-3xl font-bold tracking-tight text-slate-900;
+  }
+
+  .page-subtitle {
+    @apply text-sm text-slate-500;
+  }
+
+  /* Premium card overrides */
+  .card {
+    @apply relative bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-200 overflow-hidden;
+  }
+
+  .card::before {
+    content: "";
+    @apply pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-primary-300/60 via-primary-500/40 to-primary-300/60 opacity-0 transition-opacity duration-200;
+  }
+
+  .card:hover::before {
+    @apply opacity-100;
+  }
+
+  .card-body {
+    @apply p-6;
+  }
+
+  .card-muted {
+    @apply bg-slate-50/80;
+  }
+
+  /* Input enhancement */
+  .input-field {
+    @apply w-full px-4 py-2 rounded-xl border border-slate-200 bg-white/90 backdrop-blur text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
+  }
+
+  /* Tables */
+  .table-shell {
+    @apply overflow-hidden rounded-2xl border border-slate-100 bg-white/90 backdrop-blur;
+  }
+
+  .table {
+    @apply min-w-full divide-y divide-slate-100;
+  }
+
+  .table thead {
+    @apply bg-slate-50/80;
+  }
+
+  .table th {
+    @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-slate-500;
+  }
+
+  .table td {
+    @apply px-4 py-3 text-sm text-slate-700 align-middle;
+  }
+
+  .table tbody tr {
+    @apply odd:bg-white even:bg-slate-50/40 hover:bg-primary-50/40 transition-colors;
+  }
+
+  /* Badges / status pills */
+  .badge {
+    @apply inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset;
+  }
+
+  .badge-success {
+    @apply badge bg-emerald-50 text-emerald-700 ring-emerald-200;
+  }
+
+  .badge-warning {
+    @apply badge bg-amber-50 text-amber-700 ring-amber-200;
+  }
+
+  .badge-danger {
+    @apply badge bg-rose-50 text-rose-700 ring-rose-200;
+  }
+
+  .badge-info {
+    @apply badge bg-sky-50 text-sky-700 ring-sky-200;
+  }
+
+  /* Chips for quick actions */
+  .action-chip {
+    @apply flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-4 text-center text-sm text-slate-700 hover:border-primary-400 hover:bg-primary-50/70 hover:text-primary-800 transition-all duration-150;
+  }
+}
+

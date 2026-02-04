@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Frontend Login</title>
+</head>
+<body>
+    <h1>Testing Frontend Login Connection</h1>
+    <button onclick="testLogin()">Test Login</button>
+    <div id="result"></div>
+
+    <script>
+        async function testLogin() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:5000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        email: 'customer@test.com',
+                        password: 'TestPass123!'
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultDiv.innerHTML = `
+                        <h2 style="color: green;">✅ Login Successful!</h2>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                        <p>Has accessToken: ${!!data.data?.accessToken}</p>
+                        <p>Has refreshToken: ${!!data.data?.refreshToken}</p>
+                        <p>Has user: ${!!data.data?.user}</p>
+                        ${data.data?.user ? `<p>User role: ${data.data.user.role}</p>` : ''}
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h2 style="color: red;">❌ Login Failed</h2>
+                        <p>Status: ${response.status}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    `;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <h2 style="color: red;">❌ Error</h2>
+                    <p>${error.message}</p>
+                    <p>Make sure backend is running on port 5000</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
+

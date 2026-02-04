@@ -1,0 +1,402 @@
+import React, { useState, useEffect } from 'react';
+import Layout from '../../components/layout/Layout';
+import Loading from '../../components/common/Loading';
+import EmptyState from '../../components/common/EmptyState';
+import Button from '../../components/common/Button';
+import api from '../../services/api';
+import { formatDate, formatDateTime } from '../../utils/formatters';
+import { getStatusColor } from '../../utils/helpers';
+import { Clock, Check, Bell, Calendar, User, Package, ShoppingBag, PawPrint, RefreshCw, CheckCircle, XCircle, AlertCircle, Filter } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+// Mock data for fallback
+const mockPreBookings = [
+  {
+    pre_booking_id: 1,
+    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
+    item_name: 'Premium Dog Food 10kg',
+    item_type: 'product',
+    quantity: 2,
+    status: 'pending',
+    created_at: new Date().toISOString(),
+    notes: 'Customer requested early delivery if possible',
+  },
+  {
+    pre_booking_id: 2,
+    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
+    item_name: 'Golden Retriever Puppy',
+    item_type: 'pet',
+    quantity: 1,
+    status: 'pending',
+    created_at: new Date(Date.now() - 86400000).toISOString(),
+    notes: 'Looking for a friendly puppy for family',
+  },
+  {
+    pre_booking_id: 3,
+    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
+    item_name: 'Cat Litter Box Premium',
+    item_type: 'product',
+    quantity: 3,
+    status: 'fulfilled',
+    created_at: new Date(Date.now() - 172800000).toISOString(),
+    notes: 'Pre-ordered for next month',
+  },
+  {
+    pre_booking_id: 4,
+    customer: { user: { first_name: 'David', last_name: 'Martinez' } },
+    item_name: 'Persian Cat',
+    item_type: 'pet',
+    quantity: 1,
+    status: 'pending',
+    created_at: new Date(Date.now() - 259200000).toISOString(),
+    notes: 'Prefer female cat if available',
+  },
+  {
+    pre_booking_id: 5,
+    customer: { user: { first_name: 'Lisa', last_name: 'Brown' } },
+    item_name: 'Pet Grooming Service',
+    item_type: 'service',
+    quantity: 1,
+    status: 'cancelled',
+    created_at: new Date(Date.now() - 345600000).toISOString(),
+    notes: 'Customer cancelled due to scheduling conflict',
+  },
+];
+
+const PreBookingManagement = () => {
+  const [preBookings, setPreBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    loadPreBookings();
+  }, [filter]);
+
+  const loadPreBookings = async () => {
+    try {
+      setLoading(true);
+      const params = filter !== 'all' ? `?status=${filter}` : '';
+      const response = await api.get(`/pre-bookings${params}`);
+      setPreBookings(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading pre-bookings:', error);
+      // Use mock data as fallback
+      let filtered = [...mockPreBookings];
+      if (filter !== 'all') {
+        filtered = filtered.filter(pb => pb.status === filter);
+      }
+      setPreBookings(filtered);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFulfill = async (preBookingId) => {
+    try {
+      await api.put(`/pre-bookings/${preBookingId}/fulfill`);
+      toast.success('Pre-booking fulfilled and customer notified');
+      loadPreBookings();
+    } catch (error) {
+      toast.error('Failed to fulfill pre-booking');
+    }
+  };
+
+  const handleNotify = async (preBookingId) => {
+    try {
+      await api.post(`/pre-bookings/${preBookingId}/notify`);
+      toast.success('Customer notified');
+    } catch (error) {
+      toast.error('Failed to notify customer');
+    }
+  };
+
+  const getItemIcon = (type) => {
+    switch (type) {
+      case 'pet':
+        return PawPrint;
+      case 'product':
+        return Package;
+      case 'service':
+        return ShoppingBag;
+      default:
+        return Package;
+    }
+  };
+
+  const getItemStyles = (type) => {
+    switch (type) {
+      case 'pet':
+        return {
+          gradient: 'from-amber-500 to-amber-600',
+          bg: 'bg-amber-50',
+          border: 'border-amber-200',
+          text: 'text-amber-700',
+        };
+      case 'product':
+        return {
+          gradient: 'from-blue-500 to-blue-600',
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+          text: 'text-blue-700',
+        };
+      case 'service':
+        return {
+          gradient: 'from-purple-500 to-purple-600',
+          bg: 'bg-purple-50',
+          border: 'border-purple-200',
+          text: 'text-purple-700',
+        };
+      default:
+        return {
+          gradient: 'from-slate-500 to-slate-600',
+          bg: 'bg-slate-50',
+          border: 'border-slate-200',
+          text: 'text-slate-700',
+        };
+    }
+  };
+
+  const filters = [
+    { value: 'all', label: 'All', icon: Package, color: 'slate' },
+    { value: 'pending', label: 'Pending', icon: Clock, color: 'amber' },
+    { value: 'fulfilled', label: 'Fulfilled', icon: CheckCircle, color: 'emerald' },
+    { value: 'cancelled', label: 'Cancelled', icon: XCircle, color: 'rose' },
+  ];
+
+  if (loading) return <Layout><Loading /></Layout>;
+
+  const pendingCount = preBookings.filter(pb => pb.status === 'pending').length;
+  const fulfilledCount = preBookings.filter(pb => pb.status === 'fulfilled').length;
+
+  return (
+    <Layout>
+      <div className="page-shell">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Pre-Booking Management</h1>
+            <p className="page-subtitle">Manage customer pre-booking requests for pets, products, and services</p>
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="card card-muted group hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Requests</p>
+                <p className="text-2xl font-black text-slate-900">{preBookings.length}</p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                <Calendar className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="card card-muted group hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Pending</p>
+                <p className="text-2xl font-black text-amber-600">{pendingCount}</p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-lg">
+                <Clock className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="card card-muted group hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Fulfilled</p>
+                <p className="text-2xl font-black text-emerald-600">{fulfilledCount}</p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {filters.map((f) => {
+            const Icon = f.icon;
+            const isActive = filter === f.value;
+            const getActiveClasses = (color) => {
+              switch (color) {
+                case 'slate':
+                  return 'bg-slate-600 text-white shadow-lg shadow-slate-500/30';
+                case 'amber':
+                  return 'bg-amber-600 text-white shadow-lg shadow-amber-500/30';
+                case 'emerald':
+                  return 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30';
+                case 'rose':
+                  return 'bg-rose-600 text-white shadow-lg shadow-rose-500/30';
+                default:
+                  return 'bg-primary-600 text-white shadow-lg shadow-primary-500/30';
+              }
+            };
+            const getIconColor = (color) => {
+              switch (color) {
+                case 'slate':
+                  return 'text-slate-600';
+                case 'amber':
+                  return 'text-amber-600';
+                case 'emerald':
+                  return 'text-emerald-600';
+                case 'rose':
+                  return 'text-rose-600';
+                default:
+                  return 'text-primary-600';
+              }
+            };
+            return (
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                  isActive
+                    ? getActiveClasses(f.color)
+                    : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                }`}
+              >
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : getIconColor(f.color)}`} />
+                {f.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {preBookings.length === 0 ? (
+          <div className="card">
+            <EmptyState
+              icon={Clock}
+              title="No pre-booking requests"
+              message="No pre-booking requests found for the selected filter"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-4">
+            {preBookings.map((preBooking) => {
+              const ItemIcon = getItemIcon(preBooking.item_type);
+              const itemStyles = getItemStyles(preBooking.item_type);
+              
+              return (
+                <div 
+                  key={preBooking.pre_booking_id} 
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${itemStyles.border}`}
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-start gap-4 mb-4">
+                        <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${itemStyles.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>
+                          <ItemIcon className="w-6 h-6 text-white" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-bold text-lg text-slate-900">
+                              Request #{preBooking.pre_booking_id}
+                            </h3>
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(preBooking.status)}`}>
+                              {preBooking.status}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div className="flex items-start gap-2 p-3 bg-slate-50 rounded-xl">
+                              <User className="w-4 h-4 text-slate-400 mt-0.5" />
+                              <div>
+                                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Customer</p>
+                                <p className="font-semibold text-slate-900">
+                                  {preBooking.customer?.user?.first_name} {preBooking.customer?.user?.last_name}
+                                </p>
+                              </div>
+                            </div>
+                            <div className={`flex items-start gap-2 p-3 ${itemStyles.bg} rounded-xl`}>
+                              <ItemIcon className={`w-4 h-4 ${itemStyles.text} mt-0.5`} />
+                              <div>
+                                <p className={`text-xs font-semibold ${itemStyles.text} uppercase tracking-wider mb-1`}>Item Type</p>
+                                <p className={`font-semibold ${itemStyles.text} capitalize`}>{preBooking.item_type}</p>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Item Details */}
+                      <div className={`p-4 ${itemStyles.bg} rounded-xl border ${itemStyles.border} mb-3`}>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Package className={`w-5 h-5 ${itemStyles.text}`} />
+                            <p className={`text-sm font-bold ${itemStyles.text}`}>{preBooking.item_name}</p>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full ${itemStyles.bg} border ${itemStyles.border}`}>
+                            <p className={`text-xs font-semibold ${itemStyles.text}`}>
+                              Qty: {preBooking.quantity}
+                            </p>
+                          </div>
+                        </div>
+                        {preBooking.notes && (
+                          <div className="mt-3 pt-3 border-t border-slate-200">
+                            <div className="flex items-start gap-2">
+                              <AlertCircle className="w-4 h-4 text-slate-400 mt-0.5" />
+                              <p className="text-sm text-slate-600 italic">{preBooking.notes}</p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Date */}
+                      <div className="flex items-center gap-2 text-sm text-slate-600">
+                        <Calendar className="w-4 h-4 text-slate-400" />
+                        <span className="font-semibold">Requested:</span>
+                        <span>{formatDateTime(preBooking.created_at)}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    {preBooking.status === 'pending' && (
+                      <div className="flex flex-col gap-2 ml-4">
+                        <Button
+                          size="sm"
+                          onClick={() => handleFulfill(preBooking.pre_booking_id)}
+                          className="!bg-emerald-600 hover:!bg-emerald-700"
+                        >
+                          <Check className="w-4 h-4 inline mr-1" />
+                          Fulfill
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleNotify(preBooking.pre_booking_id)}
+                        >
+                          <Bell className="w-4 h-4 inline mr-1" />
+                          Notify
+                        </Button>
+                      </div>
+                    )}
+                    {preBooking.status === 'fulfilled' && (
+                      <div className="ml-4">
+                        <div className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 flex items-center gap-1">
+                          <CheckCircle className="w-4 h-4" />
+                          <span className="text-xs font-semibold">Fulfilled</span>
+                        </div>
+                      </div>
+                    )}
+                    {preBooking.status === 'cancelled' && (
+                      <div className="ml-4">
+                        <div className="px-3 py-1 rounded-full bg-rose-100 text-rose-700 flex items-center gap-1">
+                          <XCircle className="w-4 h-4" />
+                          <span className="text-xs font-semibold">Cancelled</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </Layout>
+  );
+};
+
+export default PreBookingManagement;

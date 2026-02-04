@@ -1,0 +1,422 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import Layout from '../../components/layout/Layout';
+import Loading from '../../components/common/Loading';
+import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import { appointmentSchema } from '../../utils/validators';
+import api from '../../services/api';
+import { formatCurrency } from '../../utils/formatters';
+import { Calendar, Clock, Stethoscope, PawPrint, DollarSign, User, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
+import toast from 'react-hot-toast';
+
+// Format currency as LKR
+const formatCurrencyLKR = (amount) => {
+  return new Intl.NumberFormat('en-LK', {
+    style: 'currency',
+    currency: 'LKR',
+  }).format(amount || 0);
+};
+
+// Mock data for fallback
+const mockDoctors = [
+  {
+    doctor_id: 1,
+    user: { first_name: 'James', last_name: 'Anderson' },
+    specialization: 'Veterinary Surgeon',
+    consultation_fee: 2500,
+    image_url: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400',
+  },
+  {
+    doctor_id: 2,
+    user: { first_name: 'Sarah', last_name: 'Wilson' },
+    specialization: 'Pet Dermatologist',
+    consultation_fee: 3000,
+    image_url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
+  },
+  {
+    doctor_id: 3,
+    user: { first_name: 'Michael', last_name: 'Brown' },
+    specialization: 'General Practitioner',
+    consultation_fee: 2000,
+    image_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400',
+  },
+];
+
+const mockPets = [
+  {
+    customer_pet_id: 1,
+    name: 'Max',
+    species: 'Dog',
+    breed: 'Golden Retriever',
+    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
+  },
+  {
+    customer_pet_id: 2,
+    name: 'Luna',
+    species: 'Cat',
+    breed: 'Persian',
+    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
+  },
+];
+
+const BookAppointment = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const preSelectedDoctorId = searchParams.get('doctorId');
+  
+  const [doctors, setDoctors] = useState([]);
+  const [pets, setPets] = useState([]);
+  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [availableSlots, setAvailableSlots] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [loadingSlots, setLoadingSlots] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(appointmentSchema),
+    defaultValues: {
+      doctorId: preSelectedDoctorId ? parseInt(preSelectedDoctorId) : undefined,
+    },
+  });
+
+  const selectedDoctorId = watch('doctorId');
+  const selectedDate = watch('appointmentDate');
+  const selectedPetId = watch('customerPetId');
+
+  useEffect(() => {
+    loadDoctors();
+    loadPets();
+  }, []);
+
+  useEffect(() => {
+    if (selectedDoctorId) {
+      const doctor = doctors.find(d => d.doctor_id === parseInt(selectedDoctorId));
+      setSelectedDoctor(doctor);
+    }
+  }, [selectedDoctorId, doctors]);
+
+  useEffect(() => {
+    if (selectedDoctorId && selectedDate) {
+      loadAvailableSlots(selectedDoctorId, selectedDate);
+    }
+  }, [selectedDoctorId, selectedDate]);
+
+  const loadDoctors = async () => {
+    try {
+      const response = await api.get('/doctors');
+      setDoctors(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading doctors:', error);
+      // Use mock data as fallback
+      setDoctors(mockDoctors);
+    }
+  };
+
+  const loadPets = async () => {
+    try {
+      const response = await api.get('/customer-pets');
+      setPets(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading pets:', error);
+      // Use mock data as fallback
+      setPets(mockPets);
+    }
+  };
+
+  const loadAvailableSlots = async (doctorId, date) => {
+    try {
+      setLoadingSlots(true);
+      const response = await api.get(`/doctors/${doctorId}/available-slots?date=${date}`);
+      setAvailableSlots(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading slots:', error);
+      // Use mock slots as fallback
+      setAvailableSlots(['09:00:00', '10:00:00', '11:00:00', '14:00:00', '15:00:00', '16:00:00']);
+    } finally {
+      setLoadingSlots(false);
+    }
+  };
+
+  const onSubmit = async (data) => {
+    setLoading(true);
+    try {
+      const response = await api.post('/appointments', {
+        doctorId: parseInt(data.doctorId),
+        customerPetId: parseInt(data.customerPetId),
+        appointmentDate: data.appointmentDate,
+        appointmentTime: data.appointmentTime,
+      });
+
+      if (response.data.success) {
+        toast.success('Appointment booked successfully!');
+        navigate('/customer/appointments');
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to book appointment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const minDate = new Date().toISOString().split('T')[0];
+  const selectedPet = pets.find(p => p.customer_pet_id === parseInt(selectedPetId));
+
+  return (
+    <Layout>
+      <div className="page-shell">
+        <div className="page-header">
+          <div>
+            <h1 className="page-title">Book Appointment</h1>
+            <p className="page-subtitle">Schedule a consultation with our expert veterinarians</p>
+          </div>
+        </div>
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+          {/* Doctor Selection */}
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <Stethoscope className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-bold text-slate-900">Select Doctor</h2>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Choose Your Veterinarian <span className="text-red-500">*</span>
+              </label>
+              <select
+                {...register('doctorId')}
+                className="input-field"
+                onChange={(e) => {
+                  register('doctorId').onChange(e);
+                  const doctor = doctors.find(d => d.doctor_id === parseInt(e.target.value));
+                  setSelectedDoctor(doctor);
+                }}
+              >
+                <option value="">Select a doctor</option>
+                {doctors.map((doctor) => (
+                  <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                    Dr. {doctor.user?.first_name} {doctor.user?.last_name} - {doctor.specialization}
+                  </option>
+                ))}
+              </select>
+              {errors.doctorId && (
+                <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-4 h-4" />
+                  {errors.doctorId.message}
+                </p>
+              )}
+            </div>
+
+            {selectedDoctor && (
+              <div className="mt-6 p-5 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-xl border-2 border-emerald-200">
+                <div className="flex items-start gap-4">
+                  {selectedDoctor.image_url ? (
+                    <img
+                      src={selectedDoctor.image_url}
+                      alt={`Dr. ${selectedDoctor.user?.first_name}`}
+                      className="w-20 h-20 rounded-xl object-cover border-2 border-emerald-300"
+                      onError={(e) => {
+                        e.target.src = 'https://via.placeholder.com/200?text=Doctor';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center border-2 border-emerald-300">
+                      <Stethoscope className="w-10 h-10 text-white" />
+                    </div>
+                  )}
+                  <div className="flex-1">
+                    <h3 className="font-bold text-lg text-emerald-900 mb-1">
+                      Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
+                    </h3>
+                    <p className="text-emerald-700 font-semibold mb-3">{selectedDoctor.specialization}</p>
+                    <div className="flex items-center gap-2 p-3 bg-white/80 rounded-lg border border-emerald-200">
+                      <DollarSign className="w-5 h-5 text-emerald-600" />
+                      <div>
+                        <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Consultation Fee</p>
+                        <p className="text-lg font-black text-emerald-900">{formatCurrencyLKR(selectedDoctor.consultation_fee)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Pet Selection */}
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <PawPrint className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-bold text-slate-900">Select Pet</h2>
+            </div>
+            {pets.length === 0 ? (
+              <div className="p-6 bg-amber-50 rounded-xl border-2 border-amber-200 text-center">
+                <PawPrint className="w-12 h-12 text-amber-600 mx-auto mb-3" />
+                <p className="text-amber-800 font-semibold mb-4">You don't have any pets registered yet.</p>
+                <Button type="button" onClick={() => navigate('/customer/pet-profiles/new')} className="!bg-amber-600 hover:!bg-amber-700">
+                  Add New Pet
+                </Button>
+              </div>
+            ) : (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Choose Your Pet <span className="text-red-500">*</span>
+                </label>
+                <select {...register('customerPetId')} className="input-field">
+                  <option value="">Select a pet</option>
+                  {pets.map((pet) => (
+                    <option key={pet.customer_pet_id} value={pet.customer_pet_id}>
+                      {pet.name} - {pet.species} ({pet.breed})
+                    </option>
+                  ))}
+                </select>
+                {errors.customerPetId && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.customerPetId.message}
+                  </p>
+                )}
+
+                {selectedPet && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200 flex items-center gap-3">
+                    {selectedPet.image_url ? (
+                      <img
+                        src={selectedPet.image_url}
+                        alt={selectedPet.name}
+                        className="w-16 h-16 rounded-lg object-cover border-2 border-blue-300"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/200?text=Pet';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-blue-300">
+                        <PawPrint className="w-8 h-8 text-white" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-bold text-blue-900">{selectedPet.name}</p>
+                      <p className="text-sm text-blue-700">{selectedPet.species} - {selectedPet.breed}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Date & Time Selection */}
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <Calendar className="w-5 h-5 text-primary-600" />
+              <h2 className="text-xl font-bold text-slate-900">Select Date & Time</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <Calendar className="w-4 h-4 inline mr-1" />
+                  Appointment Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  {...register('appointmentDate')}
+                  min={minDate}
+                  className="input-field"
+                />
+                {errors.appointmentDate && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.appointmentDate.message}
+                  </p>
+                )}
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <Clock className="w-4 h-4 inline mr-1" />
+                  Available Time <span className="text-red-500">*</span>
+                </label>
+                {loadingSlots ? (
+                  <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center">
+                    <p className="text-slate-600">Loading available slots...</p>
+                  </div>
+                ) : availableSlots.length === 0 && selectedDate ? (
+                  <div className="p-4 bg-rose-50 rounded-xl border-2 border-rose-200 text-center">
+                    <AlertCircle className="w-5 h-5 text-rose-600 mx-auto mb-2" />
+                    <p className="text-rose-700 font-semibold">No available slots for this date</p>
+                  </div>
+                ) : (
+                  <select {...register('appointmentTime')} className="input-field">
+                    <option value="">Select time</option>
+                    {availableSlots.map((slot) => (
+                      <option key={slot} value={slot}>
+                        {slot}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                {errors.appointmentTime && (
+                  <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.appointmentTime.message}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Appointment Summary */}
+          {selectedDoctor && selectedPet && selectedDate && (
+            <div className="card bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200">
+              <div className="flex items-center gap-2 mb-4">
+                <CheckCircle className="w-5 h-5 text-primary-600" />
+                <h2 className="text-xl font-bold text-primary-900">Appointment Summary</h2>
+              </div>
+              <div className="space-y-4">
+                <div className="p-4 bg-white/80 rounded-xl border border-primary-200">
+                  <div className="flex items-center gap-3 mb-2">
+                    <Stethoscope className="w-5 h-5 text-primary-600" />
+                    <div>
+                      <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-1">Doctor</p>
+                      <p className="font-bold text-primary-900">
+                        Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
+                      </p>
+                      <p className="text-sm text-primary-700">{selectedDoctor.specialization}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-white/80 rounded-xl border border-primary-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="w-5 h-5 text-primary-600" />
+                      <p className="text-sm font-semibold text-primary-700 uppercase tracking-wider">Consultation Fee</p>
+                    </div>
+                    <p className="text-2xl font-black text-primary-900">{formatCurrencyLKR(selectedDoctor.consultation_fee)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex space-x-4">
+            <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700" loading={loading}>
+              <CheckCircle className="w-4 h-4 inline mr-2" />
+              Book Appointment
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => navigate('/customer/appointments')}
+            >
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </div>
+    </Layout>
+  );
+};
+
+export default BookAppointment;

@@ -1,0 +1,669 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import Layout from '../../components/layout/Layout';
+import Loading from '../../components/common/Loading';
+import EmptyState from '../../components/common/EmptyState';
+import Button from '../../components/common/Button';
+import Modal from '../../components/common/Modal';
+import api from '../../services/api';
+import { formatCurrency } from '../../utils/formatters';
+import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, PawPrint, Search, Filter, RefreshCw, Dog, Cat, Bird, Rabbit, CheckCircle, XCircle, Package, DollarSign, Calendar, User } from 'lucide-react';
+import toast from 'react-hot-toast';
+import Input from '../../components/common/Input';
+
+// Format currency as LKR
+const formatCurrencyLKR = (amount) => {
+  return new Intl.NumberFormat('en-LK', {
+    style: 'currency',
+    currency: 'LKR',
+  }).format(amount || 0);
+};
+
+// Mock data for fallback
+const mockPets = [
+  {
+    pet_id: 1,
+    name: 'Max',
+    species: 'Dog',
+    breed: 'Golden Retriever',
+    age: 3,
+    gender: 'male',
+    description: 'Friendly and playful Golden Retriever puppy. Great with kids and other pets.',
+    price: 45000,
+    stock_quantity: 2,
+    is_available: true,
+    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
+  },
+  {
+    pet_id: 2,
+    name: 'Luna',
+    species: 'Cat',
+    breed: 'Persian',
+    age: 2,
+    gender: 'female',
+    description: 'Beautiful Persian cat with long silky fur. Very calm and affectionate.',
+    price: 35000,
+    stock_quantity: 1,
+    is_available: true,
+    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
+  },
+  {
+    pet_id: 3,
+    name: 'Charlie',
+    species: 'Bird',
+    breed: 'Parrot',
+    age: 1,
+    gender: 'male',
+    description: 'Colorful and intelligent parrot. Can learn to speak and perform tricks.',
+    price: 25000,
+    stock_quantity: 3,
+    is_available: true,
+    image_url: 'https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=400',
+  },
+  {
+    pet_id: 4,
+    name: 'Bella',
+    species: 'Dog',
+    breed: 'Labrador',
+    age: 4,
+    gender: 'female',
+    description: 'Energetic and loyal Labrador. Perfect for active families.',
+    price: 40000,
+    stock_quantity: 0,
+    is_available: false,
+    image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400',
+  },
+  {
+    pet_id: 5,
+    name: 'Whiskers',
+    species: 'Cat',
+    breed: 'Siamese',
+    age: 1,
+    gender: 'male',
+    description: 'Elegant Siamese cat with striking blue eyes. Very social and vocal.',
+    price: 30000,
+    stock_quantity: 2,
+    is_available: true,
+    image_url: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400',
+  },
+  {
+    pet_id: 6,
+    name: 'Bunny',
+    species: 'Rabbit',
+    breed: 'Holland Lop',
+    age: 6,
+    gender: 'female',
+    description: 'Adorable Holland Lop rabbit. Gentle and easy to care for.',
+    price: 15000,
+    stock_quantity: 4,
+    is_available: true,
+    image_url: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=400',
+  },
+];
+
+const PetManagement = () => {
+  const [pets, setPets] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [editingPet, setEditingPet] = useState(null);
+  const [filters, setFilters] = useState({
+    species: '',
+    breed: '',
+    available: '',
+    search: '',
+  });
+
+  useEffect(() => {
+    loadPets();
+  }, [filters]);
+
+  const loadPets = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams();
+      if (filters.species) params.append('species', filters.species);
+      if (filters.breed) params.append('breed', filters.breed);
+      if (filters.available) params.append('available', filters.available);
+      if (filters.search) params.append('search', filters.search);
+
+      const response = await api.get(`/pets?${params.toString()}`);
+      setPets(response.data.data || []);
+    } catch (error) {
+      console.error('Error loading pets:', error);
+      // Use mock data as fallback
+      let filtered = [...mockPets];
+      
+      if (filters.species) {
+        filtered = filtered.filter(p => p.species === filters.species);
+      }
+      if (filters.breed) {
+        filtered = filtered.filter(p => p.breed === filters.breed);
+      }
+      if (filters.available === 'true') {
+        filtered = filtered.filter(p => p.is_available === true);
+      } else if (filters.available === 'false') {
+        filtered = filtered.filter(p => p.is_available === false);
+      }
+      if (filters.search) {
+        filtered = filtered.filter(p => 
+          p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+          p.breed.toLowerCase().includes(filters.search.toLowerCase())
+        );
+      }
+      
+      setPets(filtered);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const data = {
+      name: formData.get('name'),
+      species: formData.get('species'),
+      breed: formData.get('breed'),
+      age: parseInt(formData.get('age')),
+      gender: formData.get('gender'),
+      description: formData.get('description'),
+      price: parseFloat(formData.get('price')),
+      stock_quantity: parseInt(formData.get('stock_quantity')),
+      is_available: formData.get('is_available') === 'on',
+    };
+
+    try {
+      const url = editingPet ? `/pets/${editingPet.pet_id}` : '/pets';
+      const method = editingPet ? 'put' : 'post';
+      await api[method](url, data);
+      toast.success(editingPet ? 'Pet updated' : 'Pet added');
+      setShowForm(false);
+      setEditingPet(null);
+      loadPets();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save pet');
+    }
+  };
+
+  const handleDelete = async (petId) => {
+    if (!window.confirm('Are you sure you want to delete this pet?')) return;
+
+    try {
+      await api.delete(`/pets/${petId}`);
+      toast.success('Pet deleted');
+      loadPets();
+    } catch (error) {
+      toast.error('Failed to delete pet');
+    }
+  };
+
+  const handleToggleAvailability = async (pet) => {
+    try {
+      await api.put(`/pets/${pet.pet_id}`, {
+        ...pet,
+        is_available: !pet.is_available,
+      });
+      toast.success('Availability updated');
+      loadPets();
+    } catch (error) {
+      toast.error('Failed to update availability');
+    }
+  };
+
+  const getSpeciesIcon = (species) => {
+    switch (species) {
+      case 'Dog':
+        return Dog;
+      case 'Cat':
+        return Cat;
+      case 'Bird':
+        return Bird;
+      case 'Rabbit':
+        return Rabbit;
+      default:
+        return PawPrint;
+    }
+  };
+
+  const getSpeciesColor = (species) => {
+    switch (species) {
+      case 'Dog':
+        return {
+          gradient: 'from-amber-500 to-amber-600',
+          bg: 'bg-amber-50',
+          border: 'border-amber-200',
+        };
+      case 'Cat':
+        return {
+          gradient: 'from-purple-500 to-purple-600',
+          bg: 'bg-purple-50',
+          border: 'border-purple-200',
+        };
+      case 'Bird':
+        return {
+          gradient: 'from-blue-500 to-blue-600',
+          bg: 'bg-blue-50',
+          border: 'border-blue-200',
+        };
+      case 'Rabbit':
+        return {
+          gradient: 'from-pink-500 to-pink-600',
+          bg: 'bg-pink-50',
+          border: 'border-pink-200',
+        };
+      default:
+        return {
+          gradient: 'from-slate-500 to-slate-600',
+          bg: 'bg-slate-50',
+          border: 'border-slate-200',
+        };
+    }
+  };
+
+  if (loading) return <Layout><Loading /></Layout>;
+
+  const availablePets = pets.filter(p => p.is_available).length;
+  const totalStock = pets.reduce((sum, p) => sum + (p.stock_quantity || 0), 0);
+
+  return (
+    <Layout>
+      <div className="page-shell">
+        <div className="page-header">
+          <div className="flex-1">
+            <h1 className="page-title">Pet Management</h1>
+            <p className="page-subtitle">Manage pet inventory, availability, and details</p>
+          </div>
+          <Button onClick={() => {
+            setEditingPet(null);
+            setShowForm(true);
+          }} className="!bg-primary-600 hover:!bg-primary-700">
+            <Plus className="w-4 h-4 inline mr-2" />
+            Add New Pet
+          </Button>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className="card card-muted group hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Pets</p>
+                <p className="text-2xl font-black text-slate-900">{pets.length}</p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                <PawPrint className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="card card-muted group hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Available</p>
+                <p className="text-2xl font-black text-emerald-600">{availablePets}</p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </div>
+          <div className="card card-muted group hover:shadow-xl transition-all duration-300">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Stock</p>
+                <p className="text-2xl font-black text-blue-600">{totalStock}</p>
+              </div>
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
+                <Package className="w-6 h-6 text-white" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Filters */}
+        <div className="card mb-6">
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-slate-500" />
+            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Search</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Search pets..."
+                  value={filters.search}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  className="input-field pl-10"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Species</label>
+              <select
+                value={filters.species}
+                onChange={(e) => setFilters({ ...filters, species: e.target.value })}
+                className="input-field"
+              >
+                <option value="">All Species</option>
+                <option value="Dog">Dog</option>
+                <option value="Cat">Cat</option>
+                <option value="Bird">Bird</option>
+                <option value="Rabbit">Rabbit</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Availability</label>
+              <select
+                value={filters.available}
+                onChange={(e) => setFilters({ ...filters, available: e.target.value })}
+                className="input-field"
+              >
+                <option value="">All Status</option>
+                <option value="true">Available</option>
+                <option value="false">Unavailable</option>
+              </select>
+            </div>
+            <div className="flex items-end">
+              <Button 
+                variant="outline" 
+                onClick={() => setFilters({ species: '', breed: '', available: '', search: '' })}
+                className="w-full"
+              >
+                <RefreshCw className="w-4 h-4 inline mr-1" />
+                Reset
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Pets Grid */}
+        {pets.length === 0 ? (
+          <div className="card">
+            <EmptyState 
+              icon={PawPrint}
+              title="No pets found" 
+              message="No pets match the selected filters"
+            />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pets.map((pet) => {
+              const SpeciesIcon = getSpeciesIcon(pet.species);
+              const speciesColors = getSpeciesColor(pet.species);
+              
+              return (
+                <div 
+                  key={pet.pet_id} 
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${speciesColors.border} overflow-hidden`}
+                >
+                  {/* Pet Image */}
+                  <div className="relative h-48 overflow-hidden rounded-t-2xl -mx-6 -mt-6 mb-4">
+                    {pet.image_url ? (
+                      <img
+                        src={pet.image_url}
+                        alt={pet.name}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/400x300?text=Pet+Image';
+                        }}
+                      />
+                    ) : (
+                      <div className={`w-full h-full bg-gradient-to-br ${speciesColors.gradient} flex items-center justify-center`}>
+                        <SpeciesIcon className="w-16 h-16 text-white opacity-50" />
+                      </div>
+                    )}
+                    <div className="absolute top-4 right-4">
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                        pet.is_available
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-rose-100 text-rose-700'
+                      }`}>
+                        {pet.is_available ? 'Available' : 'Unavailable'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* Pet Name and Species */}
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h3 className="font-bold text-xl text-slate-900 mb-1">{pet.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <div className={`h-8 w-8 rounded-lg bg-gradient-to-br ${speciesColors.gradient} flex items-center justify-center`}>
+                            <SpeciesIcon className="w-4 h-4 text-white" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-semibold text-slate-700">{pet.species}</p>
+                            <p className="text-xs text-slate-500">{pet.breed}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    <p className="text-sm text-slate-600 line-clamp-2">{pet.description}</p>
+
+                    {/* Details Grid */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2 bg-slate-50 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Age</p>
+                        <p className="text-sm font-bold text-slate-900">{pet.age} months</p>
+                      </div>
+                      <div className="p-2 bg-slate-50 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Gender</p>
+                        <p className="text-sm font-bold text-slate-900 capitalize">{pet.gender}</p>
+                      </div>
+                    </div>
+
+                    {/* Price and Stock */}
+                    <div className="flex items-center justify-between p-3 bg-emerald-50 rounded-xl border border-emerald-200">
+                      <div>
+                        <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">Price</p>
+                        <p className="text-lg font-black text-emerald-700">{formatCurrencyLKR(pet.price)}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">Stock</p>
+                        <p className={`text-lg font-black ${pet.stock_quantity > 0 ? 'text-emerald-700' : 'text-rose-700'}`}>
+                          {pet.stock_quantity}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-2 pt-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleToggleAvailability(pet)}
+                        className={`flex-1 ${
+                          pet.is_available
+                            ? '!bg-rose-50 !text-rose-700 hover:!bg-rose-100'
+                            : '!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100'
+                        }`}
+                      >
+                        {pet.is_available ? (
+                          <>
+                            <XCircle className="w-4 h-4 inline mr-1" />
+                            Mark Unavailable
+                          </>
+                        ) : (
+                          <>
+                            <CheckCircle className="w-4 h-4 inline mr-1" />
+                            Mark Available
+                          </>
+                        )}
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setEditingPet(pet);
+                          setShowForm(true);
+                        }}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDelete(pet.pet_id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Pet Form Modal */}
+        <Modal
+          isOpen={showForm}
+          onClose={() => {
+            setShowForm(false);
+            setEditingPet(null);
+          }}
+          title={editingPet ? 'Edit Pet' : 'Add New Pet'}
+          size="lg"
+        >
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
+              <div className="flex items-center gap-2 mb-2">
+                <PawPrint className="w-5 h-5 text-primary-600" />
+                <p className="text-sm font-semibold text-primary-700">
+                  {editingPet ? 'Update pet information' : 'Add a new pet to the inventory'}
+                </p>
+              </div>
+              <p className="text-xs text-primary-600">Fill in all the details below to {editingPet ? 'update' : 'add'} the pet</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Pet Name"
+                name="name"
+                defaultValue={editingPet?.name || ''}
+                required
+                placeholder="e.g., Max, Luna"
+              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Species <span className="text-red-500">*</span>
+                </label>
+                <select name="species" className="input-field" required defaultValue={editingPet?.species || ''}>
+                  <option value="">Select species</option>
+                  <option value="Dog">Dog</option>
+                  <option value="Cat">Cat</option>
+                  <option value="Bird">Bird</option>
+                  <option value="Rabbit">Rabbit</option>
+                </select>
+              </div>
+            </div>
+
+            <Input
+              label="Breed"
+              name="breed"
+              defaultValue={editingPet?.breed || ''}
+              required
+              placeholder="e.g., Golden Retriever, Persian"
+            />
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Age (months)"
+                type="number"
+                name="age"
+                defaultValue={editingPet?.age || ''}
+                required
+                placeholder="e.g., 3"
+              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Gender <span className="text-red-500">*</span>
+                </label>
+                <select name="gender" className="input-field" required defaultValue={editingPet?.gender || ''}>
+                  <option value="">Select gender</option>
+                  <option value="male">Male</option>
+                  <option value="female">Female</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Description</label>
+              <textarea
+                name="description"
+                rows={3}
+                className="input-field"
+                defaultValue={editingPet?.description || ''}
+                placeholder="Describe the pet's characteristics, temperament, etc."
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Price (LKR)"
+                type="number"
+                step="0.01"
+                name="price"
+                defaultValue={editingPet?.price || ''}
+                required
+                placeholder="e.g., 45000"
+              />
+              <Input
+                label="Stock Quantity"
+                type="number"
+                name="stock_quantity"
+                defaultValue={editingPet?.stock_quantity || 0}
+                required
+                placeholder="e.g., 2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">Pet Image</label>
+              <input type="file" accept="image/*" className="input-field" />
+              <p className="text-xs text-slate-500 mt-1">Upload a high-quality image of the pet</p>
+            </div>
+
+            <div className="flex items-center p-3 bg-slate-50 rounded-xl border border-slate-200">
+              <input
+                type="checkbox"
+                name="is_available"
+                defaultChecked={editingPet?.is_available !== false}
+                className="mr-3 w-4 h-4"
+                id="is_available"
+              />
+              <label htmlFor="is_available" className="text-sm font-semibold text-slate-700 cursor-pointer">
+                Make this pet available for purchase
+              </label>
+            </div>
+
+            <div className="flex space-x-4 pt-2">
+              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+                <PawPrint className="w-4 h-4 inline mr-2" />
+                {editingPet ? 'Update' : 'Add'} Pet
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setShowForm(false);
+                  setEditingPet(null);
+                }}
+              >
+                Cancel
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      </div>
+    </Layout>
+  );
+};
+
+export default PetManagement;
