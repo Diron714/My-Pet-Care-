@@ -17,10 +17,13 @@ export const NotificationProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    loadNotifications();
-    // Poll for new notifications every 30 seconds
-    const interval = setInterval(loadNotifications, 30000);
-    return () => clearInterval(interval);
+    const user = localStorage.getItem('user');
+    if (user) {
+      loadNotifications();
+      // Poll for new notifications every 30 seconds
+      const interval = setInterval(loadNotifications, 30000);
+      return () => clearInterval(interval);
+    }
   }, []);
 
   const loadNotifications = async () => {

@@ -18,60 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockOrders = [
-  {
-    order_id: 1,
-    order_number: 'ORD-2024-001',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    items_count: 3,
-    final_amount: 45000,
-    order_status: 'delivered',
-    payment_status: 'paid',
-    created_at: new Date().toISOString(),
-  },
-  {
-    order_id: 2,
-    order_number: 'ORD-2024-002',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    items_count: 2,
-    final_amount: 32000,
-    order_status: 'shipped',
-    payment_status: 'paid',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    order_id: 3,
-    order_number: 'ORD-2024-003',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    items_count: 5,
-    final_amount: 78000,
-    order_status: 'processing',
-    payment_status: 'paid',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    order_id: 4,
-    order_number: 'ORD-2024-004',
-    customer: { user: { first_name: 'David', last_name: 'Martinez' } },
-    items_count: 1,
-    final_amount: 15000,
-    order_status: 'pending',
-    payment_status: 'pending',
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-  },
-  {
-    order_id: 5,
-    order_number: 'ORD-2024-005',
-    customer: { user: { first_name: 'Lisa', last_name: 'Brown' } },
-    items_count: 4,
-    final_amount: 55000,
-    order_status: 'confirmed',
-    payment_status: 'paid',
-    created_at: new Date(Date.now() - 345600000).toISOString(),
-  },
-];
-
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -103,21 +49,6 @@ const OrderManagement = () => {
       setOrders(response.data.data || []);
     } catch (error) {
       console.error('Error loading orders:', error);
-      // Use mock data as fallback
-      let filtered = [...mockOrders];
-      if (filters.status) {
-        filtered = filtered.filter(o => o.order_status === filters.status);
-      }
-      if (filters.paymentStatus) {
-        filtered = filtered.filter(o => o.payment_status === filters.paymentStatus);
-      }
-      if (filters.search) {
-        filtered = filtered.filter(o => 
-          o.order_number.toLowerCase().includes(filters.search.toLowerCase()) ||
-          `${o.customer?.user?.first_name} ${o.customer?.user?.last_name}`.toLowerCase().includes(filters.search.toLowerCase())
-        );
-      }
-      setOrders(filtered);
     } finally {
       setLoading(false);
     }
@@ -281,8 +212,8 @@ const OrderManagement = () => {
               />
             </div>
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setFilters({ status: '', paymentStatus: '', dateFrom: '', dateTo: '', search: '' })}
                 className="w-full"
               >
@@ -296,9 +227,9 @@ const OrderManagement = () => {
         {/* Orders List */}
         {orders.length === 0 ? (
           <div className="card">
-            <EmptyState 
+            <EmptyState
               icon={ShoppingCart}
-              title="No orders found" 
+              title="No orders found"
               message="No orders match the selected filters"
             />
           </div>
@@ -307,10 +238,10 @@ const OrderManagement = () => {
             {orders.map((order) => {
               const StatusIcon = getStatusIcon(order.order_status);
               const PaymentIcon = getPaymentIcon(order.payment_status);
-              
+
               return (
-                <div 
-                  key={order.order_id} 
+                <div
+                  key={order.order_id}
                   className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500"
                 >
                   <div className="flex justify-between items-start">

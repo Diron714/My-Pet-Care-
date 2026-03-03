@@ -17,17 +17,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockProfile = {
-  specialization: 'Veterinary Medicine',
-  qualifications: 'DVM (Doctor of Veterinary Medicine), PhD in Animal Health',
-  experience_years: 8,
-  consultation_fee: 2500,
-  rating: 4.8,
-  total_reviews: 124,
-  image_url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
-};
-
 const ProfileManagement = () => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -51,17 +40,14 @@ const ProfileManagement = () => {
       const response = await api.get('/doctors/profile');
       const data = response.data.data;
       setProfile(data);
-      setValue('specialization', data.specialization);
-      setValue('qualifications', data.qualifications);
-      setValue('experience_years', data.experience_years);
-      setValue('consultation_fee', data.consultation_fee);
+      if (data) {
+        setValue('specialization', data.specialization);
+        setValue('qualifications', data.qualifications);
+        setValue('experience_years', data.experience_years);
+        setValue('consultation_fee', data.consultation_fee);
+      }
     } catch (error) {
       console.error('Error loading profile:', error);
-      setProfile(mockProfile);
-      setValue('specialization', mockProfile.specialization);
-      setValue('qualifications', mockProfile.qualifications);
-      setValue('experience_years', mockProfile.experience_years);
-      setValue('consultation_fee', mockProfile.consultation_fee);
     } finally {
       setLoading(false);
     }
@@ -124,21 +110,22 @@ const ProfileManagement = () => {
               )}
               <div className="flex-1">
                 <h2 className="text-2xl font-black text-slate-900 mb-2">Dr. Profile</h2>
-                {profile.rating && (
+                {profile.rating != null && (
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
                         <Star
                           key={i}
-                          className={`w-5 h-5 ${
-                            i < Math.floor(profile.rating || 0)
+                          className={`w-5 h-5 ${i < Math.floor(profile.rating || 0)
                               ? 'text-amber-400 fill-amber-400'
                               : 'text-slate-300'
-                          }`}
+                            }`}
                         />
                       ))}
                     </div>
-                    <span className="text-lg font-bold text-slate-700">{(profile.rating || 0).toFixed(1)}</span>
+                    <span className="text-lg font-bold text-slate-700">
+                      {Number(profile.rating || 0).toFixed(1)}
+                    </span>
                     <span className="text-slate-500">({profile.total_reviews || 0} reviews)</span>
                   </div>
                 )}
@@ -261,7 +248,7 @@ const ProfileManagement = () => {
                     <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Rating</p>
                   </div>
                   <p className="font-bold text-amber-900 text-lg">
-                    {profile.rating?.toFixed(1) || '0.0'} ({profile.total_reviews || 0} reviews)
+                    {profile.rating != null ? Number(profile.rating).toFixed(1) : '0.0'} ({profile.total_reviews || 0} reviews)
                   </p>
                 </div>
                 <div className="md:col-span-2 p-5 bg-slate-50 rounded-xl border border-slate-200">

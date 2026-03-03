@@ -21,7 +21,7 @@ export const appointmentService = {
 
   // Cancel appointment
   cancel: async (id) => {
-    const response = await api.put(`/appointments/${id}/cancel`);
+    const response = await api.put(`/appointments/${id}/status`, { status: 'cancelled' });
     return response.data;
   },
 

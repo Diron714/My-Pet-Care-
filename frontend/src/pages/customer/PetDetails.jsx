@@ -17,39 +17,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockPet = {
-  pet_id: 1,
-  name: 'Max',
-  species: 'Dog',
-  breed: 'Golden Retriever',
-  age: 6,
-  gender: 'male',
-  price: 45000,
-  description: 'A friendly and energetic Golden Retriever puppy. Max is well-trained, vaccinated, and ready for a loving home. He loves playing fetch and going for walks.',
-  is_available: true,
-  image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=800',
-};
-
-const mockRelatedPets = [
-  {
-    pet_id: 2,
-    name: 'Luna',
-    species: 'Dog',
-    breed: 'Labrador',
-    price: 40000,
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    pet_id: 3,
-    name: 'Charlie',
-    species: 'Dog',
-    breed: 'German Shepherd',
-    price: 50000,
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-];
-
 const PetDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -66,16 +33,16 @@ const PetDetails = () => {
   const loadPetDetails = async () => {
     try {
       setLoading(true);
-      const [petRes, relatedRes] = await Promise.all([
-        api.get(`/pets/${id}`),
-        api.get(`/pets?species=${pet?.species}&limit=4`),
-      ]);
-      setPet(petRes.data.data);
-      setRelatedPets(relatedRes.data.data?.filter(p => p.pet_id !== parseInt(id)) || []);
+      const petRes = await api.get(`/pets/${id}`);
+      const petData = petRes.data.data;
+      setPet(petData);
+
+      if (petData) {
+        const relatedRes = await api.get(`/pets?species=${petData.species}&limit=4`);
+        setRelatedPets(relatedRes.data.data?.filter(p => p.pet_id !== parseInt(id)) || []);
+      }
     } catch (error) {
       console.error('Error loading pet details:', error);
-      setPet(mockPet);
-      setRelatedPets(mockRelatedPets);
     } finally {
       setLoading(false);
     }
@@ -128,11 +95,10 @@ const PetDetails = () => {
                 </div>
               )}
               <div className="absolute top-4 right-4">
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wider flex items-center gap-2 ${
-                  pet.is_available
+                <span className={`px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wider flex items-center gap-2 ${pet.is_available
                     ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
                     : 'bg-rose-100 text-rose-800 border-2 border-rose-300'
-                }`}>
+                  }`}>
                   {pet.is_available ? (
                     <>
                       <CheckCircle className="w-4 h-4" />

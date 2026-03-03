@@ -7,16 +7,16 @@ import api from '../../services/api';
 import { formatDate, formatTime } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
 import toast from 'react-hot-toast';
-import { 
-  ArrowLeft, 
-  User, 
-  Calendar, 
-  ClipboardList, 
-  Stethoscope, 
-  FilePlus, 
-  History, 
-  CheckCircle2, 
-  XCircle, 
+import {
+  ArrowLeft,
+  User,
+  Calendar,
+  ClipboardList,
+  Stethoscope,
+  FilePlus,
+  History,
+  CheckCircle2,
+  XCircle,
   ShieldCheck,
   Activity,
   Zap,
@@ -35,44 +35,6 @@ const formatCurrencyLKR = (amount) => {
     currency: 'LKR',
   }).format(amount || 0);
 };
-
-// Mock data for fallback
-const mockAppointment = {
-  appointment_id: 1,
-  appointment_number: 'APT-2024-001',
-  appointment_date: new Date().toISOString().split('T')[0],
-  appointment_time: '10:00:00',
-  status: 'accepted',
-  consultation_fee: 2500,
-  customer: {
-    user: {
-      first_name: 'Sarah',
-      last_name: 'Johnson',
-      phone: '+94 77 123 4567',
-      email: 'sarah.johnson@example.com',
-    },
-  },
-  customer_pet: {
-    name: 'Max',
-    species: 'Dog',
-    breed: 'Golden Retriever',
-    age: 6,
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-};
-
-const mockHealthHistory = [
-  {
-    record_id: 1,
-    record_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    diagnosis: 'Routine check-up completed. Pet is in excellent health.',
-  },
-  {
-    record_id: 2,
-    record_date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    diagnosis: 'Minor skin irritation treated with topical medication.',
-  },
-];
 
 const AppointmentDetails = () => {
   const { id } = useParams();
@@ -94,11 +56,11 @@ const AppointmentDetails = () => {
   const loadAppointmentDetails = async () => {
     try {
       setLoading(true);
-      const [appointmentRes, historyRes] = await Promise.all([
-        api.get(`/appointments/${id}`),
-        api.get(`/health-records/pet/${appointment?.customer_pet_id}`),
-      ]);
-      setAppointment(appointmentRes.data.data);
+      const appointmentRes = await api.get(`/appointments/${id}`);
+      const appointmentData = appointmentRes.data.data;
+      setAppointment(appointmentData);
+
+      const historyRes = await api.get(`/health-records/pet/${appointmentData.customer_pet_id}`);
       setHealthHistory(historyRes.data.data || []);
       if (appointmentRes.data.data.doctor_notes) {
         setNotes({
@@ -109,8 +71,6 @@ const AppointmentDetails = () => {
       }
     } catch (error) {
       console.error('Error loading appointment details:', error);
-      setAppointment(mockAppointment);
-      setHealthHistory(mockHealthHistory);
     } finally {
       setLoading(false);
     }
@@ -119,7 +79,10 @@ const AppointmentDetails = () => {
   const handleSaveNotes = async () => {
     setSaving(true);
     try {
-      await api.post(`/appointments/${id}/notes`, notes);
+      await api.put(`/appointments/${id}/status`, {
+        status: appointment.status,
+        doctor_notes: notes.treatmentNotes || notes.diagnosis || notes.prescription || '',
+      });
       toast.success('Consultation notes synchronized');
       loadAppointmentDetails();
     } catch (error) {
@@ -131,7 +94,9 @@ const AppointmentDetails = () => {
 
   const handleAccept = async () => {
     try {
-      await api.put(`/appointments/${id}/accept`);
+      await api.put(`/appointments/${id}/status`, {
+        status: 'accepted',
+      });
       toast.success('Appointment accepted');
       loadAppointmentDetails();
     } catch (error) {
@@ -142,7 +107,9 @@ const AppointmentDetails = () => {
   const handleReject = async () => {
     if (!window.confirm('Confirm rejection of this session?')) return;
     try {
-      await api.put(`/appointments/${id}/reject`);
+      await api.put(`/appointments/${id}/status`, {
+        status: 'rejected',
+      });
       toast.success('Appointment rejected');
       navigate('/doctor/appointments');
     } catch (error) {
@@ -152,7 +119,9 @@ const AppointmentDetails = () => {
 
   const handleComplete = async () => {
     try {
-      await api.put(`/appointments/${id}/complete`);
+      await api.put(`/appointments/${id}/status`, {
+        status: 'completed',
+      });
       toast.success('Consultation officially completed');
       loadAppointmentDetails();
     } catch (error) {
@@ -167,11 +136,11 @@ const AppointmentDetails = () => {
     }
     try {
       await api.post('/health-records', {
-        appointmentId: id,
-        customerPetId: appointment.customer_pet_id,
+        appointment_id: id,
+        customer_pet_id: appointment.customer_pet_id,
         diagnosis: notes.diagnosis,
         prescription: notes.prescription,
-        treatmentNotes: notes.treatmentNotes,
+        treatment_notes: notes.treatmentNotes,
       });
       toast.success('Added to clinical ledger');
     } catch (error) {
@@ -215,7 +184,7 @@ const AppointmentDetails = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="card p-6 bg-gradient-to-br from-blue-50 to-blue-100 border-2 border-blue-200">
             <div className="flex items-center gap-4">
               <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center shadow-lg">
@@ -235,7 +204,7 @@ const AppointmentDetails = () => {
           <div className="lg:col-span-4 space-y-6">
             <div className="card bg-gradient-to-br from-slate-900 to-slate-800 text-white p-8 shadow-2xl relative overflow-hidden">
               <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl -mr-16 -mt-16" />
-              
+
               <div className="flex items-center gap-2 mb-8">
                 <User className="w-4 h-4 text-blue-400" />
                 <h3 className="text-xs font-black uppercase tracking-widest text-blue-400">Subject Identity</h3>
@@ -374,8 +343,8 @@ const AppointmentDetails = () => {
                 </div>
 
                 <div className="pt-4">
-                  <Button 
-                    onClick={handleSaveNotes} 
+                  <Button
+                    onClick={handleSaveNotes}
                     disabled={saving}
                     className="w-full !bg-primary-600 hover:!bg-primary-700 !py-4"
                     loading={saving}
@@ -401,7 +370,7 @@ const AppointmentDetails = () => {
                   </Button>
                 </>
               )}
-              
+
               {appointment.status === 'accepted' && (
                 <Button onClick={handleComplete} className="col-span-full !bg-primary-600 hover:!bg-primary-700 !py-4">
                   <CheckCircle2 className="w-5 h-5 inline mr-2" />
@@ -410,7 +379,7 @@ const AppointmentDetails = () => {
               )}
 
               {(notes.diagnosis || notes.prescription) && (
-                <Button 
+                <Button
                   onClick={handleAddToHealthRecords}
                   variant="outline"
                   className="col-span-full !py-4"

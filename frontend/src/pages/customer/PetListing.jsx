@@ -18,50 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockPets = [
-  {
-    pet_id: 1,
-    name: 'Max',
-    species: 'Dog',
-    breed: 'Golden Retriever',
-    age: 6,
-    price: 45000,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    pet_id: 2,
-    name: 'Luna',
-    species: 'Cat',
-    breed: 'Persian',
-    age: 4,
-    price: 35000,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
-  },
-  {
-    pet_id: 3,
-    name: 'Charlie',
-    species: 'Dog',
-    breed: 'Labrador',
-    age: 8,
-    price: 40000,
-    is_available: false,
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    pet_id: 4,
-    name: 'Bella',
-    species: 'Bird',
-    breed: 'Parrot',
-    age: 2,
-    price: 25000,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
 const PetListing = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -94,17 +50,7 @@ const PetListing = () => {
       setPets(response.data.data || []);
     } catch (error) {
       console.error('Error loading pets:', error);
-      let filtered = [...mockPets];
-      if (filters.species) {
-        filtered = filtered.filter(p => p.species === filters.species);
-      }
-      if (search) {
-        filtered = filtered.filter(p =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.breed.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setPets(filtered);
+      setPets([]);
     } finally {
       setLoading(false);
     }
@@ -229,9 +175,8 @@ const PetListing = () => {
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-t-2xl" />
-                        <span className={`absolute top-4 right-4 badge ${
-                          pet.is_available ? 'badge-success' : 'badge-danger'
-                        } flex items-center gap-1`}>
+                        <span className={`absolute top-4 right-4 badge ${pet.is_available ? 'badge-success' : 'badge-danger'
+                          } flex items-center gap-1`}>
                           {pet.is_available ? (
                             <>
                               <CheckCircle className="w-3 h-3" />

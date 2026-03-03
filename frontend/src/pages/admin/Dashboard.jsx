@@ -4,6 +4,7 @@ import Loading from '../../components/common/Loading';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
 import { DollarSign, ShoppingCart, Users, Calendar, Package, MessageSquare, TrendingUp, Activity, ArrowUpRight, ArrowDownRight, Clock } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 // Format currency as LKR (Sri Lankan Rupees)
 const formatCurrencyLKR = (amount) => {
@@ -12,31 +13,6 @@ const formatCurrencyLKR = (amount) => {
     currency: 'LKR',
   }).format(amount || 0);
 };
-
-// Mock data for fallback
-const mockStats = {
-  totalSales: { today: 125000, week: 875000, month: 3450000 },
-  totalOrders: 247,
-  activeCustomers: 189,
-  pendingAppointments: 12,
-  pendingExchanges: 3,
-};
-
-const mockRecentOrders = [
-  { order_id: 1, order_number: 'ORD-2024-001', final_amount: 45000, created_at: new Date().toISOString(), status: 'completed' },
-  { order_id: 2, order_number: 'ORD-2024-002', final_amount: 32000, created_at: new Date(Date.now() - 86400000).toISOString(), status: 'processing' },
-  { order_id: 3, order_number: 'ORD-2024-003', final_amount: 28000, created_at: new Date(Date.now() - 172800000).toISOString(), status: 'completed' },
-  { order_id: 4, order_number: 'ORD-2024-004', final_amount: 55000, created_at: new Date(Date.now() - 259200000).toISOString(), status: 'shipped' },
-  { order_id: 5, order_number: 'ORD-2024-005', final_amount: 38000, created_at: new Date(Date.now() - 345600000).toISOString(), status: 'completed' },
-];
-
-const mockRecentRegistrations = [
-  { user_id: 1, first_name: 'Sarah', last_name: 'Johnson', role: 'customer', created_at: new Date().toISOString() },
-  { user_id: 2, first_name: 'Michael', last_name: 'Chen', role: 'customer', created_at: new Date(Date.now() - 86400000).toISOString() },
-  { user_id: 3, first_name: 'Emma', last_name: 'Williams', role: 'customer', created_at: new Date(Date.now() - 172800000).toISOString() },
-  { user_id: 4, first_name: 'Dr. James', last_name: 'Anderson', role: 'doctor', created_at: new Date(Date.now() - 259200000).toISOString() },
-  { user_id: 5, first_name: 'Lisa', last_name: 'Martinez', role: 'customer', created_at: new Date(Date.now() - 345600000).toISOString() },
-];
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
@@ -48,6 +24,7 @@ const Dashboard = () => {
   });
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentRegistrations, setRecentRegistrations] = useState([]);
+  const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -57,21 +34,19 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
-      const [dashboardRes, ordersRes, usersRes] = await Promise.all([
+      const [dashboardRes, ordersRes, usersRes, chartRes] = await Promise.all([
         api.get('/admin/dashboard'),
         api.get('/orders?limit=5'),
         api.get('/admin/users?limit=5'),
+        api.get('/admin/dashboard/chart').catch(() => ({ data: { data: { salesByDay: [] } } })),
       ]);
 
       setStats(dashboardRes.data.data || stats);
       setRecentOrders(ordersRes.data.data || []);
       setRecentRegistrations(usersRes.data.data || []);
+      setChartData(chartRes.data?.data?.salesByDay || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);
-      // Use mock data as fallback
-      setStats(mockStats);
-      setRecentOrders(mockRecentOrders);
-      setRecentRegistrations(mockRecentRegistrations);
     } finally {
       setLoading(false);
     }
@@ -195,8 +170,8 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-4">
                 {recentOrders.map((order, index) => (
-                  <div 
-                    key={order.order_id} 
+                  <div
+                    key={order.order_id}
                     className="border border-slate-100 rounded-xl p-4 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200 group"
                   >
                     <div className="flex justify-between items-start">
@@ -204,12 +179,11 @@ const Dashboard = () => {
                         <div className="flex items-center gap-2 mb-2">
                           <p className="font-bold text-slate-900">{order.order_number}</p>
                           {order.status && (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                              order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
-                              order.status === 'processing' ? 'bg-amber-100 text-amber-700' :
-                              order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
-                              'bg-slate-100 text-slate-700'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${order.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
+                                order.status === 'processing' ? 'bg-amber-100 text-amber-700' :
+                                  order.status === 'shipped' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-slate-100 text-slate-700'
+                              }`}>
                               {order.status}
                             </span>
                           )}
@@ -248,8 +222,8 @@ const Dashboard = () => {
             ) : (
               <div className="space-y-4">
                 {recentRegistrations.map((user) => (
-                  <div 
-                    key={user.user_id} 
+                  <div
+                    key={user.user_id}
                     className="border border-slate-100 rounded-xl p-4 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200 group"
                   >
                     <div className="flex justify-between items-start">
@@ -259,15 +233,14 @@ const Dashboard = () => {
                         </div>
                         <div className="flex-1">
                           <p className="font-bold text-slate-900">
-                          {user.first_name} {user.last_name}
-                        </p>
+                            {user.first_name} {user.last_name}
+                          </p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                              user.role === 'customer' ? 'bg-blue-100 text-blue-700' :
-                              user.role === 'doctor' ? 'bg-emerald-100 text-emerald-700' :
-                              user.role === 'admin' ? 'bg-violet-100 text-violet-700' :
-                              'bg-slate-100 text-slate-700'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${user.role === 'customer' ? 'bg-blue-100 text-blue-700' :
+                                user.role === 'doctor' ? 'bg-emerald-100 text-emerald-700' :
+                                  user.role === 'admin' ? 'bg-violet-100 text-violet-700' :
+                                    'bg-slate-100 text-slate-700'
+                              }`}>
                               {user.role}
                             </span>
                           </div>
@@ -282,35 +255,35 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Charts Placeholder */}
+        {/* Analytics Charts */}
         <div className="card mt-6 hover:shadow-xl transition-shadow duration-300">
           <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
             <div>
               <h2 className="text-xl font-bold text-slate-900">Analytics Overview</h2>
-              <p className="text-xs text-slate-500 mt-1">Visual insights and trends</p>
+              <p className="text-xs text-slate-500 mt-1">Sales and orders in the last 7 days</p>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="h-64 bg-gradient-to-br from-emerald-50 to-emerald-100/50 rounded-2xl border border-emerald-100 flex flex-col items-center justify-center p-6 hover:shadow-lg transition-shadow group">
-              <TrendingUp className="w-12 h-12 text-emerald-600 mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-semibold text-emerald-700 mb-1">Sales Trend Chart</p>
-              <p className="text-xs text-emerald-600/70 text-center">Revenue growth over time</p>
-            </div>
-            <div className="h-64 bg-gradient-to-br from-primary-50 to-primary-100/50 rounded-2xl border border-primary-100 flex flex-col items-center justify-center p-6 hover:shadow-lg transition-shadow group">
-              <Package className="w-12 h-12 text-primary-600 mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-semibold text-primary-700 mb-1">Popular Pets Chart</p>
-              <p className="text-xs text-primary-600/70 text-center">Best-selling breeds</p>
-            </div>
-            <div className="h-64 bg-gradient-to-br from-amber-50 to-amber-100/50 rounded-2xl border border-amber-100 flex flex-col items-center justify-center p-6 hover:shadow-lg transition-shadow group">
-              <Calendar className="w-12 h-12 text-amber-600 mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-semibold text-amber-700 mb-1">Appointment Trends</p>
-              <p className="text-xs text-amber-600/70 text-center">Booking patterns</p>
-            </div>
-            <div className="h-64 bg-gradient-to-br from-violet-50 to-violet-100/50 rounded-2xl border border-violet-100 flex flex-col items-center justify-center p-6 hover:shadow-lg transition-shadow group">
-              <Users className="w-12 h-12 text-violet-600 mb-3 group-hover:scale-110 transition-transform" />
-              <p className="text-sm font-semibold text-violet-700 mb-1">Customer Growth</p>
-              <p className="text-xs text-violet-600/70 text-center">User acquisition rate</p>
-            </div>
+          <div className="h-72">
+            {chartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis dataKey="date" tick={{ fontSize: 11 }} />
+                  <YAxis yAxisId="left" tick={{ fontSize: 11 }} tickFormatter={(v) => `LKR ${(v / 1000).toFixed(0)}k`} />
+                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 11 }} />
+                  <Tooltip formatter={(value, name) => [name === 'sales' ? formatCurrencyLKR(value) : value, name === 'sales' ? 'Sales' : 'Orders']} labelFormatter={(label) => `Date: ${label}`} />
+                  <Legend />
+                  <Bar yAxisId="left" dataKey="sales" name="Sales" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="orders" name="Orders" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="h-full flex flex-col items-center justify-center text-slate-500">
+                <TrendingUp className="w-12 h-12 text-slate-300 mb-2" />
+                <p className="text-sm font-semibold">No chart data yet</p>
+                <p className="text-xs">Sales and orders from the last 7 days will appear here</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

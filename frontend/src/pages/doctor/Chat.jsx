@@ -7,49 +7,7 @@ import api from '../../services/api';
 import { formatDateTime } from '../../utils/formatters';
 import { MessageSquare, Send, Stethoscope, User, Clock, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Mock data for fallback
-const mockRooms = [
-  {
-    room_id: 1,
-    room_type: 'customer_doctor',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    appointment_id: 101,
-    created_at: new Date().toISOString(),
-  },
-  {
-    room_id: 2,
-    room_type: 'customer_doctor',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    appointment_id: 102,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const mockMessages = {
-  1: [
-    {
-      message_id: 1,
-      message_text: 'Hello Doctor, I have a question about my pet\'s medication.',
-      sender_id: 1,
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      message_id: 2,
-      message_text: 'Of course! I\'d be happy to help. What seems to be the concern?',
-      sender_id: 2,
-      created_at: new Date(Date.now() - 3300000).toISOString(),
-    },
-  ],
-  2: [
-    {
-      message_id: 3,
-      message_text: 'Thank you for the consultation today!',
-      sender_id: 3,
-      created_at: new Date(Date.now() - 7200000).toISOString(),
-    },
-  ],
-};
+import { useAuth } from '../../context/AuthContext';
 
 const Chat = () => {
   const [rooms, setRooms] = useState([]);
@@ -59,6 +17,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadRooms();
@@ -86,16 +45,9 @@ const Chat = () => {
       setRooms(doctorRooms);
       if (doctorRooms.length > 0 && !selectedRoom) {
         setSelectedRoom(doctorRooms[0]);
-      } else if ((!doctorRooms || doctorRooms.length === 0) && mockRooms.length > 0) {
-        setRooms(mockRooms);
-        setSelectedRoom(mockRooms[0]);
       }
     } catch (error) {
       console.error('Error loading chat rooms:', error);
-      setRooms(mockRooms);
-      if (mockRooms.length > 0 && !selectedRoom) {
-        setSelectedRoom(mockRooms[0]);
-      }
     } finally {
       setLoading(false);
     }
@@ -109,7 +61,6 @@ const Chat = () => {
       setMessages(response.data.data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      setMessages(mockMessages[selectedRoom.room_id] || []);
     }
   };
 
@@ -162,20 +113,19 @@ const Chat = () => {
                 <button
                   key={room.room_id}
                   onClick={() => setSelectedRoom(room)}
-                  className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${
-                    selectedRoom?.room_id === room.room_id
+                  className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
                       ? 'bg-primary-100 text-primary-800 font-semibold'
                       : 'hover:bg-slate-100 text-slate-700'
-                  }`}
+                    }`}
                 >
                   <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg flex-shrink-0">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate">{getRoomName(room)}</p>
-                  {room.appointment_id && (
+                    {room.appointment_id && (
                       <p className="text-xs text-slate-500 mt-1">Appointment #{room.appointment_id}</p>
-                  )}
+                    )}
                   </div>
                 </button>
               ))}
@@ -195,10 +145,10 @@ const Chat = () => {
                       <h2 className="font-bold text-xl text-slate-900">
                         {getRoomName(selectedRoom)}
                       </h2>
-                  {selectedRoom.appointment_id && (
+                      {selectedRoom.appointment_id && (
                         <p className="text-sm text-slate-500 mt-1">Appointment #{selectedRoom.appointment_id}</p>
-                  )}
-                </div>
+                      )}
+                    </div>
                   </div>
                 </div>
                 <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-slate-50/60">
@@ -209,36 +159,33 @@ const Chat = () => {
                       message="Start the conversation with your patient"
                     />
                   ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message.message_id}
-                        className={`flex ${
-                          message.sender_id === selectedRoom.doctor_id
-                            ? 'justify-end'
-                            : 'justify-start'
-                        }`}
-                      >
+                    messages.map((message) => {
+                      const isSentByCurrentUser = message.sender_id === user?.userId;
+                      return (
                         <div
-                          className={`max-w-md p-4 rounded-2xl shadow-sm ${
-                            message.sender_id === selectedRoom.doctor_id
-                              ? 'bg-primary-600 text-white rounded-br-none'
-                              : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
-                          }`}
+                          key={message.message_id}
+                          className={`flex ${isSentByCurrentUser ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p className="text-sm">{message.message_text}</p>
-                          <p
-                            className={`text-xs mt-1 flex items-center gap-1 ${
-                            message.sender_id === selectedRoom.doctor_id
-                                ? 'text-primary-200'
-                                : 'text-slate-500'
-                            }`}
+                          <div
+                            className={`max-w-md p-4 rounded-2xl shadow-sm ${isSentByCurrentUser
+                                ? 'bg-primary-600 text-white rounded-br-none'
+                                : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
+                              }`}
                           >
-                            <Clock className="w-3 h-3" />
-                            {formatDateTime(message.created_at)}
-                          </p>
+                            <p className="text-sm">{message.message_text}</p>
+                            <p
+                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
+                                  ? 'text-primary-200'
+                                  : 'text-slate-500'
+                                }`}
+                            >
+                              <Clock className="w-3 h-3" />
+                              {formatDateTime(message.created_at)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>

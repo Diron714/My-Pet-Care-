@@ -42,11 +42,11 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // Don't show toast for login/register errors - let components handle them
-    const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') || 
-                          originalRequest?.url?.includes('/auth/register') ||
-                          originalRequest?.url?.includes('/auth/verify-otp') ||
-                          originalRequest?.url?.includes('/auth/forgot-password') ||
-                          originalRequest?.url?.includes('/auth/reset-password');
+    const isAuthEndpoint = originalRequest?.url?.includes('/auth/login') ||
+      originalRequest?.url?.includes('/auth/register') ||
+      originalRequest?.url?.includes('/auth/verify-otp') ||
+      originalRequest?.url?.includes('/auth/forgot-password') ||
+      originalRequest?.url?.includes('/auth/reset-password');
 
     // Handle 401 - Token expired (but not for login/register)
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
@@ -72,7 +72,10 @@ api.interceptors.response.use(
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
-        window.location.href = '/login';
+
+        if (window.location.pathname !== '/login') {
+          window.location.href = '/login';
+        }
         return Promise.reject(refreshError);
       }
     }

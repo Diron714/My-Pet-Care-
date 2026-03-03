@@ -9,60 +9,6 @@ import { getStatusColor } from '../../utils/helpers';
 import { Clock, Check, Bell, Calendar, User, Package, ShoppingBag, PawPrint, RefreshCw, CheckCircle, XCircle, AlertCircle, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Mock data for fallback
-const mockPreBookings = [
-  {
-    pre_booking_id: 1,
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    item_name: 'Premium Dog Food 10kg',
-    item_type: 'product',
-    quantity: 2,
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    notes: 'Customer requested early delivery if possible',
-  },
-  {
-    pre_booking_id: 2,
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    item_name: 'Golden Retriever Puppy',
-    item_type: 'pet',
-    quantity: 1,
-    status: 'pending',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    notes: 'Looking for a friendly puppy for family',
-  },
-  {
-    pre_booking_id: 3,
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    item_name: 'Cat Litter Box Premium',
-    item_type: 'product',
-    quantity: 3,
-    status: 'fulfilled',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    notes: 'Pre-ordered for next month',
-  },
-  {
-    pre_booking_id: 4,
-    customer: { user: { first_name: 'David', last_name: 'Martinez' } },
-    item_name: 'Persian Cat',
-    item_type: 'pet',
-    quantity: 1,
-    status: 'pending',
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-    notes: 'Prefer female cat if available',
-  },
-  {
-    pre_booking_id: 5,
-    customer: { user: { first_name: 'Lisa', last_name: 'Brown' } },
-    item_name: 'Pet Grooming Service',
-    item_type: 'service',
-    quantity: 1,
-    status: 'cancelled',
-    created_at: new Date(Date.now() - 345600000).toISOString(),
-    notes: 'Customer cancelled due to scheduling conflict',
-  },
-];
-
 const PreBookingManagement = () => {
   const [preBookings, setPreBookings] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -80,12 +26,6 @@ const PreBookingManagement = () => {
       setPreBookings(response.data.data || []);
     } catch (error) {
       console.error('Error loading pre-bookings:', error);
-      // Use mock data as fallback
-      let filtered = [...mockPreBookings];
-      if (filter !== 'all') {
-        filtered = filtered.filter(pb => pb.status === filter);
-      }
-      setPreBookings(filtered);
     } finally {
       setLoading(false);
     }
@@ -252,11 +192,10 @@ const PreBookingManagement = () => {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                     ? getActiveClasses(f.color)
                     : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : getIconColor(f.color)}`} />
                 {f.label}
@@ -278,10 +217,10 @@ const PreBookingManagement = () => {
             {preBookings.map((preBooking) => {
               const ItemIcon = getItemIcon(preBooking.item_type);
               const itemStyles = getItemStyles(preBooking.item_type);
-              
+
               return (
-                <div 
-                  key={preBooking.pre_booking_id} 
+                <div
+                  key={preBooking.pre_booking_id}
                   className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${itemStyles.border}`}
                 >
                   <div className="flex justify-between items-start">

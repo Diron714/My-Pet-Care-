@@ -15,46 +15,6 @@ import { Plus, Package, RefreshCw, ShoppingBag, AlertCircle, Calendar, X, CheckC
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
-// Mock data for fallback
-const mockRequests = [
-  {
-    exchange_id: 1,
-    order: { order_number: 'ORD-2024-001' },
-    pet: { name: 'Golden Retriever Puppy' },
-    reason: 'Pet size mismatch - ordered small but received medium',
-    status: 'pending',
-    created_at: new Date().toISOString(),
-  },
-  {
-    exchange_id: 2,
-    order: { order_number: 'ORD-2024-002' },
-    pet: { name: 'Persian Cat' },
-    reason: 'Color preference - customer wants different color',
-    status: 'approved',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const mockOrders = [
-  {
-    order_id: 1,
-    order_number: 'ORD-2024-001',
-    created_at: new Date().toISOString(),
-    items: [
-      { item_id: 1, item_name: 'Golden Retriever Puppy', item_type: 'pet' },
-    ],
-  },
-  {
-    order_id: 2,
-    order_id: 2,
-    order_number: 'ORD-2024-002',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    items: [
-      { item_id: 2, item_name: 'Persian Cat', item_type: 'pet' },
-    ],
-  },
-];
-
 const ExchangeRequests = () => {
   const [requests, setRequests] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -85,7 +45,6 @@ const ExchangeRequests = () => {
       setRequests(response.data.data || []);
     } catch (error) {
       console.error('Error loading exchange requests:', error);
-      setRequests(mockRequests);
     } finally {
       setLoading(false);
     }
@@ -100,13 +59,17 @@ const ExchangeRequests = () => {
       setOrders(ordersWithPets);
     } catch (error) {
       console.error('Error loading orders:', error);
-      setOrders(mockOrders);
     }
   };
 
   const onSubmit = async (data) => {
     try {
-      const response = await api.post('/exchanges', data);
+      const payload = {
+        order_id: parseInt(data.orderId),
+        pet_id: parseInt(data.petId),
+        reason: data.reason,
+      };
+      const response = await api.post('/exchanges', payload);
       if (response.data.success) {
         toast.success('Exchange request submitted');
         setShowForm(false);

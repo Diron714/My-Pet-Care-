@@ -18,58 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockProducts = [
-  {
-    product_id: 1,
-    name: 'Premium Dog Food 5kg',
-    category: 'Food',
-    price: 3500,
-    stock_quantity: 50,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 2,
-    name: 'Interactive Dog Toy',
-    category: 'Toys',
-    price: 1200,
-    stock_quantity: 30,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 3,
-    name: 'Cat Litter Box Premium',
-    category: 'Accessories',
-    price: 2500,
-    stock_quantity: 0,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 4,
-    name: 'Pet Grooming Kit',
-    category: 'Grooming',
-    price: 4500,
-    stock_quantity: 25,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 5,
-    name: 'Dog Leash Premium',
-    category: 'Accessories',
-    price: 1800,
-    stock_quantity: 40,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 6,
-    name: 'Cat Food 3kg',
-    category: 'Food',
-    price: 2800,
-    stock_quantity: 35,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,17 +40,7 @@ const ProductListing = () => {
       setProducts(response.data.data || []);
     } catch (error) {
       console.error('Error loading products:', error);
-      let filtered = [...mockProducts];
-      if (filters.category) {
-        filtered = filtered.filter(p => p.category === filters.category);
-      }
-      if (search) {
-        filtered = filtered.filter(p =>
-          p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.category.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setProducts(filtered);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -203,9 +141,8 @@ const ProductListing = () => {
                           </div>
                         )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-t-2xl" />
-                        <span className={`absolute top-4 right-4 badge ${
-                          product.stock_quantity > 0 ? 'badge-success' : 'badge-danger'
-                        } flex items-center gap-1`}>
+                        <span className={`absolute top-4 right-4 badge ${product.stock_quantity > 0 ? 'badge-success' : 'badge-danger'
+                          } flex items-center gap-1`}>
                           {product.stock_quantity > 0 ? (
                             <>
                               <CheckCircle className="w-3 h-3" />

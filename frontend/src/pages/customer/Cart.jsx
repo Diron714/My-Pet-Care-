@@ -17,34 +17,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock cart items for fallback
-const mockCartItems = [
-  {
-    cart_id: 1,
-    name: 'Premium Dog Food 5kg',
-    item_type: 'product',
-    unitPrice: 3500,
-    quantity: 2,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    cart_id: 2,
-    name: 'Interactive Dog Toy',
-    item_type: 'product',
-    unitPrice: 1200,
-    quantity: 1,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    cart_id: 3,
-    name: 'Cat Litter Box Premium',
-    item_type: 'product',
-    unitPrice: 2500,
-    quantity: 1,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
 const Cart = () => {
   const { cartItems, loading, cartTotal, updateCartItem, removeFromCart, loadCart } = useCart();
   const navigate = useNavigate();
@@ -69,8 +41,8 @@ const Cart = () => {
 
   if (loading) return <Layout><Loading /></Layout>;
 
-  const displayItems = cartItems.length > 0 ? cartItems : mockCartItems;
-  const displayTotal = cartItems.length > 0 ? cartTotal : displayItems.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
+  const displayItems = cartItems;
+  const displayTotal = cartTotal;
   const subtotal = displayTotal;
   const discount = 0;
   const shipping = 500;
@@ -126,7 +98,7 @@ const Cart = () => {
                         </div>
                       )}
                     </div>
-                    
+
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div>
@@ -188,7 +160,7 @@ const Cart = () => {
                   <ShoppingCart className="w-5 h-5 text-primary-600" />
                   <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
                 </div>
-                
+
                 <div className="space-y-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="text-slate-600">Subtotal</span>

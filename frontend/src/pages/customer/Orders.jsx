@@ -16,46 +16,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockOrders = [
-  {
-    order_id: 1,
-    order_number: 'ORD-2024-001',
-    created_at: new Date().toISOString(),
-    order_status: 'delivered',
-    payment_status: 'paid',
-    final_amount: 45000,
-    items_count: 3,
-  },
-  {
-    order_id: 2,
-    order_number: 'ORD-2024-002',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    order_status: 'shipped',
-    payment_status: 'paid',
-    final_amount: 32000,
-    items_count: 2,
-  },
-  {
-    order_id: 3,
-    order_number: 'ORD-2024-003',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    order_status: 'processing',
-    payment_status: 'pending',
-    final_amount: 28000,
-    items_count: 1,
-  },
-  {
-    order_id: 4,
-    order_number: 'ORD-2024-004',
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-    order_status: 'pending',
-    payment_status: 'pending',
-    final_amount: 15000,
-    items_count: 1,
-  },
-];
-
 const Orders = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -73,11 +33,7 @@ const Orders = () => {
       setOrders(response.data.data || []);
     } catch (error) {
       console.error('Error loading orders:', error);
-      let filtered = [...mockOrders];
-      if (filter !== 'all') {
-        filtered = filtered.filter(o => o.order_status === filter);
-      }
-      setOrders(filtered);
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -157,36 +113,35 @@ const Orders = () => {
             const Icon = f.icon;
             const isActive = filter === f.value;
             return (
-            <button
-              key={f.value}
-              onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  isActive
+              <button
+                key={f.value}
+                onClick={() => setFilter(f.value)}
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                     ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-              }`}
-            >
+                  }`}
+              >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
-              {f.label}
-            </button>
+                {f.label}
+              </button>
             );
           })}
         </div>
 
         {orders.length === 0 ? (
           <div className="card">
-          <EmptyState
-            icon={FileText}
-            title="No orders found"
-            message="You haven't placed any orders yet"
-          />
+            <EmptyState
+              icon={FileText}
+              title="No orders found"
+              message="You haven't placed any orders yet"
+            />
           </div>
         ) : (
           <div className="space-y-4">
             {orders.map((order) => {
               const StatusIcon = getStatusIcon(order.order_status);
               return (
-              <Link key={order.order_id} to={`/customer/orders/${order.order_id}`}>
+                <Link key={order.order_id} to={`/customer/orders/${order.order_id}`}>
                   <div className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500">
                     <div className="flex items-start gap-4">
                       <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg flex-shrink-0">
@@ -197,11 +152,11 @@ const Orders = () => {
                           <h3 className="font-bold text-lg text-slate-900">Order #{order.order_number}</h3>
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider flex items-center gap-1 ${getStatusColor(order.order_status)}`}>
                             <StatusIcon className="w-3 h-3" />
-                          {order.order_status}
-                        </span>
+                            {order.order_status}
+                          </span>
                           <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${getStatusColor(order.payment_status)}`}>
-                          {order.payment_status}
-                        </span>
+                            {order.payment_status}
+                          </span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
                           <div className="flex items-center gap-2 text-slate-600">
@@ -218,9 +173,9 @@ const Orders = () => {
                         </div>
                       </div>
                       <ArrowRight className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                    </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
               );
             })}
           </div>

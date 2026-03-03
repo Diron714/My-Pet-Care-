@@ -7,54 +7,8 @@ import api from '../../services/api';
 import { formatDateTime } from '../../utils/formatters';
 import { MessageSquare, Send, Stethoscope, Shield, User, Clock, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Mock data for fallback
-const mockRooms = [
-  {
-    room_id: 1,
-    room_type: 'customer_doctor',
-    doctor: { user: { first_name: 'James', last_name: 'Anderson' } },
-    appointment_id: 101,
-    created_at: new Date().toISOString(),
-  },
-  {
-    room_id: 2,
-    room_type: 'customer_staff',
-    appointment_id: null,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-];
-
-const mockMessages = {
-  1: [
-    {
-      message_id: 1,
-      message_text: 'Hello, I have a question about my pet\'s health.',
-      is_sent: false,
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      message_id: 2,
-      message_text: 'Of course! I\'d be happy to help. What seems to be the concern?',
-      is_sent: true,
-      created_at: new Date(Date.now() - 3300000).toISOString(),
-    },
-    {
-      message_id: 3,
-      message_text: 'My dog has been coughing for the past few days.',
-      is_sent: false,
-      created_at: new Date(Date.now() - 3000000).toISOString(),
-    },
-  ],
-  2: [
-    {
-      message_id: 4,
-      message_text: 'I need help with my order.',
-      is_sent: false,
-      created_at: new Date(Date.now() - 7200000).toISOString(),
-    },
-  ],
-};
+import { useLocation } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 const Chat = () => {
   const [rooms, setRooms] = useState([]);
@@ -64,10 +18,20 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const location = useLocation();
+  const { user } = useAuth();
 
   useEffect(() => {
-    loadRooms();
-  }, []);
+    const params = new URLSearchParams(location.search);
+    const doctorId = params.get('doctorId');
+
+    if (doctorId) {
+      createDoctorChatRoom(doctorId);
+    } else {
+      loadRooms();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.search]);
 
   useEffect(() => {
     if (selectedRoom) {
@@ -85,21 +49,29 @@ const Chat = () => {
     try {
       setLoading(true);
       const response = await api.get('/chat/rooms');
-      setRooms(response.data.data || []);
-      if (response.data.data && response.data.data.length > 0 && !selectedRoom) {
-        setSelectedRoom(response.data.data[0]);
-      } else if ((!response.data.data || response.data.data.length === 0) && mockRooms.length > 0) {
-        setRooms(mockRooms);
-        setSelectedRoom(mockRooms[0]);
+      const roomList = response.data.data || [];
+      setRooms(roomList);
+      if (roomList.length > 0 && !selectedRoom) {
+        setSelectedRoom(roomList[0]);
       }
     } catch (error) {
       console.error('Error loading chat rooms:', error);
-      // Use mock data as fallback
-      setRooms(mockRooms);
-      if (mockRooms.length > 0 && !selectedRoom) {
-        setSelectedRoom(mockRooms[0]);
-      }
     } finally {
+      setLoading(false);
+    }
+  };
+
+  const createDoctorChatRoom = async (doctorId) => {
+    try {
+      setLoading(true);
+      await api.post('/chat/rooms', {
+        room_type: 'customer_doctor',
+        doctor_id: Number(doctorId),
+      });
+      await loadRooms();
+    } catch (error) {
+      console.error('Error creating chat room:', error);
+      toast.error(error.response?.data?.message || 'Failed to start chat');
       setLoading(false);
     }
   };
@@ -112,8 +84,6 @@ const Chat = () => {
       setMessages(response.data.data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      // Use mock data as fallback
-      setMessages(mockMessages[selectedRoom.room_id] || []);
     }
   };
 
@@ -201,11 +171,10 @@ const Chat = () => {
                   <button
                     key={room.room_id}
                     onClick={() => setSelectedRoom(room)}
-                    className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${
-                      selectedRoom?.room_id === room.room_id
+                    className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
                         ? 'bg-primary-100 text-primary-800 font-semibold'
                         : 'hover:bg-slate-100 text-slate-700'
-                    }`}
+                      }`}
                   >
                     <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${roomStyles.gradient} flex items-center justify-center flex-shrink-0 shadow-lg`}>
                       <RoomIcon className="w-6 h-6 text-white" />
@@ -254,32 +223,33 @@ const Chat = () => {
                       message="Start the conversation with your doctor or support staff"
                     />
                   ) : (
-                    messages.map((message) => (
-                      <div
-                        key={message.message_id}
-                        className={`flex ${message.is_sent ? 'justify-end' : 'justify-start'}`}
-                      >
+                    messages.map((message) => {
+                      const isSentByCurrentUser = message.sender_id === user?.userId;
+                      return (
                         <div
-                          className={`max-w-md p-4 rounded-2xl shadow-sm ${
-                            message.is_sent
-                              ? 'bg-primary-600 text-white rounded-br-none'
-                              : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
-                          }`}
+                          key={message.message_id}
+                          className={`flex ${isSentByCurrentUser ? 'justify-end' : 'justify-start'}`}
                         >
-                          <p className="text-sm">{message.message_text}</p>
-                          <p
-                            className={`text-xs mt-1 flex items-center gap-1 ${
-                              message.is_sent
-                                ? 'text-primary-200'
-                                : 'text-slate-500'
-                            }`}
+                          <div
+                            className={`max-w-md p-4 rounded-2xl shadow-sm ${isSentByCurrentUser
+                                ? 'bg-primary-600 text-white rounded-br-none'
+                                : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
+                              }`}
                           >
-                            <Clock className="w-3 h-3" />
-                            {formatDateTime(message.created_at)}
-                          </p>
+                            <p className="text-sm">{message.message_text}</p>
+                            <p
+                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
+                                  ? 'text-primary-200'
+                                  : 'text-slate-500'
+                                }`}
+                            >
+                              <Clock className="w-3 h-3" />
+                              {formatDateTime(message.created_at)}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                   <div ref={messagesEndRef} />
                 </div>

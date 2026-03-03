@@ -16,48 +16,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockOffers = [
-  {
-    offer_id: 1,
-    title: 'Summer Sale - 25% Off',
-    description: 'Get 25% discount on all premium pet food products. Perfect time to stock up for your furry friends!',
-    discount_type: 'percentage',
-    discount_value: 25,
-    min_purchase: 5000,
-    valid_from: new Date().toISOString().split('T')[0],
-    valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    offer_id: 2,
-    title: 'New Customer Bonus',
-    description: 'Rs 1000 off on your first purchase. Welcome to My Pet Care+!',
-    discount_type: 'fixed_amount',
-    discount_value: 1000,
-    min_purchase: 3000,
-    valid_from: new Date().toISOString().split('T')[0],
-    valid_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    offer_id: 3,
-    title: 'Pet Care Bundle Deal',
-    description: 'Buy any pet care bundle and get 15% off. Includes food, toys, and accessories.',
-    discount_type: 'percentage',
-    discount_value: 15,
-    min_purchase: 10000,
-    valid_from: new Date().toISOString().split('T')[0],
-    valid_until: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
-const mockLoyalty = {
-  loyalty_points: 1250,
-  loyalty_tier: 'gold',
-};
-
 const Offers = () => {
   const [offers, setOffers] = useState([]);
   const [loyalty, setLoyalty] = useState(null);
@@ -77,7 +35,6 @@ const Offers = () => {
       setOffers(response.data.data || []);
     } catch (error) {
       console.error('Error loading offers:', error);
-      setOffers(mockOffers);
     } finally {
       setLoading(false);
     }
@@ -89,7 +46,6 @@ const Offers = () => {
       setLoyalty(response.data.data);
     } catch (error) {
       console.error('Error loading loyalty:', error);
-      setLoyalty(mockLoyalty);
     }
   };
 

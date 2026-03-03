@@ -18,40 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockAppointments = [
-  {
-    appointment_id: 1,
-    appointment_number: 'APT-2024-001',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    customer_pet: { name: 'Max', species: 'Dog' },
-    appointment_date: new Date().toISOString().split('T')[0],
-    appointment_time: '10:00:00',
-    consultation_fee: 2500,
-    status: 'pending',
-  },
-  {
-    appointment_id: 2,
-    appointment_number: 'APT-2024-002',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    customer_pet: { name: 'Luna', species: 'Cat' },
-    appointment_date: new Date(Date.now() + 86400000).toISOString().split('T')[0],
-    appointment_time: '14:30:00',
-    consultation_fee: 3000,
-    status: 'accepted',
-  },
-  {
-    appointment_id: 3,
-    appointment_number: 'APT-2024-003',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    customer_pet: { name: 'Charlie', species: 'Bird' },
-    appointment_date: new Date(Date.now() - 86400000).toISOString().split('T')[0],
-    appointment_time: '11:00:00',
-    consultation_fee: 2000,
-    status: 'completed',
-  },
-];
-
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -69,11 +35,7 @@ const Appointments = () => {
       setAppointments(response.data.data || []);
     } catch (error) {
       console.error('Error loading appointments:', error);
-      let filtered = [...mockAppointments];
-      if (filter !== 'all') {
-        filtered = filtered.filter(a => a.status === filter);
-      }
-      setAppointments(filtered);
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
@@ -81,7 +43,9 @@ const Appointments = () => {
 
   const handleAccept = async (appointmentId) => {
     try {
-      await api.put(`/appointments/${appointmentId}/accept`);
+      await api.put(`/appointments/${appointmentId}/status`, {
+        status: 'accepted',
+      });
       toast.success('Appointment accepted');
       loadAppointments();
     } catch (error) {
@@ -93,7 +57,9 @@ const Appointments = () => {
     if (!window.confirm('Are you sure you want to reject this appointment?')) return;
 
     try {
-      await api.put(`/appointments/${appointmentId}/reject`);
+      await api.put(`/appointments/${appointmentId}/status`, {
+        status: 'rejected',
+      });
       toast.success('Appointment rejected');
       loadAppointments();
     } catch (error) {
@@ -103,7 +69,9 @@ const Appointments = () => {
 
   const handleComplete = async (appointmentId) => {
     try {
-      await api.put(`/appointments/${appointmentId}/complete`);
+      await api.put(`/appointments/${appointmentId}/status`, {
+        status: 'completed',
+      });
       toast.success('Appointment marked as completed');
       loadAppointments();
     } catch (error) {
@@ -196,11 +164,10 @@ const Appointments = () => {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                     ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
                 {f.label}

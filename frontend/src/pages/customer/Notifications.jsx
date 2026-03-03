@@ -8,52 +8,14 @@ import { formatDateTime } from '../../utils/formatters';
 import { Bell, Check, ShoppingCart, Calendar, Gift, Settings, Trash2, Filter, CheckCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Mock data for fallback
-const mockNotifications = [
-  {
-    notification_id: 1,
-    title: 'Order Shipped!',
-    message: 'Your order #ORD-2024-001 has been shipped and is on its way to you.',
-    notification_type: 'order',
-    is_read: false,
-    created_at: new Date().toISOString(),
-  },
-  {
-    notification_id: 2,
-    title: 'Appointment Reminder',
-    message: 'Your appointment with Dr. James Anderson is tomorrow at 10:00 AM.',
-    notification_type: 'appointment',
-    is_read: false,
-    created_at: new Date(Date.now() - 3600000).toISOString(),
-  },
-  {
-    notification_id: 3,
-    title: 'New Offer Available!',
-    message: 'Get 25% off on all premium pet food products. Limited time offer!',
-    notification_type: 'offer',
-    is_read: true,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    notification_id: 4,
-    title: 'Order Delivered',
-    message: 'Your order #ORD-2024-002 has been delivered successfully.',
-    notification_type: 'order',
-    is_read: true,
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-];
-
 const Notifications = () => {
   const { notifications: contextNotifications, loading, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const [filter, setFilter] = useState('all');
   const [notifications, setNotifications] = useState([]);
 
   useEffect(() => {
-    if (contextNotifications && contextNotifications.length > 0) {
+    if (contextNotifications) {
       setNotifications(contextNotifications);
-    } else {
-      setNotifications(mockNotifications);
     }
   }, [contextNotifications]);
 
@@ -66,26 +28,20 @@ const Notifications = () => {
   const handleMarkAllRead = async () => {
     if (contextNotifications && contextNotifications.length > 0) {
       await markAllAsRead();
-    } else {
-      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+      toast.success('All notifications marked as read');
     }
-    toast.success('All notifications marked as read');
   };
 
   const handleDelete = async (notificationId) => {
     if (contextNotifications && contextNotifications.length > 0) {
       await deleteNotification(notificationId);
-    } else {
-      setNotifications(notifications.filter(n => n.notification_id !== notificationId));
+      toast.success('Notification deleted');
     }
-    toast.success('Notification deleted');
   };
 
   const handleMarkRead = async (notificationId) => {
     if (contextNotifications && contextNotifications.length > 0) {
       await markAsRead(notificationId);
-    } else {
-      setNotifications(notifications.map(n => n.notification_id === notificationId ? { ...n, is_read: true } : n));
     }
   };
 
@@ -185,11 +141,10 @@ const Notifications = () => {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                     ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
                 {f.label}
@@ -214,9 +169,8 @@ const Notifications = () => {
               return (
                 <div
                   key={notification.notification_id}
-                  className={`card hover:shadow-xl transition-all duration-300 ${
-                    !notification.is_read ? `border-l-4 border-l-${colors.gradient.split('-')[1]}-500 ${colors.bg}` : ''
-                  }`}
+                  className={`card hover:shadow-xl transition-all duration-300 ${!notification.is_read ? `border-l-4 border-l-${colors.gradient.split('-')[1]}-500 ${colors.bg}` : ''
+                    }`}
                 >
                   <div className="flex items-start gap-4">
                     <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${colors.gradient} flex items-center justify-center shadow-lg flex-shrink-0`}>

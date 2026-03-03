@@ -7,7 +7,7 @@ import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
 import toast from 'react-hot-toast';
-import { Download, ArrowLeft, ShoppingCart, MapPin, CreditCard, Package, Truck, CheckCircle, XCircle, DollarSign, Percent, Sparkles } from 'lucide-react';
+import { Download, ArrowLeft, ShoppingCart, MapPin, CreditCard, Package, Truck, CheckCircle, XCircle, DollarSign, Percent, Sparkles, Calendar } from 'lucide-react';
 
 // Format currency as LKR
 const formatCurrencyLKR = (amount) => {
@@ -15,51 +15,6 @@ const formatCurrencyLKR = (amount) => {
     style: 'currency',
     currency: 'LKR',
   }).format(amount || 0);
-};
-
-// Mock data for fallback
-const mockOrder = {
-  order_id: 1,
-  order_number: 'ORD-2024-001',
-  created_at: new Date().toISOString(),
-  order_status: 'delivered',
-  payment_status: 'paid',
-  payment_method: 'cash_on_delivery',
-  shipping_address: '123 Pet Street, Colombo 05, Sri Lanka',
-  transaction_reference: 'TXN-2024-001',
-  total_amount: 50000,
-  discount_amount: 5000,
-  loyalty_points_used: 100,
-  final_amount: 44000,
-  items: [
-    {
-      order_item_id: 1,
-      item_name: 'Premium Dog Food 5kg',
-      item_type: 'product',
-      quantity: 2,
-      unit_price: 3500,
-      subtotal: 7000,
-      image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-    },
-    {
-      order_item_id: 2,
-      item_name: 'Interactive Dog Toy',
-      item_type: 'product',
-      quantity: 1,
-      unit_price: 1200,
-      subtotal: 1200,
-      image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-    },
-    {
-      order_item_id: 3,
-      item_name: 'Golden Retriever Puppy',
-      item_type: 'pet',
-      quantity: 1,
-      unit_price: 40000,
-      subtotal: 40000,
-      image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-    },
-  ],
 };
 
 const OrderDetails = () => {
@@ -79,7 +34,6 @@ const OrderDetails = () => {
       setOrder(response.data.data);
     } catch (error) {
       console.error('Error loading order details:', error);
-      setOrder(mockOrder);
     } finally {
       setLoading(false);
     }
@@ -89,7 +43,7 @@ const OrderDetails = () => {
     if (!window.confirm('Are you sure you want to cancel this order?')) return;
 
     try {
-      await api.post(`/orders/${id}/cancel`);
+      await api.put(`/orders/${id}/cancel`);
       toast.success('Order cancelled successfully');
       loadOrderDetails();
     } catch (error) {

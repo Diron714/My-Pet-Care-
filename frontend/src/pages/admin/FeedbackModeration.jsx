@@ -10,60 +10,6 @@ import { Star, Check, X, MessageSquare, Package, Stethoscope, ShoppingBag, Filte
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
-// Mock data for fallback
-const mockFeedbacks = [
-  {
-    feedback_id: 1,
-    feedback_type: 'product',
-    item_name: 'Premium Dog Food 5kg',
-    rating: 5,
-    comment: 'Excellent quality! My dog loves it. Highly recommend to all pet owners.',
-    status: 'pending',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    created_at: new Date().toISOString(),
-  },
-  {
-    feedback_id: 2,
-    feedback_type: 'service',
-    item_name: 'Pet Grooming Service',
-    rating: 4,
-    comment: 'Great service! The staff was professional and my pet looks amazing.',
-    status: 'approved',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    feedback_id: 3,
-    feedback_type: 'doctor',
-    item_name: 'Dr. James Anderson',
-    rating: 5,
-    comment: 'Outstanding veterinarian! Very knowledgeable and caring. My pet received excellent care.',
-    status: 'pending',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    feedback_id: 4,
-    feedback_type: 'product',
-    item_name: 'Cat Litter Box',
-    rating: 3,
-    comment: 'Good product but could be larger. Works well for small cats.',
-    status: 'approved',
-    customer: { user: { first_name: 'David', last_name: 'Martinez' } },
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-  },
-  {
-    feedback_id: 5,
-    feedback_type: 'service',
-    item_name: 'Pet Training Session',
-    rating: 2,
-    comment: 'Not satisfied with the training. Expected more progress.',
-    status: 'rejected',
-    customer: { user: { first_name: 'Lisa', last_name: 'Brown' } },
-    created_at: new Date(Date.now() - 345600000).toISOString(),
-  },
-];
-
 const FeedbackModeration = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,18 +38,6 @@ const FeedbackModeration = () => {
       setFeedbacks(response.data.data || []);
     } catch (error) {
       console.error('Error loading feedbacks:', error);
-      // Use mock data as fallback
-      let filtered = [...mockFeedbacks];
-      if (filters.type) {
-        filtered = filtered.filter(f => f.feedback_type === filters.type);
-      }
-      if (filters.status) {
-        filtered = filtered.filter(f => f.status === filters.status);
-      }
-      if (filters.rating) {
-        filtered = filtered.filter(f => f.rating === parseInt(filters.rating));
-      }
-      setFeedbacks(filtered);
     } finally {
       setLoading(false);
     }
@@ -250,8 +184,8 @@ const FeedbackModeration = () => {
               </select>
             </div>
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setFilters({ type: '', status: '', rating: '' })}
                 className="w-full"
               >
@@ -275,8 +209,8 @@ const FeedbackModeration = () => {
               const TypeIcon = getTypeIcon(feedback.feedback_type);
               const typeStyles = getTypeStyles(feedback.feedback_type);
               return (
-                <div 
-                  key={feedback.feedback_id} 
+                <div
+                  key={feedback.feedback_id}
                   className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${typeStyles.border}`}
                 >
                   <div className="flex justify-between items-start">
@@ -290,13 +224,12 @@ const FeedbackModeration = () => {
                             <h3 className="font-bold text-lg text-slate-900 capitalize">
                               {feedback.feedback_type} Feedback
                             </h3>
-                            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                              feedback.status === 'approved'
+                            <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${feedback.status === 'approved'
                                 ? 'bg-emerald-100 text-emerald-700'
                                 : feedback.status === 'rejected'
-                                ? 'bg-rose-100 text-rose-700'
-                                : 'bg-amber-100 text-amber-700'
-                            }`}>
+                                  ? 'bg-rose-100 text-rose-700'
+                                  : 'bg-amber-100 text-amber-700'
+                              }`}>
                               {feedback.status === 'pending' && <Clock className="w-3 h-3 inline mr-1" />}
                               {feedback.status === 'approved' && <ThumbsUp className="w-3 h-3 inline mr-1" />}
                               {feedback.status === 'rejected' && <ThumbsDown className="w-3 h-3 inline mr-1" />}
@@ -320,11 +253,10 @@ const FeedbackModeration = () => {
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-5 h-5 ${
-                                i < feedback.rating
+                              className={`w-5 h-5 ${i < feedback.rating
                                   ? 'text-amber-400 fill-amber-400'
                                   : 'text-slate-300'
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -402,11 +334,10 @@ const FeedbackModeration = () => {
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-4 h-4 ${
-                          i < selectedFeedback.rating
+                        className={`w-4 h-4 ${i < selectedFeedback.rating
                             ? 'text-amber-400 fill-amber-400'
                             : 'text-slate-300'
-                        }`}
+                          }`}
                       />
                     ))}
                   </div>

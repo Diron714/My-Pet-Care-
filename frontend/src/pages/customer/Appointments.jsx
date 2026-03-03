@@ -18,54 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockAppointments = [
-  {
-    appointment_id: 1,
-    appointment_number: 'APT-2024-001',
-    doctor: { user: { first_name: 'James', last_name: 'Anderson' }, specialization: 'Veterinary Surgeon' },
-    customer_pet: { name: 'Max', species: 'Dog', breed: 'Golden Retriever' },
-    appointment_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    appointment_time: '10:00:00',
-    consultation_fee: 2500,
-    status: 'accepted',
-    created_at: new Date().toISOString(),
-  },
-  {
-    appointment_id: 2,
-    appointment_number: 'APT-2024-002',
-    doctor: { user: { first_name: 'Sarah', last_name: 'Wilson' }, specialization: 'Pet Dermatologist' },
-    customer_pet: { name: 'Luna', species: 'Cat', breed: 'Persian' },
-    appointment_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    appointment_time: '14:30:00',
-    consultation_fee: 3000,
-    status: 'pending',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    appointment_id: 3,
-    appointment_number: 'APT-2024-003',
-    doctor: { user: { first_name: 'Michael', last_name: 'Brown' }, specialization: 'General Practitioner' },
-    customer_pet: { name: 'Charlie', species: 'Bird', breed: 'Parrot' },
-    appointment_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    appointment_time: '11:00:00',
-    consultation_fee: 2000,
-    status: 'completed',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    appointment_id: 4,
-    appointment_number: 'APT-2024-004',
-    doctor: { user: { first_name: 'James', last_name: 'Anderson' }, specialization: 'Veterinary Surgeon' },
-    customer_pet: { name: 'Bella', species: 'Dog', breed: 'Labrador' },
-    appointment_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    appointment_time: '09:00:00',
-    consultation_fee: 2500,
-    status: 'cancelled',
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-  },
-];
-
 const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -83,12 +35,6 @@ const Appointments = () => {
       setAppointments(response.data.data || []);
     } catch (error) {
       console.error('Error loading appointments:', error);
-      // Use mock data as fallback
-      let filtered = [...mockAppointments];
-      if (filter !== 'all') {
-        filtered = filtered.filter(a => a.status === filter);
-      }
-      setAppointments(filtered);
     } finally {
       setLoading(false);
     }
@@ -98,7 +44,9 @@ const Appointments = () => {
     if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
 
     try {
-      await api.post(`/appointments/${appointmentId}/cancel`);
+      await api.put(`/appointments/${appointmentId}/status`, {
+        status: 'cancelled',
+      });
       toast.success('Appointment cancelled successfully');
       loadAppointments();
     } catch (error) {
@@ -208,11 +156,10 @@ const Appointments = () => {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                     ? styles.active
                     : `bg-white border-2 ${styles.inactive}`
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
                 {f.label}

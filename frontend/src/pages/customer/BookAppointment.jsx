@@ -20,53 +20,11 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockDoctors = [
-  {
-    doctor_id: 1,
-    user: { first_name: 'James', last_name: 'Anderson' },
-    specialization: 'Veterinary Surgeon',
-    consultation_fee: 2500,
-    image_url: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400',
-  },
-  {
-    doctor_id: 2,
-    user: { first_name: 'Sarah', last_name: 'Wilson' },
-    specialization: 'Pet Dermatologist',
-    consultation_fee: 3000,
-    image_url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
-  },
-  {
-    doctor_id: 3,
-    user: { first_name: 'Michael', last_name: 'Brown' },
-    specialization: 'General Practitioner',
-    consultation_fee: 2000,
-    image_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400',
-  },
-];
-
-const mockPets = [
-  {
-    customer_pet_id: 1,
-    name: 'Max',
-    species: 'Dog',
-    breed: 'Golden Retriever',
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    customer_pet_id: 2,
-    name: 'Luna',
-    species: 'Cat',
-    breed: 'Persian',
-    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
-  },
-];
-
 const BookAppointment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const preSelectedDoctorId = searchParams.get('doctorId');
-  
+
   const [doctors, setDoctors] = useState([]);
   const [pets, setPets] = useState([]);
   const [selectedDoctor, setSelectedDoctor] = useState(null);
@@ -114,8 +72,6 @@ const BookAppointment = () => {
       setDoctors(response.data.data || []);
     } catch (error) {
       console.error('Error loading doctors:', error);
-      // Use mock data as fallback
-      setDoctors(mockDoctors);
     }
   };
 
@@ -125,20 +81,20 @@ const BookAppointment = () => {
       setPets(response.data.data || []);
     } catch (error) {
       console.error('Error loading pets:', error);
-      // Use mock data as fallback
-      setPets(mockPets);
     }
   };
 
   const loadAvailableSlots = async (doctorId, date) => {
     try {
       setLoadingSlots(true);
-      const response = await api.get(`/doctors/${doctorId}/available-slots?date=${date}`);
-      setAvailableSlots(response.data.data || []);
+      const response = await api.get('/appointments/available-slots', {
+        params: { doctorId, date },
+      });
+      const slots = response.data.data || [];
+      // Keep only available time strings for the dropdown
+      setAvailableSlots(slots.filter((s) => s.available).map((s) => s.time));
     } catch (error) {
       console.error('Error loading slots:', error);
-      // Use mock slots as fallback
-      setAvailableSlots(['09:00:00', '10:00:00', '11:00:00', '14:00:00', '15:00:00', '16:00:00']);
     } finally {
       setLoadingSlots(false);
     }
@@ -148,10 +104,10 @@ const BookAppointment = () => {
     setLoading(true);
     try {
       const response = await api.post('/appointments', {
-        doctorId: parseInt(data.doctorId),
-        customerPetId: parseInt(data.customerPetId),
-        appointmentDate: data.appointmentDate,
-        appointmentTime: data.appointmentTime,
+        doctor_id: parseInt(data.doctorId),
+        customer_pet_id: parseInt(data.customerPetId),
+        appointment_date: data.appointmentDate,
+        appointment_time: data.appointmentTime,
       });
 
       if (response.data.success) {

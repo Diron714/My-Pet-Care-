@@ -17,43 +17,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockProduct = {
-  product_id: 1,
-  name: 'Premium Dog Food 5kg',
-  category: 'Food',
-  price: 3500,
-  stock_quantity: 50,
-  description: 'High-quality premium dog food made with natural ingredients. Rich in protein and essential nutrients for your dog\'s health and vitality. Suitable for all dog breeds and ages.',
-  image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800',
-  rating: 4.8,
-  total_reviews: 124,
-};
-
-const mockRelatedProducts = [
-  {
-    product_id: 2,
-    name: 'Interactive Dog Toy',
-    category: 'Toys',
-    price: 1200,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 3,
-    name: 'Cat Litter Box Premium',
-    category: 'Accessories',
-    price: 2500,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 4,
-    name: 'Pet Grooming Kit',
-    category: 'Grooming',
-    price: 4500,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
 const ProductDetails = () => {
   const { id } = useParams();
   const { addToCart } = useCart();
@@ -69,16 +32,16 @@ const ProductDetails = () => {
   const loadProductDetails = async () => {
     try {
       setLoading(true);
-      const [productRes, relatedRes] = await Promise.all([
-        api.get(`/products/${id}`),
-        api.get(`/products?category=${product?.category}&limit=4`),
-      ]);
-      setProduct(productRes.data.data);
-      setRelatedProducts(relatedRes.data.data?.filter(p => p.product_id !== parseInt(id)) || []);
+      const response = await api.get(`/products/${id}`);
+      const productData = response.data.data;
+      setProduct(productData);
+
+      if (productData) {
+        const relatedRes = await api.get(`/products?category=${productData.category}&limit=4`);
+        setRelatedProducts(relatedRes.data.data?.filter(p => p.product_id !== parseInt(id)) || []);
+      }
     } catch (error) {
       console.error('Error loading product details:', error);
-      setProduct(mockProduct);
-      setRelatedProducts(mockRelatedProducts);
     } finally {
       setLoading(false);
     }
@@ -127,11 +90,10 @@ const ProductDetails = () => {
                 </div>
               )}
               <div className="absolute top-4 right-4">
-                <span className={`px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wider flex items-center gap-2 ${
-                  product.stock_quantity > 0
+                <span className={`px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wider flex items-center gap-2 ${product.stock_quantity > 0
                     ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
                     : 'bg-rose-100 text-rose-800 border-2 border-rose-300'
-                }`}>
+                  }`}>
                   {product.stock_quantity > 0 ? (
                     <>
                       <CheckCircle className="w-4 h-4" />
@@ -156,18 +118,17 @@ const ProductDetails = () => {
               </span>
             </div>
             <h1 className="text-4xl font-black text-slate-900 mb-4">{product.name}</h1>
-            
+
             {product.rating && (
               <div className="flex items-center gap-2 mb-4">
                 <div className="flex items-center gap-1">
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.floor(product.rating || 0)
+                      className={`w-5 h-5 ${i < Math.floor(product.rating || 0)
                           ? 'text-amber-400 fill-amber-400'
                           : 'text-slate-300'
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>

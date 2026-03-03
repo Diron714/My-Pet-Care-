@@ -19,38 +19,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockPreBookings = [
-  {
-    pre_booking_id: 1,
-    item_name: 'Golden Retriever Puppy',
-    item_type: 'pet',
-    quantity: 1,
-    status: 'pending',
-    created_at: new Date().toISOString(),
-    fulfilled_at: null,
-  },
-  {
-    pre_booking_id: 2,
-    item_name: 'Premium Dog Food 5kg',
-    item_type: 'product',
-    quantity: 2,
-    status: 'fulfilled',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    fulfilled_at: new Date().toISOString(),
-  },
-];
-
-const mockPets = [
-  { pet_id: 1, name: 'Golden Retriever Puppy', price: 45000 },
-  { pet_id: 2, name: 'Persian Cat', price: 35000 },
-];
-
-const mockProducts = [
-  { product_id: 1, name: 'Premium Dog Food 5kg', price: 3500 },
-  { product_id: 2, name: 'Interactive Dog Toy', price: 1200 },
-];
-
 const PreBookings = () => {
   const [preBookings, setPreBookings] = useState([]);
   const [pets, setPets] = useState([]);
@@ -72,7 +40,7 @@ const PreBookings = () => {
       setPreBookings(response.data.data || []);
     } catch (error) {
       console.error('Error loading pre-bookings:', error);
-      setPreBookings(mockPreBookings);
+      setPreBookings([]);
     } finally {
       setLoading(false);
     }
@@ -84,7 +52,7 @@ const PreBookings = () => {
       setPets(response.data.data || []);
     } catch (error) {
       console.error('Error loading pets:', error);
-      setPets(mockPets);
+      setPets([]);
     }
   };
 
@@ -94,7 +62,7 @@ const PreBookings = () => {
       setProducts(response.data.data || []);
     } catch (error) {
       console.error('Error loading products:', error);
-      setProducts(mockProducts);
+      setProducts([]);
     }
   };
 
@@ -102,9 +70,9 @@ const PreBookings = () => {
     e.preventDefault();
     const formData = new FormData(e.target);
     const data = {
-      itemType: formData.get('itemType'),
-      itemId: parseInt(formData.get('itemId')),
-      quantity: parseInt(formData.get('quantity')),
+      item_type: formData.get('itemType'),
+      item_id: parseInt(formData.get('itemId')),
+      quantity: parseInt(formData.get('quantity')) || 1,
     };
 
     try {
@@ -180,9 +148,8 @@ const PreBookings = () => {
               return (
                 <div key={preBooking.pre_booking_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-violet-500">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${
-                      preBooking.item_type === 'pet' ? 'from-rose-500 to-rose-600' : 'from-blue-500 to-blue-600'
-                    } flex items-center justify-center shadow-lg flex-shrink-0`}>
+                    <div className={`h-16 w-16 rounded-xl bg-gradient-to-br ${preBooking.item_type === 'pet' ? 'from-rose-500 to-rose-600' : 'from-blue-500 to-blue-600'
+                      } flex items-center justify-center shadow-lg flex-shrink-0`}>
                       <ItemIcon className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">

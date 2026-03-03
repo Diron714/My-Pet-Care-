@@ -9,28 +9,6 @@ import api from '../../services/api';
 import { Plus, Edit, Trash2, Eye, PawPrint, User, Calendar, Heart, Syringe, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Mock data for fallback
-const mockPets = [
-  {
-    customer_pet_id: 1,
-    name: 'Max',
-    species: 'Dog',
-    breed: 'Golden Retriever',
-    age: 6,
-    gender: 'male',
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    customer_pet_id: 2,
-    name: 'Luna',
-    species: 'Cat',
-    breed: 'Persian',
-    age: 4,
-    gender: 'female',
-    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
-  },
-];
-
 const PetProfiles = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -48,7 +26,7 @@ const PetProfiles = () => {
       setPets(response.data.data || []);
     } catch (error) {
       console.error('Error loading pets:', error);
-      setPets(mockPets);
+      setPets([]);
     } finally {
       setLoading(false);
     }
@@ -72,13 +50,8 @@ const PetProfiles = () => {
       setSelectedPet(response.data.data);
       setShowDetails(true);
     } catch (error) {
+      console.error('Error loading pet details:', error);
       toast.error('Failed to load pet details');
-      // Use mock data as fallback
-      const pet = mockPets.find(p => p.customer_pet_id === petId);
-      if (pet) {
-        setSelectedPet(pet);
-        setShowDetails(true);
-      }
     }
   };
 

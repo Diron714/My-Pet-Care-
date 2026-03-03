@@ -18,70 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockProducts = [
-  {
-    product_id: 1,
-    name: 'Premium Dog Food 5kg',
-    category: 'Food',
-    description: 'High-quality premium dog food with all essential nutrients. Made with real meat and vegetables.',
-    price: 3500,
-    stock_quantity: 25,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 2,
-    name: 'Interactive Dog Toy',
-    category: 'Toys',
-    description: 'Durable interactive toy that keeps your dog entertained and mentally stimulated.',
-    price: 1200,
-    stock_quantity: 15,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 3,
-    name: 'Cat Litter Box Premium',
-    category: 'Accessories',
-    description: 'Large, easy-to-clean litter box with odor control. Perfect for indoor cats.',
-    price: 2500,
-    stock_quantity: 8,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 4,
-    name: 'Pet Grooming Kit',
-    category: 'Grooming',
-    description: 'Complete grooming kit with brush, comb, nail clippers, and shampoo. Everything you need for pet care.',
-    price: 4500,
-    stock_quantity: 12,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 5,
-    name: 'Veterinary Supplements',
-    category: 'Health',
-    description: 'Essential vitamins and supplements for optimal pet health. Recommended by veterinarians.',
-    price: 2800,
-    stock_quantity: 0,
-    is_available: false,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    product_id: 6,
-    name: 'Dog Leash & Collar Set',
-    category: 'Accessories',
-    description: 'Premium leather leash and collar set. Adjustable and comfortable for your pet.',
-    price: 1800,
-    stock_quantity: 20,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -109,25 +45,7 @@ const ProductManagement = () => {
       setProducts(response.data.data || []);
     } catch (error) {
       console.error('Error loading products:', error);
-      // Use mock data as fallback
-      let filtered = [...mockProducts];
-      
-      if (filters.category) {
-        filtered = filtered.filter(p => p.category === filters.category);
-      }
-      if (filters.available === 'true') {
-        filtered = filtered.filter(p => p.is_available === true);
-      } else if (filters.available === 'false') {
-        filtered = filtered.filter(p => p.is_available === false);
-      }
-      if (filters.search) {
-        filtered = filtered.filter(p => 
-          p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-          p.description.toLowerCase().includes(filters.search.toLowerCase())
-        );
-      }
-      
-      setProducts(filtered);
+      setProducts([]);
     } finally {
       setLoading(false);
     }
@@ -353,8 +271,8 @@ const ProductManagement = () => {
               </select>
             </div>
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setFilters({ category: '', available: '', search: '' })}
                 className="w-full"
               >
@@ -368,9 +286,9 @@ const ProductManagement = () => {
         {/* Products Grid */}
         {products.length === 0 ? (
           <div className="card">
-            <EmptyState 
+            <EmptyState
               icon={Package}
-              title="No products found" 
+              title="No products found"
               message="No products match the selected filters"
             />
           </div>
@@ -379,10 +297,10 @@ const ProductManagement = () => {
             {products.map((product) => {
               const CategoryIcon = getCategoryIcon(product.category);
               const categoryStyles = getCategoryStyles(product.category);
-              
+
               return (
-                <div 
-                  key={product.product_id} 
+                <div
+                  key={product.product_id}
                   className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${categoryStyles.border} overflow-hidden`}
                 >
                   {/* Product Image */}
@@ -402,11 +320,10 @@ const ProductManagement = () => {
                       </div>
                     )}
                     <div className="absolute top-4 right-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                        product.is_available
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${product.is_available
                           ? 'bg-emerald-100 text-emerald-700'
                           : 'bg-rose-100 text-rose-700'
-                      }`}>
+                        }`}>
                         {product.is_available ? 'Available' : 'Unavailable'}
                       </span>
                     </div>
@@ -444,13 +361,12 @@ const ProductManagement = () => {
                       </div>
                       <div className="text-right">
                         <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider mb-1">Stock</p>
-                        <p className={`text-lg font-black ${
-                          product.stock_quantity > 0 
-                            ? product.stock_quantity < 10 
-                              ? 'text-amber-700' 
+                        <p className={`text-lg font-black ${product.stock_quantity > 0
+                            ? product.stock_quantity < 10
+                              ? 'text-amber-700'
                               : 'text-emerald-700'
                             : 'text-rose-700'
-                        }`}>
+                          }`}>
                           {product.stock_quantity}
                         </p>
                       </div>

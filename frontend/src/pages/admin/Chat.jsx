@@ -7,66 +7,7 @@ import api from '../../services/api';
 import { formatDateTime } from '../../utils/formatters';
 import { MessageSquare, Send, Users, User, Stethoscope, Shield, Search, Filter, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Mock data for fallback
-const mockRooms = [
-  {
-    room_id: 1,
-    room_type: 'customer_doctor',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    doctor: { user: { first_name: 'James', last_name: 'Anderson' } },
-    appointment_id: 101,
-    created_at: new Date().toISOString(),
-  },
-  {
-    room_id: 2,
-    room_type: 'customer_staff',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    appointment_id: null,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    room_id: 3,
-    room_type: 'customer_doctor',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    doctor: { user: { first_name: 'Sarah', last_name: 'Wilson' } },
-    appointment_id: 102,
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-];
-
-const mockMessages = {
-  1: [
-    {
-      message_id: 1,
-      message_text: 'Hello, I have a question about my pet\'s health.',
-      sender_id: 1,
-      created_at: new Date(Date.now() - 3600000).toISOString(),
-    },
-    {
-      message_id: 2,
-      message_text: 'Of course! I\'d be happy to help. What seems to be the concern?',
-      sender_id: 2,
-      created_at: new Date(Date.now() - 3300000).toISOString(),
-    },
-  ],
-  2: [
-    {
-      message_id: 3,
-      message_text: 'I need help with my order.',
-      sender_id: 3,
-      created_at: new Date(Date.now() - 7200000).toISOString(),
-    },
-  ],
-  3: [
-    {
-      message_id: 4,
-      message_text: 'When is my next appointment?',
-      sender_id: 4,
-      created_at: new Date(Date.now() - 1800000).toISOString(),
-    },
-  ],
-};
+import { useAuth } from '../../context/AuthContext';
 
 const Chat = () => {
   const [rooms, setRooms] = useState([]);
@@ -77,6 +18,7 @@ const Chat = () => {
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState('all');
   const messagesEndRef = useRef(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     loadRooms();
@@ -99,27 +41,18 @@ const Chat = () => {
       setLoading(true);
       const response = await api.get('/chat/rooms');
       let allRooms = response.data.data || [];
-      
+
       // Filter by room type if needed
       if (filter !== 'all') {
         allRooms = allRooms.filter(room => room.room_type === filter);
       }
-      
+
       setRooms(allRooms);
       if (allRooms.length > 0 && !selectedRoom) {
         setSelectedRoom(allRooms[0]);
       }
     } catch (error) {
       console.error('Error loading chat rooms:', error);
-      // Use mock data as fallback
-      let filtered = [...mockRooms];
-      if (filter !== 'all') {
-        filtered = filtered.filter(room => room.room_type === filter);
-      }
-      setRooms(filtered);
-      if (filtered.length > 0 && !selectedRoom) {
-        setSelectedRoom(filtered[0]);
-      }
     } finally {
       setLoading(false);
     }
@@ -133,8 +66,6 @@ const Chat = () => {
       setMessages(response.data.data || []);
     } catch (error) {
       console.error('Error loading messages:', error);
-      // Use mock data as fallback
-      setMessages(mockMessages[selectedRoom.room_id] || []);
     }
   };
 
@@ -253,33 +184,30 @@ const Chat = () => {
         <div className="flex flex-wrap gap-3 mb-6">
           <button
             onClick={() => setFilter('all')}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-              filter === 'all'
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${filter === 'all'
                 ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
                 : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-            }`}
+              }`}
           >
             <MessageSquare className="w-4 h-4" />
             All Chats
           </button>
           <button
             onClick={() => setFilter('customer_doctor')}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-              filter === 'customer_doctor'
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${filter === 'customer_doctor'
                 ? 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30'
                 : 'bg-white text-emerald-600 border-2 border-emerald-200 hover:border-emerald-300 hover:bg-emerald-50'
-            }`}
+              }`}
           >
             <Stethoscope className="w-4 h-4" />
             Doctor Chats
           </button>
           <button
             onClick={() => setFilter('customer_staff')}
-            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-              filter === 'customer_staff'
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${filter === 'customer_staff'
                 ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/30'
                 : 'bg-white text-blue-600 border-2 border-blue-200 hover:border-blue-300 hover:bg-blue-50'
-            }`}
+              }`}
           >
             <Shield className="w-4 h-4" />
             Support Chats
@@ -301,11 +229,10 @@ const Chat = () => {
                   <button
                     key={room.room_id}
                     onClick={() => setSelectedRoom(room)}
-                    className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${
-                      selectedRoom?.room_id === room.room_id
+                    className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
                         ? 'bg-primary-100 text-primary-800 font-semibold'
                         : 'hover:bg-slate-100 text-slate-700'
-                    }`}
+                      }`}
                   >
                     <div className={`h-10 w-10 rounded-lg bg-gradient-to-br ${roomColors.gradient} flex items-center justify-center flex-shrink-0`}>
                       <RoomIcon className="w-5 h-5 text-white" />
@@ -355,27 +282,24 @@ const Chat = () => {
                     />
                   ) : (
                     messages.map((message) => {
-                      // Determine if message is from admin (we'll need to check current user)
-                      const isAdminMessage = false; // This would be determined by checking current user ID
+                      const isAdminMessage = message.sender_id === user?.userId;
                       return (
                         <div
                           key={message.message_id}
                           className={`flex ${isAdminMessage ? 'justify-end' : 'justify-start'}`}
                         >
                           <div
-                            className={`max-w-md p-4 rounded-2xl shadow-sm ${
-                              isAdminMessage
+                            className={`max-w-md p-4 rounded-2xl shadow-sm ${isAdminMessage
                                 ? 'bg-primary-600 text-white rounded-br-none'
                                 : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
-                            }`}
+                              }`}
                           >
                             <p className="text-sm">{message.message_text}</p>
                             <p
-                              className={`text-xs mt-1 ${
-                                isAdminMessage
+                              className={`text-xs mt-1 ${isAdminMessage
                                   ? 'text-primary-200'
                                   : 'text-slate-500'
-                              }`}
+                                }`}
                             >
                               {formatDateTime(message.created_at)}
                             </p>

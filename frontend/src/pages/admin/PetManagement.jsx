@@ -19,88 +19,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockPets = [
-  {
-    pet_id: 1,
-    name: 'Max',
-    species: 'Dog',
-    breed: 'Golden Retriever',
-    age: 3,
-    gender: 'male',
-    description: 'Friendly and playful Golden Retriever puppy. Great with kids and other pets.',
-    price: 45000,
-    stock_quantity: 2,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    pet_id: 2,
-    name: 'Luna',
-    species: 'Cat',
-    breed: 'Persian',
-    age: 2,
-    gender: 'female',
-    description: 'Beautiful Persian cat with long silky fur. Very calm and affectionate.',
-    price: 35000,
-    stock_quantity: 1,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
-  },
-  {
-    pet_id: 3,
-    name: 'Charlie',
-    species: 'Bird',
-    breed: 'Parrot',
-    age: 1,
-    gender: 'male',
-    description: 'Colorful and intelligent parrot. Can learn to speak and perform tricks.',
-    price: 25000,
-    stock_quantity: 3,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1522926193341-e9ffd686c60f?w=400',
-  },
-  {
-    pet_id: 4,
-    name: 'Bella',
-    species: 'Dog',
-    breed: 'Labrador',
-    age: 4,
-    gender: 'female',
-    description: 'Energetic and loyal Labrador. Perfect for active families.',
-    price: 40000,
-    stock_quantity: 0,
-    is_available: false,
-    image_url: 'https://images.unsplash.com/photo-1552053831-71594a27632d?w=400',
-  },
-  {
-    pet_id: 5,
-    name: 'Whiskers',
-    species: 'Cat',
-    breed: 'Siamese',
-    age: 1,
-    gender: 'male',
-    description: 'Elegant Siamese cat with striking blue eyes. Very social and vocal.',
-    price: 30000,
-    stock_quantity: 2,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1573865526739-10659fec78a5?w=400',
-  },
-  {
-    pet_id: 6,
-    name: 'Bunny',
-    species: 'Rabbit',
-    breed: 'Holland Lop',
-    age: 6,
-    gender: 'female',
-    description: 'Adorable Holland Lop rabbit. Gentle and easy to care for.',
-    price: 15000,
-    stock_quantity: 4,
-    is_available: true,
-    image_url: 'https://images.unsplash.com/photo-1585110396000-c9ffd4e4b308?w=400',
-  },
-];
-
 const PetManagement = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -130,28 +48,7 @@ const PetManagement = () => {
       setPets(response.data.data || []);
     } catch (error) {
       console.error('Error loading pets:', error);
-      // Use mock data as fallback
-      let filtered = [...mockPets];
-      
-      if (filters.species) {
-        filtered = filtered.filter(p => p.species === filters.species);
-      }
-      if (filters.breed) {
-        filtered = filtered.filter(p => p.breed === filters.breed);
-      }
-      if (filters.available === 'true') {
-        filtered = filtered.filter(p => p.is_available === true);
-      } else if (filters.available === 'false') {
-        filtered = filtered.filter(p => p.is_available === false);
-      }
-      if (filters.search) {
-        filtered = filtered.filter(p => 
-          p.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-          p.breed.toLowerCase().includes(filters.search.toLowerCase())
-        );
-      }
-      
-      setPets(filtered);
+      setPets([]);
     } finally {
       setLoading(false);
     }
@@ -206,7 +103,11 @@ const PetManagement = () => {
       toast.success('Availability updated');
       loadPets();
     } catch (error) {
-      toast.error('Failed to update availability');
+      if (error.response?.status === 403) {
+        toast.error("You don't have permission to update pets. Please login as an admin or staff user.");
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update availability');
+      }
     }
   };
 
@@ -366,8 +267,8 @@ const PetManagement = () => {
               </select>
             </div>
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setFilters({ species: '', breed: '', available: '', search: '' })}
                 className="w-full"
               >
@@ -381,9 +282,9 @@ const PetManagement = () => {
         {/* Pets Grid */}
         {pets.length === 0 ? (
           <div className="card">
-            <EmptyState 
+            <EmptyState
               icon={PawPrint}
-              title="No pets found" 
+              title="No pets found"
               message="No pets match the selected filters"
             />
           </div>
@@ -392,10 +293,10 @@ const PetManagement = () => {
             {pets.map((pet) => {
               const SpeciesIcon = getSpeciesIcon(pet.species);
               const speciesColors = getSpeciesColor(pet.species);
-              
+
               return (
-                <div 
-                  key={pet.pet_id} 
+                <div
+                  key={pet.pet_id}
                   className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${speciesColors.border} overflow-hidden`}
                 >
                   {/* Pet Image */}
@@ -415,11 +316,10 @@ const PetManagement = () => {
                       </div>
                     )}
                     <div className="absolute top-4 right-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
-                        pet.is_available
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${pet.is_available
                           ? 'bg-emerald-100 text-emerald-700'
                           : 'bg-rose-100 text-rose-700'
-                      }`}>
+                        }`}>
                         {pet.is_available ? 'Available' : 'Unavailable'}
                       </span>
                     </div>
@@ -477,11 +377,10 @@ const PetManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleAvailability(pet)}
-                        className={`flex-1 ${
-                          pet.is_available
+                        className={`flex-1 ${pet.is_available
                             ? '!bg-rose-50 !text-rose-700 hover:!bg-rose-100'
                             : '!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100'
-                        }`}
+                          }`}
                       >
                         {pet.is_available ? (
                           <>
