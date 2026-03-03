@@ -13,46 +13,6 @@ import { Clock, Plus, Edit, Trash2, Check, Calendar, Syringe, Pill, Utensils, Al
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
-// Mock data for fallback
-const mockReminders = [
-  {
-    reminder_id: 1,
-    reminder_type: 'vaccination',
-    title: 'Rabies Vaccination Due',
-    description: 'Max needs his annual rabies vaccination',
-    reminder_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    reminder_time: '10:00:00',
-    is_completed: false,
-  },
-  {
-    reminder_id: 2,
-    reminder_type: 'medication',
-    title: 'Give Heartworm Medication',
-    description: 'Monthly heartworm prevention for Luna',
-    reminder_date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    reminder_time: '08:00:00',
-    is_completed: false,
-  },
-  {
-    reminder_id: 3,
-    reminder_type: 'food',
-    title: 'Morning Feeding',
-    description: 'Feed Max his breakfast',
-    reminder_date: new Date().toISOString().split('T')[0],
-    reminder_time: '07:00:00',
-    is_completed: true,
-  },
-  {
-    reminder_id: 4,
-    reminder_type: 'appointment',
-    title: 'Veterinary Check-up',
-    description: 'Annual health check for Luna',
-    reminder_date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    reminder_time: '14:00:00',
-    is_completed: false,
-  },
-];
-
 const Reminders = () => {
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -82,13 +42,7 @@ const Reminders = () => {
       setReminders(response.data.data || []);
     } catch (error) {
       console.error('Error loading reminders:', error);
-      let filtered = [...mockReminders];
-      if (filter === 'upcoming') {
-        filtered = filtered.filter(r => !r.is_completed);
-      } else if (filter === 'completed') {
-        filtered = filtered.filter(r => r.is_completed);
-      }
-      setReminders(filtered);
+      setReminders([]);
     } finally {
       setLoading(false);
     }
@@ -98,7 +52,17 @@ const Reminders = () => {
     try {
       const url = editingReminder ? `/reminders/${editingReminder.reminder_id}` : '/reminders';
       const method = editingReminder ? 'put' : 'post';
-      const response = await api[method](url, data);
+
+      // Map form fields (camelCase) to API payload (snake_case)
+      const payload = {
+        reminder_type: data.reminderType,
+        title: data.title,
+        description: data.description,
+        reminder_date: data.reminderDate,
+        reminder_time: data.reminderTime || null,
+      };
+
+      const response = await api[method](url, payload);
 
       if (response.data.success) {
         toast.success(editingReminder ? 'Reminder updated' : 'Reminder created');
@@ -168,6 +132,12 @@ const Reminders = () => {
 
   const upcomingCount = reminders.filter(r => !r.is_completed).length;
   const completedCount = reminders.filter(r => r.is_completed).length;
+
+  const filteredReminders = reminders.filter((r) => {
+    if (filter === 'upcoming') return !r.is_completed;
+    if (filter === 'completed') return r.is_completed;
+    return true;
+  });
 
   return (
     <Layout>
@@ -239,11 +209,10 @@ const Reminders = () => {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 capitalize ${
-                  isActive
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 capitalize ${isActive
                     ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />
                 {f.label}
@@ -252,7 +221,7 @@ const Reminders = () => {
           })}
         </div>
 
-        {reminders.length === 0 ? (
+        {filteredReminders.length === 0 ? (
           <div className="card">
             <EmptyState
               icon={Clock}
@@ -262,15 +231,14 @@ const Reminders = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {reminders.map((reminder) => {
+            {filteredReminders.map((reminder) => {
               const ReminderIcon = getReminderIcon(reminder.reminder_type);
               const colors = getReminderColors(reminder.reminder_type);
               return (
                 <div
                   key={reminder.reminder_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${
-                    reminder.is_completed ? 'opacity-60 border-l-slate-400' : `border-l-${colors.gradient.split('-')[1]}-500`
-                  }`}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${reminder.is_completed ? 'opacity-60 border-l-slate-400' : `border-l-${colors.gradient.split('-')[1]}-500`
+                    }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">

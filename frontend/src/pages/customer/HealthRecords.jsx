@@ -9,43 +9,6 @@ import { formatDate } from '../../utils/formatters';
 import { FileText, Download, Stethoscope, Calendar, User, PawPrint, Pill, Clipboard, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Mock data for fallback
-const mockPets = [
-  {
-    customer_pet_id: 1,
-    name: 'Max',
-    species: 'Dog',
-    breed: 'Golden Retriever',
-    image_url: 'https://images.unsplash.com/photo-1633722715463-d30f4f325e24?w=400',
-  },
-  {
-    customer_pet_id: 2,
-    name: 'Luna',
-    species: 'Cat',
-    breed: 'Persian',
-    image_url: 'https://images.unsplash.com/photo-1574158622682-e40e69881006?w=400',
-  },
-];
-
-const mockRecords = [
-  {
-    record_id: 1,
-    record_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    doctor: { user: { first_name: 'James', last_name: 'Anderson' } },
-    diagnosis: 'Routine check-up completed. Pet is in excellent health. All vaccinations are up to date.',
-    prescription: 'Continue regular diet and exercise. No medications required at this time.',
-    treatment_notes: 'Pet showed no signs of illness. Temperature, heart rate, and weight are all within normal ranges.',
-  },
-  {
-    record_id: 2,
-    record_date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    doctor: { user: { first_name: 'Sarah', last_name: 'Wilson' } },
-    diagnosis: 'Minor skin irritation detected. Likely due to seasonal allergies.',
-    prescription: 'Antihistamine medication - 1 tablet daily for 7 days. Apply topical cream twice daily.',
-    treatment_notes: 'Patient responded well to treatment. Follow-up recommended if symptoms persist.',
-  },
-];
-
 const HealthRecords = () => {
   const [records, setRecords] = useState([]);
   const [pets, setPets] = useState([]);
@@ -67,19 +30,13 @@ const HealthRecords = () => {
   const loadPets = async () => {
     try {
       const response = await api.get('/customer-pets');
-      setPets(response.data.data || []);
-      if (response.data.data && response.data.data.length > 0) {
-        setSelectedPet(response.data.data[0].customer_pet_id.toString());
-      } else {
-        setPets(mockPets);
-        setSelectedPet(mockPets[0].customer_pet_id.toString());
+      const petList = response.data.data || [];
+      setPets(petList);
+      if (petList.length > 0) {
+        setSelectedPet(petList[0].customer_pet_id.toString());
       }
     } catch (error) {
       console.error('Error loading pets:', error);
-      setPets(mockPets);
-      if (mockPets.length > 0) {
-        setSelectedPet(mockPets[0].customer_pet_id.toString());
-      }
     }
   };
 
@@ -90,7 +47,6 @@ const HealthRecords = () => {
       setRecords(response.data.data || []);
     } catch (error) {
       console.error('Error loading health records:', error);
-      setRecords(mockRecords);
     } finally {
       setLoading(false);
     }
@@ -103,12 +59,6 @@ const HealthRecords = () => {
       setShowDetails(true);
     } catch (error) {
       toast.error('Failed to load record details');
-      // Use mock data as fallback
-      const record = mockRecords.find(r => r.record_id === recordId);
-      if (record) {
-        setSelectedRecord(record);
-        setShowDetails(true);
-      }
     }
   };
 
@@ -124,9 +74,10 @@ const HealthRecords = () => {
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       toast.success('Record downloaded');
     } catch (error) {
-      toast.error('Failed to download record');
+      toast.error(error.response?.data?.message || 'Failed to download record');
     }
   };
 
@@ -155,11 +106,10 @@ const HealthRecords = () => {
               <button
                 key={pet.customer_pet_id}
                 onClick={() => setSelectedPet(pet.customer_pet_id.toString())}
-                className={`p-4 rounded-xl border-2 transition-all ${
-                  selectedPet === pet.customer_pet_id.toString()
+                className={`p-4 rounded-xl border-2 transition-all ${selectedPet === pet.customer_pet_id.toString()
                     ? 'border-primary-500 bg-primary-50'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <div className="flex items-center gap-3">
                   {pet.image_url ? (

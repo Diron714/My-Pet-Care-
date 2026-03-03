@@ -9,42 +9,6 @@ import { Plus, Edit, Trash2, Clock, Calendar, CheckCircle, XCircle, Filter } fro
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
-// Mock data for fallback
-const mockSchedules = [
-  {
-    schedule_id: 1,
-    day_of_week: 'monday',
-    start_time: '09:00:00',
-    end_time: '17:00:00',
-    slot_duration: 30,
-    is_active: true,
-  },
-  {
-    schedule_id: 2,
-    day_of_week: 'tuesday',
-    start_time: '09:00:00',
-    end_time: '17:00:00',
-    slot_duration: 30,
-    is_active: true,
-  },
-  {
-    schedule_id: 3,
-    day_of_week: 'wednesday',
-    start_time: '10:00:00',
-    end_time: '16:00:00',
-    slot_duration: 45,
-    is_active: true,
-  },
-  {
-    schedule_id: 4,
-    day_of_week: 'thursday',
-    start_time: '09:00:00',
-    end_time: '17:00:00',
-    slot_duration: 30,
-    is_active: false,
-  },
-];
-
 const ScheduleManagement = () => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +26,7 @@ const ScheduleManagement = () => {
       setSchedules(response.data.data || []);
     } catch (error) {
       console.error('Error loading schedules:', error);
-      setSchedules(mockSchedules);
+      setSchedules([]);
     } finally {
       setLoading(false);
     }

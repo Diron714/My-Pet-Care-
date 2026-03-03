@@ -47,28 +47,18 @@ const PetProfileForm = () => {
       ]);
 
       const pet = petRes.data.data;
-      setValue('name', pet.name);
-      setValue('species', pet.species);
-      setValue('breed', pet.breed);
-      setValue('age', pet.age);
-      setValue('gender', pet.gender);
+      if (pet) {
+        setValue('name', pet.name);
+        setValue('species', pet.species);
+        setValue('breed', pet.breed);
+        setValue('age', pet.age);
+        setValue('gender', pet.gender);
+      }
 
       setVaccinations(vaccinationsRes.data.data || []);
       setFeedingSchedules(schedulesRes.data.data || []);
     } catch (error) {
       console.error('Error loading pet data:', error);
-      // Use mock data as fallback
-      setValue('name', 'Max');
-      setValue('species', 'Dog');
-      setValue('breed', 'Golden Retriever');
-      setValue('age', 6);
-      setValue('gender', 'male');
-      setVaccinations([
-        { vaccination_id: 1, vaccine_name: 'Rabies', vaccination_date: '2024-01-15', next_due_date: '2025-01-15' },
-      ]);
-      setFeedingSchedules([
-        { schedule_id: 1, food_type: 'Premium Dog Food', feeding_time: '08:00:00', quantity: '2 cups' },
-      ]);
     } finally {
       setLoading(false);
     }

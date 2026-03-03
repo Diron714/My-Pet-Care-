@@ -10,55 +10,6 @@ import { Bell, Send, Users, User, Stethoscope, ShoppingCart, Calendar, Gift, Spa
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
-// Mock data for fallback
-const mockNotifications = [
-  {
-    notification_id: 1,
-    title: 'New Special Offer Available!',
-    message: 'Get 20% off on all premium pet food products. Limited time offer!',
-    target: 'all',
-    notification_type: 'offer',
-    created_at: new Date().toISOString(),
-    sent_count: 245,
-  },
-  {
-    notification_id: 2,
-    title: 'Appointment Reminder',
-    message: 'Don\'t forget your pet\'s scheduled appointment tomorrow at 2:00 PM.',
-    target: 'customers',
-    notification_type: 'appointment',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    sent_count: 89,
-  },
-  {
-    notification_id: 3,
-    title: 'Order Shipped',
-    message: 'Your order #ORD-2024-001 has been shipped and will arrive soon.',
-    target: 'customers',
-    notification_type: 'order',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    sent_count: 12,
-  },
-  {
-    notification_id: 4,
-    title: 'Loyalty Points Update',
-    message: 'You\'ve earned 150 loyalty points! Check your account for details.',
-    target: 'customers',
-    notification_type: 'loyalty',
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-    sent_count: 156,
-  },
-  {
-    notification_id: 5,
-    title: 'System Maintenance Notice',
-    message: 'Scheduled maintenance on Sunday, 2:00 AM - 4:00 AM. Services may be temporarily unavailable.',
-    target: 'all',
-    notification_type: 'system',
-    created_at: new Date(Date.now() - 345600000).toISOString(),
-    sent_count: 320,
-  },
-];
-
 const NotificationManagement = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -75,8 +26,6 @@ const NotificationManagement = () => {
       setNotifications(response.data.data || []);
     } catch (error) {
       console.error('Error loading notifications:', error);
-      // Use mock data as fallback
-      setNotifications(mockNotifications);
     } finally {
       setLoading(false);
     }
@@ -277,8 +226,8 @@ const NotificationManagement = () => {
                 const TargetIcon = getTargetIcon(notification.target);
                 const styles = getTypeStyles(notification.notification_type);
                 return (
-                  <div 
-                    key={notification.notification_id} 
+                  <div
+                    key={notification.notification_id}
                     className={`p-5 rounded-xl border-2 ${styles.border} ${styles.bg} hover:shadow-lg transition-all duration-200`}
                   >
                     <div className="flex items-start gap-4">

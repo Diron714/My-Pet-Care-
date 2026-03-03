@@ -7,38 +7,6 @@ import api from '../../services/api';
 import { Calendar, Users, CheckCircle, MessageSquare, Settings, Clock, ArrowUpRight, ArrowDownRight, Stethoscope, Activity } from 'lucide-react';
 import { formatDate } from '../../utils/formatters';
 
-// Mock data for fallback
-const mockStats = {
-  todayAppointments: 5,
-  pendingRequests: 3,
-  completedThisWeek: 12,
-  unreadMessages: 4,
-};
-
-const mockTodayAppointments = [
-  {
-    appointment_id: 1,
-    appointment_time: '10:00:00',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    customer_pet: { name: 'Max', species: 'Dog' },
-    status: 'accepted',
-  },
-  {
-    appointment_id: 2,
-    appointment_time: '14:30:00',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    customer_pet: { name: 'Luna', species: 'Cat' },
-    status: 'pending',
-  },
-  {
-    appointment_id: 3,
-    appointment_time: '16:00:00',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    customer_pet: { name: 'Charlie', species: 'Bird' },
-    status: 'accepted',
-  },
-];
-
 const Dashboard = () => {
   const [stats, setStats] = useState({
     todayAppointments: 0,
@@ -56,17 +24,22 @@ const Dashboard = () => {
   const loadDashboardData = async () => {
     try {
       setLoading(true);
+      const today = new Date().toISOString().split('T')[0];
       const [dashboardRes, appointmentsRes] = await Promise.all([
         api.get('/doctors/dashboard'),
-        api.get('/appointments?date=today'),
+        api.get(`/appointments?date=${today}`),
       ]);
 
-      setStats(dashboardRes.data.data || stats);
+      const apiStats = dashboardRes.data.data || {};
+      setStats({
+        todayAppointments: apiStats.upcoming_appointments || 0,
+        pendingRequests: apiStats.pending_requests || 0,
+        completedThisWeek: apiStats.total_appointments || 0,
+        unreadMessages: 0,
+      });
       setTodayAppointments(appointmentsRes.data.data || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);
-      setStats(mockStats);
-      setTodayAppointments(mockTodayAppointments);
     } finally {
       setLoading(false);
     }
@@ -113,8 +86,8 @@ const Dashboard = () => {
               <p className="text-sm text-slate-500 font-medium">Today's Appointments</p>
               <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                 <Calendar className="w-5 h-5 text-blue-600" />
+              </div>
             </div>
-          </div>
             <p className="text-3xl font-bold text-slate-900 mb-1">{stats.todayAppointments}</p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span className="flex items-center text-emerald-500 font-semibold">
@@ -125,15 +98,15 @@ const Dashboard = () => {
             <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
               Confirmed: <span className="font-semibold">3</span> | Pending: <span className="font-semibold">2</span>
             </p>
-              </div>
+          </div>
 
           <div className="card card-muted group hover:scale-[1.02] transition-transform duration-200">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-slate-500 font-medium">Pending Requests</p>
               <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                 <Clock className="w-5 h-5 text-amber-600" />
+              </div>
             </div>
-          </div>
             <p className="text-3xl font-bold text-slate-900 mb-1">{stats.pendingRequests}</p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span className="flex items-center text-rose-500 font-semibold">
@@ -144,15 +117,15 @@ const Dashboard = () => {
             <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
               New: <span className="font-semibold">2</span> | Total: <span className="font-semibold">15</span>
             </p>
-              </div>
+          </div>
 
           <div className="card card-muted group hover:scale-[1.02] transition-transform duration-200">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-slate-500 font-medium">Completed This Week</p>
               <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                 <CheckCircle className="w-5 h-5 text-emerald-600" />
+              </div>
             </div>
-          </div>
             <p className="text-3xl font-bold text-slate-900 mb-1">{stats.completedThisWeek}</p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
               <span className="flex items-center text-emerald-500 font-semibold">
@@ -163,14 +136,14 @@ const Dashboard = () => {
             <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-100">
               Total: <span className="font-semibold">20</span> | Records: <span className="font-semibold">18</span>
             </p>
-              </div>
+          </div>
 
           <div className="card card-muted group hover:scale-[1.02] transition-transform duration-200">
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-slate-500 font-medium">Unread Messages</p>
               <div className="h-10 w-10 rounded-full bg-rose-100 flex items-center justify-center shadow-md group-hover:shadow-lg transition-shadow">
                 <MessageSquare className="w-5 h-5 text-rose-600" />
-            </div>
+              </div>
             </div>
             <p className="text-3xl font-bold text-slate-900 mb-1">{stats.unreadMessages}</p>
             <div className="flex items-center gap-2 text-xs text-slate-500">
@@ -232,12 +205,12 @@ const Dashboard = () => {
                         Pet: <span className="font-medium">{appointment.customer_pet?.name}</span> | Status: <span className={`badge ${getStatusBadgeClass(appointment.status)}`}>{appointment.status}</span>
                       </p>
                     </div>
-                    </div>
-                    <Link to={`/doctor/appointments/${appointment.appointment_id}`}>
+                  </div>
+                  <Link to={`/doctor/appointments/${appointment.appointment_id}`}>
                     <button className="text-primary-600 hover:text-primary-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors">
-                        View Details
-                      </button>
-                    </Link>
+                      View Details
+                    </button>
+                  </Link>
                 </div>
               ))}
             </div>

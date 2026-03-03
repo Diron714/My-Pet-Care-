@@ -19,44 +19,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock cart items for fallback
-const mockCartItems = [
-  {
-    cart_id: 1,
-    name: 'Premium Dog Food 5kg',
-    item_type: 'product',
-    unitPrice: 3500,
-    quantity: 2,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-  {
-    cart_id: 2,
-    name: 'Interactive Dog Toy',
-    item_type: 'product',
-    unitPrice: 1200,
-    quantity: 1,
-    image_url: 'https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=400',
-  },
-];
-
-// Mock offers for fallback
-const mockOffers = [
-  {
-    offer_id: 1,
-    title: 'Summer Sale - 25% Off',
-    description: 'Get 25% discount on all premium pet food products',
-    discount_type: 'percentage',
-    discount_value: 25,
-  },
-  {
-    offer_id: 2,
-    title: 'New Customer Bonus',
-    description: 'Rs 1000 off on your first purchase',
-    discount_type: 'fixed_amount',
-    discount_value: 1000,
-  },
-];
-
 const Checkout = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
@@ -82,8 +44,6 @@ const Checkout = () => {
       setOffers(response.data.data || []);
     } catch (error) {
       console.error('Error loading offers:', error);
-      // Use mock data as fallback
-      setOffers(mockOffers);
     }
   };
 
@@ -101,19 +61,17 @@ const Checkout = () => {
   const finalAmount = Math.max(0, cartTotal - discountAmount - (loyaltyPointsUsed * 0.01));
 
   const onSubmit = async (data) => {
-    const itemsToCheck = cartItems.length > 0 ? cartItems : mockCartItems;
-    if (itemsToCheck.length === 0) {
+    if (cartItems.length === 0) {
       toast.error('Your cart is empty');
       return;
     }
 
     setLoading(true);
     try {
-      const response = await api.post('/orders/create', {
-        shippingAddress: `${data.address}, ${data.city}, ${data.state} ${data.zip}`,
-        paymentMethod,
-        offerId: selectedOffer?.offer_id,
-        loyaltyPointsUsed,
+      const response = await api.post('/orders', {
+        shipping_address: `${data.address}, ${data.city}, ${data.state} ${data.zip}`,
+        payment_method: paymentMethod,
+        loyalty_points_used: loyaltyPointsUsed,
       });
 
       if (response.data.success) {
@@ -128,8 +86,8 @@ const Checkout = () => {
     }
   };
 
-  const displayItems = cartItems.length > 0 ? cartItems : mockCartItems;
-  const displayTotal = cartItems.length > 0 ? cartTotal : displayItems.reduce((sum, item) => sum + (item.unitPrice || 0) * (item.quantity || 0), 0);
+  const displayItems = cartItems;
+  const displayTotal = cartTotal;
   const subtotal = displayTotal;
   const shipping = 500;
   const finalDisplayAmount = Math.max(0, subtotal - discountAmount - (loyaltyPointsUsed * 0.01) + shipping);
@@ -229,11 +187,10 @@ const Checkout = () => {
                     return (
                       <label
                         key={method.value}
-                        className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                          paymentMethod === method.value
+                        className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === method.value
                             ? `bg-${method.color}-50 border-${method.color}-300`
                             : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                        }`}
+                          }`}
                       >
                         <input
                           type="radio"
@@ -264,11 +221,10 @@ const Checkout = () => {
                       return (
                         <label
                           key={offer.offer_id}
-                          className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                            selectedOffer?.offer_id === offer.offer_id
+                          className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedOffer?.offer_id === offer.offer_id
                               ? 'bg-amber-50 border-amber-300'
                               : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                          }`}
+                            }`}
                         >
                           <input
                             type="radio"

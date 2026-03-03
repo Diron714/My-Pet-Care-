@@ -17,7 +17,10 @@ export const CartProvider = ({ children }) => {
 
   // Load cart from API on mount
   useEffect(() => {
-    loadCart();
+    const user = localStorage.getItem('user');
+    if (user) {
+      loadCart();
+    }
   }, []);
 
   const loadCart = async () => {

@@ -77,12 +77,26 @@ export const exchangeRequestSchema = z.object({
 });
 
 // Feedback schema
-export const feedbackSchema = z.object({
-  feedbackType: z.enum(['product', 'service', 'doctor']),
-  itemId: z.number().min(1, 'Item selection is required'),
-  rating: z.number().min(1).max(5),
-  comment: z.string().optional(),
-});
+export const feedbackSchema = z
+  .object({
+    feedbackType: z.enum(['product', 'service', 'doctor']),
+    itemId: z
+      .number({
+        invalid_type_error: 'Item selection is required',
+        required_error: 'Item selection is required',
+      })
+      .int()
+      .nonnegative(),
+    rating: z.number().min(1).max(5),
+    comment: z.string().optional(),
+  })
+  .refine(
+    (data) => data.feedbackType === 'service' || data.itemId >= 1,
+    {
+      path: ['itemId'],
+      message: 'Item selection is required',
+    }
+  );
 
 // Reminder schema
 export const reminderSchema = z.object({

@@ -18,58 +18,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockOffers = [
-  {
-    offer_id: 1,
-    title: 'Summer Sale - 25% Off',
-    description: 'Get 25% discount on all premium pet food products. Limited time offer!',
-    discount_type: 'percentage',
-    discount_value: 25,
-    min_purchase: 5000,
-    max_discount: 5000,
-    valid_from: new Date().toISOString(),
-    valid_until: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-    is_active: true,
-  },
-  {
-    offer_id: 2,
-    title: 'New Customer Bonus',
-    description: 'Rs 1000 off on your first purchase above Rs 5000',
-    discount_type: 'fixed_amount',
-    discount_value: 1000,
-    min_purchase: 5000,
-    max_discount: null,
-    valid_from: new Date().toISOString(),
-    valid_until: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString(),
-    is_active: true,
-  },
-  {
-    offer_id: 3,
-    title: 'Loyalty Points Double',
-    description: 'Earn double loyalty points on all purchases this month',
-    discount_type: 'loyalty_points',
-    discount_value: 2,
-    min_purchase: 0,
-    max_discount: null,
-    valid_from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
-    valid_until: new Date(Date.now() + 23 * 24 * 60 * 60 * 1000).toISOString(),
-    is_active: true,
-  },
-  {
-    offer_id: 4,
-    title: 'Flash Sale - 50% Off',
-    description: 'Massive 50% discount on selected items. Hurry up!',
-    discount_type: 'percentage',
-    discount_value: 50,
-    min_purchase: 10000,
-    max_discount: 10000,
-    valid_from: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    valid_until: new Date(Date.now() + 1 * 24 * 60 * 60 * 1000).toISOString(),
-    is_active: false,
-  },
-];
-
 const OfferManagement = () => {
   const [offers, setOffers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -87,8 +35,6 @@ const OfferManagement = () => {
       setOffers(response.data.data || []);
     } catch (error) {
       console.error('Error loading offers:', error);
-      // Use mock data as fallback
-      setOffers(mockOffers);
     } finally {
       setLoading(false);
     }
@@ -273,13 +219,12 @@ const OfferManagement = () => {
               const styles = getDiscountStyles(offer.discount_type);
               const active = isOfferActive(offer);
               const expired = isOfferExpired(offer);
-              
+
               return (
-                <div 
-                  key={offer.offer_id} 
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${
-                    active ? styles.border : 'border-l-slate-300'
-                  } ${active ? styles.bg : 'bg-slate-50'}`}
+                <div
+                  key={offer.offer_id}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${active ? styles.border : 'border-l-slate-300'
+                    } ${active ? styles.bg : 'bg-slate-50'}`}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-start gap-3 flex-1">
@@ -289,13 +234,12 @@ const OfferManagement = () => {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-bold text-lg text-slate-900">{offer.title}</h3>
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                            active
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold uppercase tracking-wider ${active
                               ? 'bg-emerald-100 text-emerald-700'
                               : expired
-                              ? 'bg-rose-100 text-rose-700'
-                              : 'bg-slate-100 text-slate-700'
-                          }`}>
+                                ? 'bg-rose-100 text-rose-700'
+                                : 'bg-slate-100 text-slate-700'
+                            }`}>
                             {active ? 'Active' : expired ? 'Expired' : 'Inactive'}
                           </span>
                         </div>

@@ -26,31 +26,31 @@ import Reminders from '../pages/customer/Reminders';
 const CustomerRoutes = () => {
   return (
     <Routes>
-      <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/pets" element={<PetListing />} />
-      <Route path="/pets/:id" element={<PetDetails />} />
-      <Route path="/products" element={<ProductListing />} />
-      <Route path="/products/:id" element={<ProductDetails />} />
-      <Route path="/cart" element={<Cart />} />
-      <Route path="/checkout" element={<Checkout />} />
-      <Route path="/orders" element={<Orders />} />
-      <Route path="/orders/:id" element={<OrderDetails />} />
-      <Route path="/doctors" element={<DoctorList />} />
-      <Route path="/doctors/:id" element={<DoctorDetails />} />
-      <Route path="/appointments" element={<Appointments />} />
-      <Route path="/appointments/book" element={<BookAppointment />} />
-      <Route path="/pet-profiles" element={<PetProfiles />} />
-      <Route path="/pet-profiles/new" element={<PetProfileForm />} />
-      <Route path="/pet-profiles/:id/edit" element={<PetProfileForm />} />
-      <Route path="/health-records" element={<HealthRecords />} />
-      <Route path="/exchanges" element={<ExchangeRequests />} />
-      <Route path="/pre-bookings" element={<PreBookings />} />
-      <Route path="/chat" element={<Chat />} />
-      <Route path="/feedback" element={<Feedback />} />
-      <Route path="/notifications" element={<Notifications />} />
-      <Route path="/offers" element={<Offers />} />
-      <Route path="/reminders" element={<Reminders />} />
-      <Route path="*" element={<Navigate to="/customer/dashboard" />} />
+      <Route path="dashboard" element={<Dashboard />} />
+      <Route path="pets" element={<PetListing />} />
+      <Route path="pets/:id" element={<PetDetails />} />
+      <Route path="products" element={<ProductListing />} />
+      <Route path="products/:id" element={<ProductDetails />} />
+      <Route path="cart" element={<Cart />} />
+      <Route path="checkout" element={<Checkout />} />
+      <Route path="orders" element={<Orders />} />
+      <Route path="orders/:id" element={<OrderDetails />} />
+      <Route path="doctors" element={<DoctorList />} />
+      <Route path="doctors/:id" element={<DoctorDetails />} />
+      <Route path="appointments" element={<Appointments />} />
+      <Route path="appointments/book" element={<BookAppointment />} />
+      <Route path="pet-profiles" element={<PetProfiles />} />
+      <Route path="pet-profiles/new" element={<PetProfileForm />} />
+      <Route path="pet-profiles/:id/edit" element={<PetProfileForm />} />
+      <Route path="health-records" element={<HealthRecords />} />
+      <Route path="exchanges" element={<ExchangeRequests />} />
+      <Route path="pre-bookings" element={<PreBookings />} />
+      <Route path="chat" element={<Chat />} />
+      <Route path="feedback" element={<Feedback />} />
+      <Route path="notifications" element={<Notifications />} />
+      <Route path="offers" element={<Offers />} />
+      <Route path="reminders" element={<Reminders />} />
+      <Route path="*" element={<Navigate to="dashboard" />} />
     </Routes>
   );
 };

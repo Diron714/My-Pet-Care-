@@ -10,31 +10,6 @@ import { formatDate } from '../../utils/formatters';
 import { FileText, Plus, Edit, Eye, Search, Filter, PawPrint, User, Calendar, Stethoscope, Pill, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Mock data for fallback
-const mockRecords = [
-  {
-    record_id: 1,
-    record_date: new Date().toISOString().split('T')[0],
-    customer_pet: { name: 'Max', species: 'Dog' },
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    diagnosis: 'Routine check-up completed. Pet is in excellent health. All vital signs normal.',
-  },
-  {
-    record_id: 2,
-    record_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    customer_pet: { name: 'Luna', species: 'Cat' },
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    diagnosis: 'Minor skin irritation treated with topical medication. Follow-up recommended in 2 weeks.',
-  },
-  {
-    record_id: 3,
-    record_date: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    customer_pet: { name: 'Charlie', species: 'Bird' },
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    diagnosis: 'Annual vaccination completed. Pet is healthy and up to date with all vaccinations.',
-  },
-];
-
 const HealthRecords = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -64,16 +39,7 @@ const HealthRecords = () => {
       setRecords(response.data.data || []);
     } catch (error) {
       console.error('Error loading health records:', error);
-      let filtered = [...mockRecords];
-      if (filters.petName) {
-        filtered = filtered.filter(r => r.customer_pet?.name?.toLowerCase().includes(filters.petName.toLowerCase()));
-      }
-      if (filters.customerName) {
-        filtered = filtered.filter(r => 
-          `${r.customer?.user?.first_name} ${r.customer?.user?.last_name}`.toLowerCase().includes(filters.customerName.toLowerCase())
-        );
-      }
-      setRecords(filtered);
+      setRecords([]);
     } finally {
       setLoading(false);
     }
@@ -85,12 +51,8 @@ const HealthRecords = () => {
       setSelectedRecord(response.data.data);
       setShowDetails(true);
     } catch (error) {
+      console.error('Error loading record details:', error);
       toast.error('Failed to load record details');
-      const record = mockRecords.find(r => r.record_id === recordId);
-      if (record) {
-        setSelectedRecord(record);
-        setShowDetails(true);
-      }
     }
   };
 
@@ -121,54 +83,54 @@ const HealthRecords = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
+              <input
+                type="text"
                 placeholder="Search by pet name"
-              value={filters.petName}
-              onChange={(e) => setFilters({ ...filters, petName: e.target.value })}
+                value={filters.petName}
+                onChange={(e) => setFilters({ ...filters, petName: e.target.value })}
                 className="input-field !rounded-xl !py-2.5 !pl-10"
-            />
+              />
             </div>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
+              <input
+                type="text"
                 placeholder="Search by customer name"
-              value={filters.customerName}
-              onChange={(e) => setFilters({ ...filters, customerName: e.target.value })}
+                value={filters.customerName}
+                onChange={(e) => setFilters({ ...filters, customerName: e.target.value })}
                 className="input-field !rounded-xl !py-2.5 !pl-10"
-            />
+              />
             </div>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="date"
-              placeholder="From date"
-              value={filters.dateFrom}
-              onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+              <input
+                type="date"
+                placeholder="From date"
+                value={filters.dateFrom}
+                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
                 className="input-field !rounded-xl !py-2.5 !pl-10"
-            />
+              />
             </div>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              type="date"
-              placeholder="To date"
-              value={filters.dateTo}
-              onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
+              <input
+                type="date"
+                placeholder="To date"
+                value={filters.dateTo}
+                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
                 className="input-field !rounded-xl !py-2.5 !pl-10"
-            />
+              />
             </div>
           </div>
         </div>
 
         {records.length === 0 ? (
           <div className="card">
-          <EmptyState
-            icon={FileText}
-            title="No health records found"
+            <EmptyState
+              icon={FileText}
+              title="No health records found"
               message="Start by creating health records for your appointments"
-          />
+            />
           </div>
         ) : (
           <div className="table-shell">
@@ -184,7 +146,7 @@ const HealthRecords = () => {
                 </tr>
               </thead>
               <tbody>
-            {records.map((record) => (
+                {records.map((record) => (
                   <tr key={record.record_id} className="hover:bg-slate-50 transition-colors">
                     <td>
                       <div className="flex items-center gap-2">
@@ -198,7 +160,7 @@ const HealthRecords = () => {
                         <span className="font-semibold text-slate-900">
                           {record.customer_pet?.name}
                         </span>
-                    </div>
+                      </div>
                     </td>
                     <td>
                       <span className="text-sm text-slate-600">
@@ -210,9 +172,9 @@ const HealthRecords = () => {
                         <User className="w-4 h-4 text-slate-400" />
                         <span className="text-sm text-slate-800">
                           {record.customer?.user?.first_name}{' '}
-                        {record.customer?.user?.last_name}
+                          {record.customer?.user?.last_name}
                         </span>
-                    </div>
+                      </div>
                     </td>
                     <td>
                       <span className="text-sm text-slate-700 line-clamp-2">
@@ -222,26 +184,26 @@ const HealthRecords = () => {
                       </span>
                     </td>
                     <td>
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewDetails(record.record_id)}
+                      <div className="flex space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleViewDetails(record.record_id)}
                           className="!rounded-lg !px-3 !py-1.5 text-xs"
-                    >
-                      <Eye className="w-4 h-4 inline mr-1" />
-                      View
-                    </Button>
-                    <Link to={`/doctor/health-records/${record.record_id}/edit`}>
+                        >
+                          <Eye className="w-4 h-4 inline mr-1" />
+                          View
+                        </Button>
+                        <Link to={`/doctor/health-records/${record.record_id}/edit`}>
                           <Button variant="outline" size="sm" className="!rounded-lg !px-3 !py-1.5 text-xs">
-                        <Edit className="w-4 h-4 inline mr-1" />
-                        Edit
-                      </Button>
-                    </Link>
-                  </div>
+                            <Edit className="w-4 h-4 inline mr-1" />
+                            Edit
+                          </Button>
+                        </Link>
+                      </div>
                     </td>
                   </tr>
-            ))}
+                ))}
               </tbody>
             </table>
           </div>

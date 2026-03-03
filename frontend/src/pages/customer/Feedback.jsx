@@ -13,45 +13,14 @@ import { Star, Plus, Package, Stethoscope, Lightbulb, MessageSquare, CheckCircle
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
-// Mock data for fallback
-const mockFeedbacks = [
-  {
-    feedback_id: 1,
-    feedback_type: 'product',
-    item_name: 'Premium Dog Food',
-    rating: 5,
-    comment: 'My dog absolutely loves this food! Great quality and fast delivery.',
-    status: 'approved',
-    admin_response: 'Thank you for your wonderful feedback!',
-    created_at: new Date().toISOString(),
-  },
-  {
-    feedback_id: 2,
-    feedback_type: 'doctor',
-    item_name: 'Dr. James Anderson',
-    rating: 4,
-    comment: 'Very professional and caring. My pet received excellent treatment.',
-    status: 'pending',
-    admin_response: null,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    feedback_id: 3,
-    feedback_type: 'service',
-    item_name: 'Grooming Service',
-    rating: 5,
-    comment: 'Outstanding service! My pet looks amazing after the grooming session.',
-    status: 'approved',
-    admin_response: 'We are thrilled to hear that!',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-];
-
 const Feedback = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [feedbackType, setFeedbackType] = useState('product');
+  const [productOptions, setProductOptions] = useState([]);
+  const [doctorOptions, setDoctorOptions] = useState([]);
+  const [optionsLoading, setOptionsLoading] = useState(false);
 
   const {
     register,
@@ -67,6 +36,7 @@ const Feedback = () => {
 
   useEffect(() => {
     loadFeedbacks();
+    loadFeedbackOptions();
   }, []);
 
   const loadFeedbacks = async () => {
@@ -76,15 +46,37 @@ const Feedback = () => {
       setFeedbacks(response.data.data || []);
     } catch (error) {
       console.error('Error loading feedbacks:', error);
-      setFeedbacks(mockFeedbacks);
     } finally {
       setLoading(false);
     }
   };
 
+  const loadFeedbackOptions = async () => {
+    try {
+      setOptionsLoading(true);
+      const [productsRes, doctorsRes] = await Promise.all([
+        api.get('/products?available=true'),
+        api.get('/doctors'),
+      ]);
+      setProductOptions(productsRes.data.data || []);
+      setDoctorOptions(doctorsRes.data.data || []);
+    } catch (error) {
+      console.error('Error loading feedback options:', error);
+    } finally {
+      setOptionsLoading(false);
+    }
+  };
+
   const onSubmit = async (data) => {
     try {
-      const response = await api.post('/feedback', data);
+      const payload = {
+        feedback_type: data.feedbackType,
+        item_id: data.itemId,
+        rating: data.rating,
+        comment: data.comment,
+      };
+
+      const response = await api.post('/feedback', payload);
       if (response.data.success) {
         toast.success('Feedback submitted successfully');
         setShowForm(false);
@@ -173,11 +165,10 @@ const Feedback = () => {
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`w-4 h-4 ${
-                              i < feedback.rating
+                            className={`w-4 h-4 ${i < feedback.rating
                                 ? 'text-amber-400 fill-amber-400'
                                 : 'text-slate-300'
-                            }`}
+                              }`}
                           />
                         ))}
                         <span className="text-sm font-semibold text-slate-700 ml-1">({feedback.rating}/5)</span>
@@ -247,8 +238,24 @@ const Feedback = () => {
                 <span className="text-red-500">*</span>
               </label>
               <select {...register('itemId', { valueAsNumber: true })} className="input-field">
-                <option value="">Select {selectedType}</option>
-                {/* Items would be loaded based on type */}
+                <option value="">
+                  Select {selectedType}
+                </option>
+                {selectedType === 'service' && (
+                  <option value={0}>Overall service experience</option>
+                )}
+                {selectedType === 'product' &&
+                  productOptions.map((product) => (
+                    <option key={product.product_id} value={product.product_id}>
+                      {product.name}
+                    </option>
+                  ))}
+                {selectedType === 'doctor' &&
+                  doctorOptions.map((doctor) => (
+                    <option key={doctor.doctor_id} value={doctor.doctor_id}>
+                      Dr. {doctor.first_name} {doctor.last_name}
+                    </option>
+                  ))}
               </select>
               {errors.itemId && (
                 <p className="mt-1 text-sm text-red-600">{errors.itemId.message}</p>

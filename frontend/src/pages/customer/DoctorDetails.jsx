@@ -15,57 +15,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockDoctor = {
-  doctor_id: 1,
-  user: {
-    first_name: 'James',
-    last_name: 'Anderson',
-    email: 'james.anderson@example.com',
-  },
-  specialization: 'Veterinary Surgeon',
-  consultation_fee: 2500,
-  rating: 4.8,
-  total_reviews: 124,
-  experience_years: 12,
-  qualifications: 'DVM, MS in Veterinary Surgery, Board Certified',
-  bio: 'With over 12 years of experience in veterinary medicine, Dr. Anderson specializes in surgical procedures and emergency care. He is passionate about providing the best possible care for pets.',
-  image_url: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400',
-  is_available: true,
-};
-
-const mockSchedule = [
-  { schedule_id: 1, day_of_week: 'monday', start_time: '09:00:00', end_time: '17:00:00', is_active: true },
-  { schedule_id: 2, day_of_week: 'tuesday', start_time: '09:00:00', end_time: '17:00:00', is_active: true },
-  { schedule_id: 3, day_of_week: 'wednesday', start_time: '09:00:00', end_time: '17:00:00', is_active: true },
-  { schedule_id: 4, day_of_week: 'thursday', start_time: '09:00:00', end_time: '17:00:00', is_active: true },
-  { schedule_id: 5, day_of_week: 'friday', start_time: '09:00:00', end_time: '17:00:00', is_active: true },
-];
-
-const mockReviews = [
-  {
-    feedback_id: 1,
-    rating: 5,
-    comment: 'Excellent doctor! Very caring and professional. My pet received the best care.',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    feedback_id: 2,
-    rating: 4,
-    comment: 'Great experience. The doctor was knowledgeable and explained everything clearly.',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    feedback_id: 3,
-    rating: 5,
-    comment: 'Highly recommend! My pet is doing much better after the treatment.',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-  },
-];
-
 const DoctorDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -84,17 +33,14 @@ const DoctorDetails = () => {
       const [doctorRes, scheduleRes, reviewsRes] = await Promise.all([
         api.get(`/doctors/${id}`),
         api.get(`/doctors/${id}/schedule`),
-        api.get(`/feedback?feedback_type=doctor&item_id=${id}`),
+        api.get(`/feedback/item/doctor/${id}`),
       ]);
       setDoctor(doctorRes.data.data);
       setSchedule(scheduleRes.data.data || []);
-      setReviews(reviewsRes.data.data || []);
+      const feedbackData = reviewsRes.data.data || {};
+      setReviews(feedbackData.feedbacks || []);
     } catch (error) {
       console.error('Error loading doctor details:', error);
-      // Use mock data as fallback
-      setDoctor(mockDoctor);
-      setSchedule(mockSchedule);
-      setReviews(mockReviews);
     } finally {
       setLoading(false);
     }
@@ -161,15 +107,16 @@ const DoctorDetails = () => {
                   {[...Array(5)].map((_, i) => (
                     <Star
                       key={i}
-                      className={`w-5 h-5 ${
-                        i < Math.floor(doctor.rating || 0)
+                      className={`w-5 h-5 ${i < Math.floor(doctor.rating || 0)
                           ? 'text-amber-400 fill-amber-400'
                           : 'text-slate-300'
-                      }`}
+                        }`}
                     />
                   ))}
                 </div>
-                <span className="text-xl font-bold text-slate-900">{(doctor.rating || 0).toFixed(1)}</span>
+                <span className="text-xl font-bold text-slate-900">
+                  {Number(doctor.rating || 0).toFixed(1)}
+                </span>
                 <span className="text-slate-500">({doctor.total_reviews || 0} reviews)</span>
               </div>
 
@@ -284,11 +231,10 @@ const DoctorDetails = () => {
                           {[...Array(5)].map((_, i) => (
                             <Star
                               key={i}
-                              className={`w-4 h-4 ${
-                                i < review.rating
+                              className={`w-4 h-4 ${i < review.rating
                                   ? 'text-amber-400 fill-amber-400'
                                   : 'text-slate-300'
-                              }`}
+                                }`}
                             />
                           ))}
                         </div>
@@ -327,7 +273,9 @@ const DoctorDetails = () => {
                     <Star className="w-5 h-5 text-amber-600" />
                     <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Rating</p>
                   </div>
-                  <p className="text-2xl font-black text-amber-700">{(doctor.rating || 0).toFixed(1)}</p>
+                  <p className="text-2xl font-black text-amber-700">
+                    {Number(doctor.rating || 0).toFixed(1)}
+                  </p>
                   <p className="text-xs text-slate-500 mt-1">Based on {doctor.total_reviews || 0} reviews</p>
                 </div>
                 <div className="p-4 bg-emerald-50 rounded-xl border-2 border-emerald-200">

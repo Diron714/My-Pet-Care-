@@ -4,7 +4,8 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
-import { FileText, Download, Calendar, DollarSign, ShoppingCart, Users, Sparkles, TrendingUp, BarChart3, PieChart, Activity, ArrowUpRight, ArrowDownRight, Filter } from 'lucide-react';
+import { FileText, Download, Calendar, DollarSign, ShoppingCart, Users, Sparkles, TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ArrowUpRight, ArrowDownRight, Filter } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import toast from 'react-hot-toast';
 
 // Format currency as LKR
@@ -13,55 +14,6 @@ const formatCurrencyLKR = (amount) => {
     style: 'currency',
     currency: 'LKR',
   }).format(amount || 0);
-};
-
-// Mock data for fallback
-const mockReportData = {
-  sales: {
-    totalSales: 1250000,
-    totalOrders: 247,
-    averageOrderValue: 5064,
-    growth: 12.5,
-    topProducts: [
-      { name: 'Premium Dog Food', sales: 125000, orders: 45 },
-      { name: 'Cat Litter', sales: 98000, orders: 38 },
-      { name: 'Pet Toys', sales: 75000, orders: 52 },
-    ],
-  },
-  appointments: {
-    totalAppointments: 156,
-    completed: 142,
-    cancelled: 8,
-    pending: 6,
-    growth: 8.3,
-    topDoctors: [
-      { name: 'Dr. James Anderson', appointments: 45 },
-      { name: 'Dr. Sarah Wilson', appointments: 38 },
-      { name: 'Dr. Michael Brown', appointments: 32 },
-    ],
-  },
-  customers: {
-    totalCustomers: 1245,
-    newCustomers: 89,
-    activeCustomers: 856,
-    growth: 15.2,
-    topSegments: [
-      { segment: 'Regular', count: 456 },
-      { segment: 'Premium', count: 234 },
-      { segment: 'New', count: 89 },
-    ],
-  },
-  loyalty: {
-    totalPoints: 456780,
-    activeMembers: 567,
-    pointsRedeemed: 123450,
-    growth: 22.1,
-    topTiers: [
-      { tier: 'Platinum', members: 89 },
-      { tier: 'Gold', members: 156 },
-      { tier: 'Silver', members: 234 },
-    ],
-  },
 };
 
 const Reports = () => {
@@ -97,33 +49,39 @@ const Reports = () => {
       setReportData(response.data.data);
     } catch (error) {
       console.error('Error loading report:', error);
-      // Use mock data as fallback
-      setReportData(mockReportData[activeTab]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleExport = async (format) => {
+  const handleExport = async () => {
+    if (!dateRange.from || !dateRange.to) {
+      toast.error('Please select date range first');
+      return;
+    }
     try {
       const params = new URLSearchParams();
       params.append('from', dateRange.from);
       params.append('to', dateRange.to);
-      params.append('format', format);
+      params.append('format', 'csv');
 
       const response = await api.get(`/admin/reports/${activeTab}/export?${params.toString()}`, {
         responseType: 'blob',
       });
+      const disposition = response.headers['content-disposition'];
+      const filenameMatch = disposition && /filename="?([^";\n]+)"?/.exec(disposition);
+      const filename = filenameMatch ? filenameMatch[1] : `${activeTab}-report-${dateRange.from}-to-${dateRange.to}.csv`;
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `${activeTab}-report.${format}`);
+      link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
       toast.success('Report exported successfully');
     } catch (error) {
-      toast.error('Failed to export report');
+      toast.error(error.response?.data?.message || 'Failed to export report');
     }
   };
 
@@ -191,8 +149,8 @@ const Reports = () => {
               />
             </div>
             <div className="flex items-end">
-              <Button 
-                onClick={loadReport} 
+              <Button
+                onClick={loadReport}
                 disabled={!dateRange.from || !dateRange.to}
                 className="w-full !bg-primary-600 hover:!bg-primary-700"
               >
@@ -214,11 +172,10 @@ const Reports = () => {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                    isActive
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                       ? styles.active
                       : `bg-white border-2 ${styles.inactive}`
-                  }`}
+                    }`}
                 >
                   <TabIcon className="w-4 h-4" />
                   {tab.label}
@@ -353,13 +310,9 @@ const Reports = () => {
                   </p>
                 </div>
                 <div className="flex gap-2">
-                  <Button variant="outline" onClick={() => handleExport('pdf')}>
+                  <Button variant="outline" onClick={handleExport}>
                     <Download className="w-4 h-4 inline mr-2" />
-                    Export PDF
-                  </Button>
-                  <Button variant="outline" onClick={() => handleExport('excel')}>
-                    <Download className="w-4 h-4 inline mr-2" />
-                    Export Excel
+                    Export CSV
                   </Button>
                 </div>
               </div>
@@ -445,23 +398,83 @@ const Reports = () => {
                   </div>
                 )}
 
-                {/* Charts Placeholder */}
+                {/* Visual Analytics */}
                 <div className="mt-6">
                   <h3 className="font-semibold text-lg text-slate-900 mb-4 flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-primary-600" />
                     Visual Analytics
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="h-64 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl flex flex-col items-center justify-center p-4 text-center shadow-inner border border-emerald-200">
-                      <BarChart3 className="w-12 h-12 text-emerald-500 mb-3" />
-                      <p className="text-emerald-800 font-semibold text-lg">Bar Chart</p>
-                      <p className="text-emerald-600 text-sm">Visualize data trends</p>
-                    </div>
-                    <div className="h-64 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl flex flex-col items-center justify-center p-4 text-center shadow-inner border border-blue-200">
-                      <PieChart className="w-12 h-12 text-blue-500 mb-3" />
-                      <p className="text-blue-800 font-semibold text-lg">Pie Chart</p>
-                      <p className="text-blue-600 text-sm">Distribution analysis</p>
-                    </div>
+                    {activeTab === 'sales' && reportData.topProducts && reportData.topProducts.length > 0 && (
+                      <div className="h-64 rounded-2xl border border-slate-200 p-4 bg-white">
+                        <p className="text-sm font-semibold text-slate-700 mb-2">Top Products by Sales</p>
+                        <ResponsiveContainer width="100%" height="90%">
+                          <BarChart data={reportData.topProducts.slice(0, 8)} layout="vertical" margin={{ left: 80, right: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis type="number" tickFormatter={(v) => `LKR ${(v / 1000).toFixed(0)}k`} />
+                            <YAxis type="category" dataKey="name" width={75} tick={{ fontSize: 10 }} />
+                            <Tooltip formatter={(value) => [formatCurrencyLKR(value), 'Sales']} />
+                            <Bar dataKey="sales" fill="#10b981" radius={[0, 4, 4, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    {activeTab === 'loyalty' && reportData.topTiers && reportData.topTiers.length > 0 && (
+                      <div className="h-64 rounded-2xl border border-slate-200 p-4 bg-white">
+                        <p className="text-sm font-semibold text-slate-700 mb-2">Loyalty Tier Distribution</p>
+                        <ResponsiveContainer width="100%" height="90%">
+                          <PieChart>
+                            <Pie data={reportData.topTiers} dataKey="members" nameKey="tier" cx="50%" cy="50%" outerRadius={80} label={({ tier, members }) => `${tier}: ${members}`}>
+                              {reportData.topTiers.map((_, i) => (
+                                <Cell key={i} fill={['#f59e0b', '#6366f1', '#10b981', '#ec4899'][i % 4]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => [value, 'Members']} />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    {activeTab === 'appointments' && reportData.topDoctors && reportData.topDoctors.length > 0 && (
+                      <div className="h-64 rounded-2xl border border-slate-200 p-4 bg-white">
+                        <p className="text-sm font-semibold text-slate-700 mb-2">Top Doctors by Appointments</p>
+                        <ResponsiveContainer width="100%" height="90%">
+                          <BarChart data={reportData.topDoctors.slice(0, 8)} margin={{ left: 0, right: 20 }}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                            <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                            <YAxis />
+                            <Tooltip />
+                            <Bar dataKey="appointments" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    {activeTab === 'customers' && reportData.topSegments && reportData.topSegments.length > 0 && (
+                      <div className="h-64 rounded-2xl border border-slate-200 p-4 bg-white">
+                        <p className="text-sm font-semibold text-slate-700 mb-2">Customer Segments</p>
+                        <ResponsiveContainer width="100%" height="90%">
+                          <PieChart>
+                            <Pie data={reportData.topSegments} dataKey="count" nameKey="segment" cx="50%" cy="50%" outerRadius={80} label={({ segment, count }) => `${segment}: ${count}`}>
+                              {reportData.topSegments.map((_, i) => (
+                                <Cell key={i} fill={['#8b5cf6', '#06b6d4', '#10b981', '#f59e0b'][i % 4]} />
+                              ))}
+                            </Pie>
+                            <Tooltip formatter={(value) => [value, 'Customers']} />
+                            <Legend />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    )}
+                    {((activeTab === 'sales' && !reportData.topProducts?.length) ||
+                      (activeTab === 'loyalty' && !reportData.topTiers?.length) ||
+                      (activeTab === 'appointments' && !reportData.topDoctors?.length) ||
+                      (activeTab === 'customers' && !reportData.topSegments?.length)) && (
+                      <div className="h-64 rounded-2xl border border-slate-200 flex flex-col items-center justify-center text-slate-500 md:col-span-2">
+                        <PieChartIcon className="w-12 h-12 text-slate-300 mb-2" />
+                        <p className="text-sm font-semibold">No chart data for this report</p>
+                        <p className="text-xs">Select a date range with data to see charts</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

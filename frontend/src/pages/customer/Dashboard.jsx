@@ -15,56 +15,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockStats = {
-  activeOrders: 3,
-  upcomingAppointments: 2,
-  loyaltyPoints: 1250,
-  loyaltyTier: 'gold',
-  unreadNotifications: 5,
-};
-
-const mockRecentOrders = [
-  {
-    order_id: 1,
-    order_number: 'ORD-2024-001',
-    created_at: new Date().toISOString(),
-    order_status: 'delivered',
-    final_amount: 45000,
-  },
-  {
-    order_id: 2,
-    order_number: 'ORD-2024-002',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    order_status: 'processing',
-    final_amount: 32000,
-  },
-  {
-    order_id: 3,
-    order_number: 'ORD-2024-003',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    order_status: 'shipped',
-    final_amount: 28000,
-  },
-];
-
-const mockRecentAppointments = [
-  {
-    appointment_id: 1,
-    doctor: { user: { first_name: 'James', last_name: 'Anderson' } },
-    appointment_date: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    appointment_time: '10:00:00',
-    status: 'accepted',
-  },
-  {
-    appointment_id: 2,
-    doctor: { user: { first_name: 'Sarah', last_name: 'Wilson' } },
-    appointment_date: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    appointment_time: '14:30:00',
-    status: 'pending',
-  },
-];
-
 const Dashboard = () => {
   const [stats, setStats] = useState({
     activeOrders: 0,
@@ -95,10 +45,6 @@ const Dashboard = () => {
       setRecentAppointments(appointmentsRes.data.data || []);
     } catch (error) {
       console.error('Error loading dashboard:', error);
-      // Use mock data as fallback
-      setStats(mockStats);
-      setRecentOrders(mockRecentOrders);
-      setRecentAppointments(mockRecentAppointments);
     } finally {
       setLoading(false);
     }

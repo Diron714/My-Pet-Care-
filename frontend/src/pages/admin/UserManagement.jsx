@@ -7,76 +7,7 @@ import api from '../../services/api';
 import { formatDate, formatDateTime } from '../../utils/formatters';
 import { ToggleLeft, ToggleRight, Edit, Users, User, Stethoscope, Shield, Search, Filter, RefreshCw, CheckCircle, XCircle, Mail, Calendar, ShieldCheck, UserCheck, UserX, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
-
-// Mock data for fallback
-const mockUsers = [
-  {
-    user_id: 1,
-    first_name: 'Sarah',
-    last_name: 'Johnson',
-    email: 'sarah.johnson@example.com',
-    role: 'customer',
-    is_active: true,
-    is_verified: true,
-    created_at: new Date().toISOString(),
-    phone: '+94 77 123 4567',
-  },
-  {
-    user_id: 2,
-    first_name: 'Dr. James',
-    last_name: 'Anderson',
-    email: 'james.anderson@example.com',
-    role: 'doctor',
-    is_active: true,
-    is_verified: true,
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-    phone: '+94 77 234 5678',
-  },
-  {
-    user_id: 3,
-    first_name: 'Michael',
-    last_name: 'Chen',
-    email: 'michael.chen@example.com',
-    role: 'customer',
-    is_active: true,
-    is_verified: false,
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-    phone: '+94 77 345 6789',
-  },
-  {
-    user_id: 4,
-    first_name: 'Emma',
-    last_name: 'Williams',
-    email: 'emma.williams@example.com',
-    role: 'staff',
-    is_active: true,
-    is_verified: true,
-    created_at: new Date(Date.now() - 259200000).toISOString(),
-    phone: '+94 77 456 7890',
-  },
-  {
-    user_id: 5,
-    first_name: 'David',
-    last_name: 'Martinez',
-    email: 'david.martinez@example.com',
-    role: 'customer',
-    is_active: false,
-    is_verified: true,
-    created_at: new Date(Date.now() - 345600000).toISOString(),
-    phone: '+94 77 567 8901',
-  },
-  {
-    user_id: 6,
-    first_name: 'Dr. Sarah',
-    last_name: 'Wilson',
-    email: 'sarah.wilson@example.com',
-    role: 'doctor',
-    is_active: true,
-    is_verified: true,
-    created_at: new Date(Date.now() - 432000000).toISOString(),
-    phone: '+94 77 678 9012',
-  },
-];
+import { useAuth } from '../../context/AuthContext';
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
@@ -87,6 +18,8 @@ const UserManagement = () => {
     verified: '',
     search: '',
   });
+  const { user: currentUser } = useAuth();
+  const canEditRoles = currentUser?.role === 'admin';
 
   useEffect(() => {
     loadUsers();
@@ -105,30 +38,7 @@ const UserManagement = () => {
       setUsers(response.data.data || []);
     } catch (error) {
       console.error('Error loading users:', error);
-      // Use mock data as fallback
-      let filtered = [...mockUsers];
-      
-      if (filters.role) {
-        filtered = filtered.filter(u => u.role === filters.role);
-      }
-      if (filters.status === 'active') {
-        filtered = filtered.filter(u => u.is_active === true);
-      } else if (filters.status === 'inactive') {
-        filtered = filtered.filter(u => u.is_active === false);
-      }
-      if (filters.verified === 'true') {
-        filtered = filtered.filter(u => u.is_verified === true);
-      } else if (filters.verified === 'false') {
-        filtered = filtered.filter(u => u.is_verified === false);
-      }
-      if (filters.search) {
-        filtered = filtered.filter(u => 
-          `${u.first_name} ${u.last_name}`.toLowerCase().includes(filters.search.toLowerCase()) ||
-          u.email.toLowerCase().includes(filters.search.toLowerCase())
-        );
-      }
-      
-      setUsers(filtered);
+      setUsers([]);
     } finally {
       setLoading(false);
     }
@@ -147,12 +57,20 @@ const UserManagement = () => {
   };
 
   const handleChangeRole = async (userId, newRole) => {
+    if (!canEditRoles) {
+      toast.error('Only admin users can change roles.');
+      return;
+    }
     try {
       await api.put(`/admin/users/${userId}/role`, { role: newRole });
       toast.success('User role updated');
       loadUsers();
     } catch (error) {
-      toast.error('Failed to update user role');
+      if (error.response?.status === 403) {
+        toast.error('You do not have permission to change user roles.');
+      } else {
+        toast.error(error.response?.data?.message || 'Failed to update user role');
+      }
     }
   };
 
@@ -339,8 +257,8 @@ const UserManagement = () => {
               </select>
             </div>
             <div className="flex items-end">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={() => setFilters({ role: '', status: '', verified: '', search: '' })}
                 className="w-full"
               >
@@ -354,9 +272,9 @@ const UserManagement = () => {
         {/* Users Grid */}
         {users.length === 0 ? (
           <div className="card">
-            <EmptyState 
+            <EmptyState
               icon={Users}
-              title="No users found" 
+              title="No users found"
               message="No users match the selected filters"
             />
           </div>
@@ -365,10 +283,10 @@ const UserManagement = () => {
             {users.map((user) => {
               const RoleIcon = getRoleIcon(user.role);
               const roleStyles = getRoleStyles(user.role);
-              
+
               return (
-                <div 
-                  key={user.user_id} 
+                <div
+                  key={user.user_id}
                   className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${roleStyles.border}`}
                 >
                   <div className="flex items-start gap-4 mb-4">
@@ -385,11 +303,10 @@ const UserManagement = () => {
                           <RoleIcon className="w-3 h-3" />
                           {user.role}
                         </div>
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${
-                          user.is_active
+                        <span className={`px-2 py-1 rounded-full text-[10px] font-semibold uppercase tracking-wider ${user.is_active
                             ? 'bg-emerald-100 text-emerald-700'
                             : 'bg-rose-100 text-rose-700'
-                        }`}>
+                          }`}>
                           {user.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </div>
@@ -414,11 +331,10 @@ const UserManagement = () => {
                     </div>
 
                     {/* Verification Status */}
-                    <div className={`p-3 rounded-xl border ${
-                      user.is_verified
+                    <div className={`p-3 rounded-xl border ${user.is_verified
                         ? 'bg-emerald-50 border-emerald-200'
                         : 'bg-amber-50 border-amber-200'
-                    }`}>
+                      }`}>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           {user.is_verified ? (
@@ -426,9 +342,8 @@ const UserManagement = () => {
                           ) : (
                             <XCircle className="w-4 h-4 text-amber-600" />
                           )}
-                          <span className={`text-xs font-semibold ${
-                            user.is_verified ? 'text-emerald-700' : 'text-amber-700'
-                          }`}>
+                          <span className={`text-xs font-semibold ${user.is_verified ? 'text-emerald-700' : 'text-amber-700'
+                            }`}>
                             {user.is_verified ? 'Verified' : 'Not Verified'}
                           </span>
                         </div>
@@ -441,11 +356,10 @@ const UserManagement = () => {
                         variant="outline"
                         size="sm"
                         onClick={() => handleToggleStatus(user)}
-                        className={`flex-1 ${
-                          user.is_active
+                        className={`flex-1 ${user.is_active
                             ? '!bg-rose-50 !text-rose-700 hover:!bg-rose-100'
                             : '!bg-emerald-50 !text-emerald-700 hover:!bg-emerald-100'
-                        }`}
+                          }`}
                       >
                         {user.is_active ? (
                           <>
@@ -462,7 +376,8 @@ const UserManagement = () => {
                       <select
                         value={user.role}
                         onChange={(e) => handleChangeRole(user.user_id, e.target.value)}
-                        className={`input-field text-xs !py-2 flex-1 ${roleStyles.bg} ${roleStyles.text} border ${roleStyles.border}`}
+                        disabled={!canEditRoles}
+                        className={`input-field text-xs !py-2 flex-1 ${roleStyles.bg} ${roleStyles.text} border ${roleStyles.border} ${!canEditRoles ? 'opacity-60 cursor-not-allowed' : ''}`}
                       >
                         <option value="customer">Customer</option>
                         <option value="doctor">Doctor</option>

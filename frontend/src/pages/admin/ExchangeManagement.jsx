@@ -17,37 +17,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockExchanges = [
-  {
-    exchange_id: 1,
-    status: 'pending',
-    customer: { user: { first_name: 'Sarah', last_name: 'Johnson' } },
-    order: { order_number: 'ORD-2024-001' },
-    pet: { name: 'Golden Retriever Puppy' },
-    reason: 'Pet size mismatch - ordered small but received medium',
-    created_at: new Date().toISOString(),
-  },
-  {
-    exchange_id: 2,
-    status: 'approved',
-    customer: { user: { first_name: 'Michael', last_name: 'Chen' } },
-    order: { order_number: 'ORD-2024-002' },
-    pet: { name: 'Persian Cat' },
-    reason: 'Color preference - customer wants different color',
-    created_at: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    exchange_id: 3,
-    status: 'pending',
-    customer: { user: { first_name: 'Emma', last_name: 'Williams' } },
-    order: { order_number: 'ORD-2024-003' },
-    pet: { name: 'Labrador Puppy' },
-    reason: 'Health concerns - pet not matching description',
-    created_at: new Date(Date.now() - 172800000).toISOString(),
-  },
-];
-
 const ExchangeManagement = () => {
   const [exchanges, setExchanges] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -65,12 +34,6 @@ const ExchangeManagement = () => {
       setExchanges(response.data.data || []);
     } catch (error) {
       console.error('Error loading exchanges:', error);
-      // Use mock data as fallback
-      let filtered = [...mockExchanges];
-      if (filter !== 'all') {
-        filtered = filtered.filter(e => e.status === filter);
-      }
-      setExchanges(filtered);
     } finally {
       setLoading(false);
     }
@@ -95,6 +58,16 @@ const ExchangeManagement = () => {
       loadExchanges();
     } catch (error) {
       toast.error('Failed to reject exchange');
+    }
+  };
+
+  const handleComplete = async (exchangeId) => {
+    try {
+      await api.put(`/exchanges/${exchangeId}/complete`);
+      toast.success('Exchange marked as completed');
+      loadExchanges();
+    } catch (error) {
+      toast.error('Failed to complete exchange');
     }
   };
 
@@ -127,11 +100,10 @@ const ExchangeManagement = () => {
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
-                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${
-                  isActive
+                className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
                     ? `bg-${f.color}-600 text-white shadow-lg shadow-${f.color}-500/30`
                     : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
-                }`}
+                  }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : `text-${f.color}-600`}`} />
                 {f.label}
@@ -173,7 +145,7 @@ const ExchangeManagement = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                       <div className="flex items-start gap-3 p-3 bg-slate-50 rounded-xl">
                         <User className="w-5 h-5 text-slate-400 mt-0.5" />
@@ -208,7 +180,7 @@ const ExchangeManagement = () => {
                       </div>
                     )}
                   </div>
-                  
+
                   {exchange.status === 'pending' && (
                     <div className="flex flex-col gap-2 ml-4">
                       <Button
@@ -226,6 +198,18 @@ const ExchangeManagement = () => {
                       >
                         <X className="w-4 h-4 inline mr-1" />
                         Reject
+                      </Button>
+                    </div>
+                  )}
+                  {exchange.status === 'approved' && (
+                    <div className="flex flex-col gap-2 ml-4">
+                      <Button
+                        size="sm"
+                        onClick={() => handleComplete(exchange.exchange_id)}
+                        className="!bg-blue-600 hover:!bg-blue-700"
+                      >
+                        <RefreshCw className="w-4 h-4 inline mr-1" />
+                        Mark as Complete
                       </Button>
                     </div>
                   )}

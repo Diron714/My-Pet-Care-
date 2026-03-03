@@ -16,54 +16,6 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
-// Mock data for fallback
-const mockDoctors = [
-  {
-    doctor_id: 1,
-    user: { first_name: 'James', last_name: 'Anderson' },
-    specialization: 'Veterinary Surgeon',
-    consultation_fee: 2500,
-    rating: 4.8,
-    total_reviews: 124,
-    experience_years: 12,
-    image_url: 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=400',
-    is_available: true,
-  },
-  {
-    doctor_id: 2,
-    user: { first_name: 'Sarah', last_name: 'Wilson' },
-    specialization: 'Pet Dermatologist',
-    consultation_fee: 3000,
-    rating: 4.9,
-    total_reviews: 89,
-    experience_years: 8,
-    image_url: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=400',
-    is_available: true,
-  },
-  {
-    doctor_id: 3,
-    user: { first_name: 'Michael', last_name: 'Brown' },
-    specialization: 'General Practitioner',
-    consultation_fee: 2000,
-    rating: 4.6,
-    total_reviews: 156,
-    experience_years: 10,
-    image_url: 'https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=400',
-    is_available: true,
-  },
-  {
-    doctor_id: 4,
-    user: { first_name: 'Emily', last_name: 'Davis' },
-    specialization: 'Pet Cardiologist',
-    consultation_fee: 3500,
-    rating: 5.0,
-    total_reviews: 67,
-    experience_years: 15,
-    image_url: 'https://images.unsplash.com/photo-1582750433449-648ed127bb54?w=400',
-    is_available: true,
-  },
-];
-
 const DoctorList = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,21 +43,7 @@ const DoctorList = () => {
       setDoctors(response.data.data || []);
     } catch (error) {
       console.error('Error loading doctors:', error);
-      // Use mock data as fallback
-      let filtered = [...mockDoctors];
-      if (filters.specialization) {
-        filtered = filtered.filter(d => d.specialization.toLowerCase().includes(filters.specialization.toLowerCase()));
-      }
-      if (filters.rating) {
-        filtered = filtered.filter(d => d.rating >= parseFloat(filters.rating));
-      }
-      if (search) {
-        filtered = filtered.filter(d =>
-          `${d.user?.first_name} ${d.user?.last_name}`.toLowerCase().includes(search.toLowerCase()) ||
-          d.specialization.toLowerCase().includes(search.toLowerCase())
-        );
-      }
-      setDoctors(filtered);
+      setDoctors([]);
     } finally {
       setLoading(false);
     }
@@ -233,14 +171,16 @@ const DoctorList = () => {
                               <Star
                                 key={i}
                                 className={`w-4 h-4 ${
-                                  i < Math.floor(doctor.rating || 0)
+                                  i < Math.floor(Number(doctor.rating || 0))
                                     ? 'text-amber-400 fill-amber-400'
                                     : 'text-slate-300'
                                 }`}
                               />
                             ))}
                           </div>
-                          <span className="text-sm font-semibold text-slate-700">{(doctor.rating || 0).toFixed(1)}</span>
+                          <span className="text-sm font-semibold text-slate-700">
+                            {Number(doctor.rating || 0).toFixed(1)}
+                          </span>
                           <span className="text-xs text-slate-500">({doctor.total_reviews || 0} reviews)</span>
                         </div>
 
