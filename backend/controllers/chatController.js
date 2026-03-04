@@ -160,11 +160,43 @@ export const createChatRoom = async (req, res) => {
   }
 };
 
+// Helper: ensure current user is a participant in the room
+const ensureRoomParticipant = async (roomId, userId, userRole) => {
+  const [rooms] = await pool.query(
+    `SELECT cr.customer_id, cr.doctor_id, cr.staff_id,
+            c.user_id AS customer_user_id,
+            d.user_id AS doctor_user_id
+     FROM chat_rooms cr
+     LEFT JOIN customers c ON cr.customer_id = c.customer_id
+     LEFT JOIN doctors d ON cr.doctor_id = d.doctor_id
+     WHERE cr.room_id = ? AND cr.is_active = TRUE`,
+    [roomId]
+  );
+  if (rooms.length === 0) return { allowed: false, notFound: true };
+  const r = rooms[0];
+  const isCustomer = r.customer_user_id === userId;
+  const isDoctor = r.doctor_user_id === userId;
+  const isStaff = r.staff_id === userId;
+  const isAdminOrStaff = userRole === 'admin' || userRole === 'staff';
+  const allowed = isCustomer || isDoctor || isStaff || isAdminOrStaff;
+  return { allowed, notFound: false };
+};
+
 // GET /api/chat/rooms/:id/messages - Get messages for a room
 export const getChatMessages = async (req, res) => {
   try {
     const { id } = req.params;
     const { limit = 50, offset = 0 } = req.query;
+    const userId = req.user.userId;
+    const userRole = req.user.role;
+
+    const { allowed, notFound } = await ensureRoomParticipant(id, userId, userRole);
+    if (notFound) {
+      return res.status(404).json({ success: false, message: 'Chat room not found' });
+    }
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'You do not have access to this chat room' });
+    }
 
     const [messages] = await pool.query(
       `SELECT cm.*, u.first_name, u.last_name, u.role
@@ -217,6 +249,7 @@ export const sendMessage = async (req, res) => {
     const { id } = req.params;
     const { messageText } = req.body;
     const userId = req.user.userId;
+    const userRole = req.user.role;
 
     if (!messageText || !messageText.trim()) {
       return res.status(400).json({
@@ -225,17 +258,12 @@ export const sendMessage = async (req, res) => {
       });
     }
 
-    // Verify room exists
-    const [rooms] = await pool.query(
-      `SELECT * FROM chat_rooms WHERE room_id = ?`,
-      [id]
-    );
-
-    if (rooms.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Chat room not found'
-      });
+    const { allowed, notFound } = await ensureRoomParticipant(id, userId, userRole);
+    if (notFound) {
+      return res.status(404).json({ success: false, message: 'Chat room not found' });
+    }
+    if (!allowed) {
+      return res.status(403).json({ success: false, message: 'You do not have access to this chat room' });
     }
 
     // Insert message

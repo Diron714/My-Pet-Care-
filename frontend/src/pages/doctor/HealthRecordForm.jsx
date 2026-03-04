@@ -4,8 +4,7 @@ import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
-import { formatDate } from '../../utils/formatters';
-import { ArrowLeft, PawPrint, User, Calendar, FileText, Pill, AlertCircle } from 'lucide-react';
+import { ArrowLeft, PawPrint, Calendar, FileText, Pill, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const HealthRecordForm = () => {
@@ -26,21 +25,31 @@ const HealthRecordForm = () => {
   const [pets, setPets] = useState([]);
 
   useEffect(() => {
-    loadDoctorPets();
-    if (isEditMode) {
-      loadExistingRecord();
-    }
+    let cancelled = false;
+    (async () => {
+      await loadDoctorPets();
+      if (cancelled) return;
+      if (isEditMode) {
+        await loadExistingRecord();
+      }
+    })();
+    return () => { cancelled = true; };
   }, [id]);
 
   const loadDoctorPets = async () => {
     try {
-      // Reuse appointments-based pets: get recent appointments and derive pets
+      // Appointments API returns flat fields: customer_pet_id, pet_name, species, breed
       const res = await api.get('/appointments');
       const appts = res.data.data || [];
       const uniquePetsMap = {};
       appts.forEach((a) => {
-        if (a.customer_pet) {
-          uniquePetsMap[a.customer_pet.customer_pet_id] = a.customer_pet;
+        if (a.customer_pet_id) {
+          uniquePetsMap[a.customer_pet_id] = {
+            customer_pet_id: a.customer_pet_id,
+            name: a.pet_name,
+            species: a.species,
+            breed: a.breed,
+          };
         }
       });
       setPets(Object.values(uniquePetsMap));
@@ -60,7 +69,14 @@ const HealthRecordForm = () => {
         diagnosis: data.diagnosis || '',
         prescription: data.prescription || '',
         treatment_notes: data.treatment_notes || '',
-        record_date: data.record_date ? formatDate(data.record_date) : new Date().toISOString().split('T')[0],
+        record_date: data.record_date ? String(data.record_date).slice(0, 10) : new Date().toISOString().split('T')[0],
+      });
+      // Ensure current record's pet is in the dropdown (may not be in appointments list)
+      setPets((prev) => {
+        const has = prev.some((p) => p.customer_pet_id === data.customer_pet_id);
+        if (has) return prev;
+        const pet = data.customer_pet || {};
+        return [...prev, { customer_pet_id: data.customer_pet_id, name: pet.name || 'Pet', species: pet.species || '', breed: pet.breed || '' }];
       });
     } catch (error) {
       console.error('Error loading health record:', error);
@@ -98,9 +114,13 @@ const HealthRecordForm = () => {
         record_date: form.record_date,
       };
 
-      await api.post('/health-records', payload);
-
-      toast.success('Health record created successfully');
+      if (isEditMode) {
+        await api.put(`/health-records/${id}`, payload);
+        toast.success('Health record updated successfully');
+      } else {
+        await api.post('/health-records', payload);
+        toast.success('Health record created successfully');
+      }
       navigate('/doctor/health-records');
     } catch (error) {
       console.error('Error saving health record:', error);

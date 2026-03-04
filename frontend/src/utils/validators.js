@@ -61,10 +61,10 @@ export const petProfileSchema = z.object({
   gender: z.enum(['male', 'female', 'other']),
 });
 
-// Appointment booking schema
+// Appointment booking schema (coerce so select string values from form work)
 export const appointmentSchema = z.object({
-  doctorId: z.number().min(1, 'Doctor selection is required'),
-  customerPetId: z.number().min(1, 'Pet selection is required'),
+  doctorId: z.coerce.number().min(1, 'Doctor selection is required'),
+  customerPetId: z.coerce.number().min(1, 'Pet selection is required'),
   appointmentDate: z.string().min(1, 'Date is required'),
   appointmentTime: z.string().min(1, 'Time is required'),
 });

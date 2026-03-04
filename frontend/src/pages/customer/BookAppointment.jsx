@@ -20,6 +20,14 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const getImageSrc = (rawUrl) => {
+  if (!rawUrl) return null;
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+  const base = API_BASE.replace(/\/api\/?$/, '');
+  return `${base}${rawUrl}`;
+};
+
 const BookAppointment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -36,11 +44,15 @@ const BookAppointment = () => {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(appointmentSchema),
     defaultValues: {
-      doctorId: preSelectedDoctorId ? parseInt(preSelectedDoctorId) : undefined,
+      doctorId: preSelectedDoctorId ? preSelectedDoctorId : '',
+      customerPetId: '',
+      appointmentDate: '',
+      appointmentTime: '',
     },
   });
 
@@ -53,16 +65,30 @@ const BookAppointment = () => {
     loadPets();
   }, []);
 
+  // When doctors load, apply URL pre-selected doctor
   useEffect(() => {
-    if (selectedDoctorId) {
-      const doctor = doctors.find(d => d.doctor_id === parseInt(selectedDoctorId));
-      setSelectedDoctor(doctor);
+    if (doctors.length === 0 || !preSelectedDoctorId) return;
+    const id = parseInt(preSelectedDoctorId, 10);
+    if (!id) return;
+    const exists = doctors.some((d) => d.doctor_id === id);
+    if (exists) setValue('doctorId', id);
+  }, [doctors, preSelectedDoctorId, setValue]);
+
+  useEffect(() => {
+    const id = selectedDoctorId ? parseInt(selectedDoctorId, 10) : null;
+    if (id) {
+      const doctor = doctors.find((d) => d.doctor_id === id);
+      setSelectedDoctor(doctor || null);
+    } else {
+      setSelectedDoctor(null);
     }
   }, [selectedDoctorId, doctors]);
 
   useEffect(() => {
     if (selectedDoctorId && selectedDate) {
       loadAvailableSlots(selectedDoctorId, selectedDate);
+    } else {
+      setAvailableSlots([]);
     }
   }, [selectedDoctorId, selectedDate]);
 
@@ -72,6 +98,7 @@ const BookAppointment = () => {
       setDoctors(response.data.data || []);
     } catch (error) {
       console.error('Error loading doctors:', error);
+      setDoctors([]);
     }
   };
 
@@ -242,7 +269,7 @@ const BookAppointment = () => {
                   <div className="mt-4 p-4 bg-blue-50 rounded-xl border border-blue-200 flex items-center gap-3">
                     {selectedPet.image_url ? (
                       <img
-                        src={selectedPet.image_url}
+                        src={getImageSrc(selectedPet.image_url)}
                         alt={selectedPet.name}
                         className="w-16 h-16 rounded-lg object-cover border-2 border-blue-300"
                         onError={(e) => {
@@ -357,7 +384,12 @@ const BookAppointment = () => {
           )}
 
           <div className="flex space-x-4">
-            <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700" loading={loading}>
+            <Button
+              type="submit"
+              className="flex-1 !bg-primary-600 hover:!bg-primary-700"
+              loading={loading}
+              disabled={pets.length === 0}
+            >
               <CheckCircle className="w-4 h-4 inline mr-2" />
               Book Appointment
             </Button>

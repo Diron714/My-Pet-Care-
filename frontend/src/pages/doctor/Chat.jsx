@@ -32,7 +32,7 @@ const Chat = () => {
   }, [selectedRoom]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
 
   const loadRooms = async () => {

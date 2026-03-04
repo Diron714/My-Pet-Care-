@@ -4,9 +4,16 @@ import helmet from 'helmet';
 import compression from 'compression';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import requestLogger from './middleware/logger.js';
 import pool from './config/database.js';
+import { startReminderScheduler } from './schedulers/reminderScheduler.js';
+
+// ESM __dirname equivalent
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables
 dotenv.config();
@@ -40,6 +47,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Compression
 app.use(compression());
+
+// Static file serving for uploaded images
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Logging
 app.use(requestLogger);
@@ -105,6 +115,9 @@ if (process.env.NODE_ENV !== 'test') {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
     console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
   });
+
+  // Start background reminder scheduler so customers get reminder notifications.
+  startReminderScheduler();
 }
 
 // Graceful shutdown

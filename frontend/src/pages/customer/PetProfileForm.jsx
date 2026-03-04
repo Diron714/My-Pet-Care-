@@ -21,6 +21,8 @@ const PetProfileForm = () => {
   const [feedingSchedules, setFeedingSchedules] = useState([]);
   const [showVaccinationForm, setShowVaccinationForm] = useState(false);
   const [showFeedingForm, setShowFeedingForm] = useState(false);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [imageDataUrl, setImageDataUrl] = useState(null);
 
   const {
     register,
@@ -53,6 +55,10 @@ const PetProfileForm = () => {
         setValue('breed', pet.breed);
         setValue('age', pet.age);
         setValue('gender', pet.gender);
+        if (pet.image_url) {
+          setImagePreview(pet.image_url);
+          setImageDataUrl(pet.image_url);
+        }
       }
 
       setVaccinations(vaccinationsRes.data.data || []);
@@ -69,7 +75,12 @@ const PetProfileForm = () => {
     try {
       const url = isEdit ? `/customer-pets/${id}` : '/customer-pets';
       const method = isEdit ? 'put' : 'post';
-      const response = await api[method](url, data);
+      const payload = {
+        ...data,
+        // Include image data URL if present so backend can persist it as image_url
+        image_url: imageDataUrl || undefined,
+      };
+      const response = await api[method](url, payload);
 
       if (response.data.success) {
         toast.success(isEdit ? 'Pet profile updated' : 'Pet profile created');
@@ -80,6 +91,19 @@ const PetProfileForm = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result;
+      setImagePreview(result);
+      setImageDataUrl(result);
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleAddVaccination = async (vaccinationData) => {
@@ -195,8 +219,30 @@ const PetProfileForm = () => {
                   <Upload className="w-4 h-4 inline mr-1" />
                   Pet Image
                 </label>
-                <input type="file" accept="image/*" className="input-field" />
-                <p className="text-xs text-slate-500 mt-1">Upload a photo of your pet (optional)</p>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="input-field"
+                  onChange={handleImageChange}
+                />
+                <p className="text-xs text-slate-500 mt-1">
+                  Upload a photo of your pet (optional). Supported formats: JPG, PNG.
+                </p>
+                {imagePreview && (
+                  <div className="mt-3">
+                    <p className="text-xs font-semibold text-slate-600 mb-1">Preview</p>
+                    <div className="h-32 w-32 rounded-xl overflow-hidden border border-slate-200">
+                      <img
+                        src={imagePreview}
+                        alt="Pet preview"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/150?text=Pet';
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
