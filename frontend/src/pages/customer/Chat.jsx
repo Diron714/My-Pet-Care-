@@ -7,7 +7,7 @@ import api from '../../services/api';
 import { formatDateTime } from '../../utils/formatters';
 import { MessageSquare, Send, Stethoscope, Shield, User, Clock, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
 const Chat = () => {
@@ -17,8 +17,13 @@ const Chat = () => {
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [creatingSupportRoom, setCreatingSupportRoom] = useState(false);
+  const [creatingDoctorRoom, setCreatingDoctorRoom] = useState(false);
+  const [doctors, setDoctors] = useState([]);
+  const [selectedDoctorId, setSelectedDoctorId] = useState('');
   const messagesEndRef = useRef(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   useEffect(() => {
@@ -26,12 +31,27 @@ const Chat = () => {
     const doctorId = params.get('doctorId');
 
     if (doctorId) {
-      createDoctorChatRoom(doctorId);
+      createDoctorChatRoom(doctorId).then(() => {
+        navigate('/customer/chat', { replace: true });
+      });
     } else {
       loadRooms();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
+
+  useEffect(() => {
+    loadDoctors();
+  }, []);
+
+  const loadDoctors = async () => {
+    try {
+      const res = await api.get('/doctors');
+      setDoctors(res.data?.data || []);
+    } catch (err) {
+      console.error('Error loading doctors:', err);
+    }
+  };
 
   useEffect(() => {
     if (selectedRoom) {
@@ -45,13 +65,31 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const loadRooms = async () => {
+  const loadRooms = async (roomIdToSelect) => {
     try {
       setLoading(true);
       const response = await api.get('/chat/rooms');
       const roomList = response.data.data || [];
       setRooms(roomList);
-      if (roomList.length > 0 && !selectedRoom) {
+
+      if (roomList.length === 0) {
+        setSelectedRoom(null);
+        return;
+      }
+
+      // If we have a specific room to select (e.g. just created), prefer that
+      if (roomIdToSelect != null) {
+        const id = Number(roomIdToSelect);
+        const target = roomList.find((r) => r.room_id === id);
+        setSelectedRoom(target || roomList[0]);
+        return;
+      }
+
+      // Otherwise, try to keep the current selection in sync with refreshed data
+      if (selectedRoom) {
+        const stillExists = roomList.find((r) => r.room_id === selectedRoom.room_id);
+        setSelectedRoom(stillExists || roomList[0]);
+      } else {
         setSelectedRoom(roomList[0]);
       }
     } catch (error) {
@@ -64,15 +102,43 @@ const Chat = () => {
   const createDoctorChatRoom = async (doctorId) => {
     try {
       setLoading(true);
-      await api.post('/chat/rooms', {
+      const response = await api.post('/chat/rooms', {
         room_type: 'customer_doctor',
         doctor_id: Number(doctorId),
       });
-      await loadRooms();
+      const roomId = response.data?.data?.room_id;
+      await loadRooms(roomId);
+      setSelectedDoctorId('');
     } catch (error) {
       console.error('Error creating chat room:', error);
       toast.error(error.response?.data?.message || 'Failed to start chat');
+    } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStartDoctorChat = () => {
+    if (!selectedDoctorId) {
+      toast.error('Please select a doctor');
+      return;
+    }
+    setCreatingDoctorRoom(true);
+    createDoctorChatRoom(selectedDoctorId).finally(() => setCreatingDoctorRoom(false));
+  };
+
+  const createSupportChatRoom = async () => {
+    try {
+      setCreatingSupportRoom(true);
+      const response = await api.post('/chat/rooms', {
+        room_type: 'customer_staff',
+      });
+      const roomId = response.data?.data?.room_id;
+      await loadRooms(roomId);
+    } catch (error) {
+      console.error('Error creating support chat room:', error);
+      toast.error(error.response?.data?.message || 'Failed to start support chat');
+    } finally {
+      setCreatingSupportRoom(false);
     }
   };
 
@@ -159,9 +225,49 @@ const Chat = () => {
         <div className="flex h-full rounded-3xl border border-slate-100 bg-white/80 backdrop-blur overflow-hidden shadow-sm">
           {/* Chat Rooms Sidebar */}
           <div className="w-80 border-r border-slate-100 bg-slate-50/50 overflow-y-auto shrink-0">
-            <div className="p-6 border-b border-slate-100">
-              <h3 className="font-bold text-xl text-slate-800 mb-1">Conversations</h3>
-              <p className="text-xs text-slate-500">Select a chat to start messaging</p>
+            <div className="p-6 border-b border-slate-100 space-y-3">
+              <div>
+                <h3 className="font-bold text-xl text-slate-800 mb-1">Conversations</h3>
+                <p className="text-xs text-slate-500">Select a chat or start a new one</p>
+              </div>
+              <div className="space-y-2">
+                <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider">Chat with a doctor</label>
+                <select
+                  value={selectedDoctorId}
+                  onChange={(e) => setSelectedDoctorId(e.target.value)}
+                  className="input-field w-full !rounded-xl !py-2.5 text-sm"
+                  disabled={creatingDoctorRoom}
+                >
+                  <option value="">Select doctor...</option>
+                  {doctors.map((d) => (
+                    <option key={d.doctor_id} value={d.doctor_id}>
+                      Dr. {d.first_name} {d.last_name}
+                      {d.specialization ? ` (${d.specialization})` : ''}
+                    </option>
+                  ))}
+                </select>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleStartDoctorChat}
+                  loading={creatingDoctorRoom}
+                  disabled={!selectedDoctorId}
+                  className="w-full !bg-emerald-600 hover:!bg-emerald-700"
+                >
+                  <Stethoscope className="w-4 h-4 inline mr-1" />
+                  Start Chat with Doctor
+                </Button>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                onClick={createSupportChatRoom}
+                loading={creatingSupportRoom}
+                className="w-full !bg-primary-600 hover:!bg-primary-700"
+              >
+                <MessageCircle className="w-4 h-4 inline mr-1" />
+                Start Support Chat
+              </Button>
             </div>
             <div className="space-y-1 p-3">
               {rooms.map((room) => {

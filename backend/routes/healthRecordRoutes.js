@@ -2,6 +2,7 @@ import express from 'express';
 import {
     getHealthRecords,
     createHealthRecord,
+    updateHealthRecord,
     getHealthRecordById,
     getHealthRecordsByPet,
     downloadHealthRecord
@@ -18,5 +19,6 @@ router.get('/pet/:id', getHealthRecordsByPet);
 router.get('/:id/download', downloadHealthRecord);
 router.get('/:id', getHealthRecordById);
 router.post('/', requireRole('doctor'), createHealthRecord);
+router.put('/:id', requireRole('doctor'), updateHealthRecord);
 
 export default router;

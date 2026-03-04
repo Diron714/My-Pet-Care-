@@ -72,6 +72,76 @@ export const getAppointments = async (req, res) => {
     }
 };
 
+// GET /api/appointments/:id - Get single appointment (customer or doctor must own it)
+export const getAppointmentById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { userId, role } = req.user;
+
+        let query = `
+      SELECT a.*,
+             u_dr.first_name as dr_first_name, u_dr.last_name as dr_last_name, d.specialization,
+             u_cu.first_name as cu_first_name, u_cu.last_name as cu_last_name,
+             p.name as pet_name, p.species, p.breed
+      FROM appointments a
+      JOIN doctors d ON a.doctor_id = d.doctor_id
+      JOIN users u_dr ON d.user_id = u_dr.user_id
+      JOIN customers c ON a.customer_id = c.customer_id
+      JOIN users u_cu ON c.user_id = u_cu.user_id
+      JOIN customer_pets p ON a.customer_pet_id = p.customer_pet_id
+      WHERE a.appointment_id = ?
+    `;
+        const params = [id];
+
+        if (role === 'customer') {
+            const [customers] = await pool.query('SELECT customer_id FROM customers WHERE user_id = ?', [userId]);
+            if (customers.length === 0) {
+                return res.status(404).json({ success: false, message: 'Appointment not found' });
+            }
+            query += ` AND a.customer_id = ?`;
+            params.push(customers[0].customer_id);
+        } else if (role === 'doctor') {
+            const [doctors] = await pool.query('SELECT doctor_id FROM doctors WHERE user_id = ?', [userId]);
+            if (doctors.length === 0) {
+                return res.status(404).json({ success: false, message: 'Appointment not found' });
+            }
+            query += ` AND a.doctor_id = ?`;
+            params.push(doctors[0].doctor_id);
+        }
+        // admin/staff: no extra filter, can view any appointment
+
+        const [appointments] = await pool.query(query, params);
+
+        if (appointments.length === 0) {
+            return res.status(404).json({ success: false, message: 'Appointment not found' });
+        }
+
+        const a = appointments[0];
+        const data = {
+            ...a,
+            doctor: {
+                user: { first_name: a.dr_first_name, last_name: a.dr_last_name },
+                specialization: a.specialization,
+            },
+            customer: {
+                user: { first_name: a.cu_first_name, last_name: a.cu_last_name },
+            },
+        };
+
+        res.json({
+            success: true,
+            data,
+        });
+    } catch (error) {
+        console.error('Get appointment by id error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error fetching appointment',
+            error: error.message,
+        });
+    }
+};
+
 // POST /api/appointments - Book new appointment
 export const bookAppointment = async (req, res) => {
     try {
@@ -211,11 +281,14 @@ export const getAvailableSlots = async (req, res) => {
 
         const bookedTimes = bookings.map(b => b.appointment_time.toString().slice(0, 5));
 
-        // Generate slots
+        // Generate slots (slot_duration in minutes; fallback 30 if missing)
         const slots = [];
         schedules.forEach(schedule => {
-            let current = new Date(`2000-01-01T${schedule.start_time}`);
-            const end = new Date(`2000-01-01T${schedule.end_time}`);
+            const durationMinutes = schedule.slot_duration != null ? schedule.slot_duration : 30;
+            const startTime = String(schedule.start_time).slice(0, 5);
+            const endTime = String(schedule.end_time).slice(0, 5);
+            let current = new Date(`2000-01-01T${startTime}:00`);
+            const end = new Date(`2000-01-01T${endTime}:00`);
 
             while (current < end) {
                 const timeStr = current.toTimeString().slice(0, 5);
@@ -223,7 +296,7 @@ export const getAvailableSlots = async (req, res) => {
                     time: timeStr,
                     available: !bookedTimes.includes(timeStr)
                 });
-                current = new Date(current.getTime() + schedule.slot_duration * 60000);
+                current = new Date(current.getTime() + durationMinutes * 60000);
             }
         });
 

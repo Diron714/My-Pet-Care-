@@ -7,7 +7,7 @@ import pool from '../config/database.js';
 // GET /api/doctors - Get all doctors
 export const getAllDoctors = async (req, res) => {
     try {
-        const { specialization, search } = req.query;
+        const { specialization, search, available } = req.query;
 
         let query = `
       SELECT d.*, u.first_name, u.last_name, u.email, u.phone
@@ -16,6 +16,10 @@ export const getAllDoctors = async (req, res) => {
       WHERE u.is_active = TRUE
     `;
         const params = [];
+
+        if (available === 'true') {
+            query += ` AND d.is_available = TRUE`;
+        }
 
         if (specialization) {
             query += ` AND d.specialization = ?`;

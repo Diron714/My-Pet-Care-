@@ -158,6 +158,53 @@ export const createHealthRecord = async (req, res) => {
     }
 };
 
+// PUT /api/health-records/:id - Update health record (Doctor only, own records)
+export const updateHealthRecord = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { appointment_id, customer_pet_id, diagnosis, prescription, treatment_notes, record_date } = req.body;
+        const userId = req.user.userId;
+
+        const [doctors] = await pool.query('SELECT doctor_id FROM doctors WHERE user_id = ?', [userId]);
+        if (doctors.length === 0) {
+            return res.status(403).json({ success: false, message: 'Only doctors can update health records' });
+        }
+        const doctorId = doctors[0].doctor_id;
+
+        const [existing] = await pool.query(
+            'SELECT record_id, doctor_id FROM health_records WHERE record_id = ?',
+            [id]
+        );
+        if (existing.length === 0) {
+            return res.status(404).json({ success: false, message: 'Health record not found' });
+        }
+        if (existing[0].doctor_id !== doctorId) {
+            return res.status(403).json({ success: false, message: 'You can only update your own health records' });
+        }
+
+        await pool.query(
+            `UPDATE health_records SET
+                appointment_id = ?, customer_pet_id = ?, diagnosis = ?, prescription = ?,
+                treatment_notes = ?, record_date = ?, updated_at = CURRENT_TIMESTAMP
+             WHERE record_id = ?`,
+            [appointment_id || null, customer_pet_id, diagnosis, prescription, treatment_notes, record_date || new Date().toISOString().split('T')[0], id]
+        );
+
+        res.json({
+            success: true,
+            message: 'Health record updated successfully',
+            data: { record_id: parseInt(id, 10) }
+        });
+    } catch (error) {
+        console.error('Update health record error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Error updating health record',
+            error: error.message
+        });
+    }
+};
+
 // GET /api/health-records/:id - Get record details
 export const getHealthRecordById = async (req, res) => {
     try {

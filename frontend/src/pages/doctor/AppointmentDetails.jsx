@@ -62,15 +62,16 @@ const AppointmentDetails = () => {
 
       const historyRes = await api.get(`/health-records/pet/${appointmentData.customer_pet_id}`);
       setHealthHistory(historyRes.data.data || []);
-      if (appointmentRes.data.data.doctor_notes) {
+      if (appointmentData.doctor_notes) {
         setNotes({
-          diagnosis: appointmentRes.data.data.diagnosis || '',
-          prescription: appointmentRes.data.data.prescription || '',
-          treatmentNotes: appointmentRes.data.data.treatment_notes || '',
+          diagnosis: appointmentData.diagnosis ?? '',
+          prescription: appointmentData.prescription ?? '',
+          treatmentNotes: appointmentData.doctor_notes ?? '',
         });
       }
     } catch (error) {
       console.error('Error loading appointment details:', error);
+      setAppointment(null);
     } finally {
       setLoading(false);
     }

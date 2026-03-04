@@ -1,6 +1,7 @@
 import express from 'express';
 import {
     getCustomerPets,
+    getCustomerPetById,
     addCustomerPet,
     updateCustomerPet,
     getPetVaccinations,
@@ -16,6 +17,7 @@ router.use(authenticate);
 
 router.get('/', getCustomerPets);
 router.post('/', addCustomerPet);
+router.get('/:id', getCustomerPetById);
 router.put('/:id', updateCustomerPet);
 router.get('/:id/vaccinations', getPetVaccinations);
 router.post('/:id/vaccinations', addVaccinationRecord);

@@ -15,6 +15,16 @@ const PetProfiles = () => {
   const [selectedPet, setSelectedPet] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
 
+  const getImageSrc = (rawUrl) => {
+    if (!rawUrl) return null;
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return rawUrl;
+    }
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    const base = apiBase.replace(/\/api\/?$/, '');
+    return `${base}${rawUrl}`;
+  };
+
   useEffect(() => {
     loadPets();
   }, []);
@@ -93,7 +103,7 @@ const PetProfiles = () => {
                 <div className="relative h-56 overflow-hidden rounded-t-2xl">
                   {pet.image_url ? (
                     <img
-                      src={pet.image_url}
+                      src={getImageSrc(pet.image_url)}
                       alt={pet.name}
                       className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       onError={(e) => {
@@ -166,7 +176,7 @@ const PetProfiles = () => {
               {selectedPet.image_url && (
                 <div className="relative h-48 rounded-xl overflow-hidden border-2 border-slate-200">
                   <img
-                    src={selectedPet.image_url}
+                    src={getImageSrc(selectedPet.image_url)}
                     alt={selectedPet.name}
                     className="h-full w-full object-cover"
                     onError={(e) => {

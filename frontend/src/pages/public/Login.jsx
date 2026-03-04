@@ -127,7 +127,10 @@ const Login = () => {
                 </div>
                 <span className="ml-3 text-xs font-black text-slate-500 group-hover:text-slate-900 transition-colors uppercase tracking-widest">Remember device</span>
               </label>
-              <Link to="/forgot-password" flex className="text-xs font-black text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-widest border-b-2 border-blue-600/10">
+              <Link
+                to="/forgot-password"
+                className="flex items-center text-xs font-black text-blue-600 hover:text-blue-700 transition-colors uppercase tracking-widest border-b-2 border-blue-600/10"
+              >
                 Forgot Password?
               </Link>
             </div>
