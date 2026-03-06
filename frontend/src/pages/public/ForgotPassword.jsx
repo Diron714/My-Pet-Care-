@@ -84,10 +84,10 @@ const ForgotPassword = () => {
 
             <Button 
               type="submit" 
-              className="w-full !py-4.5 !rounded-2xl !bg-slate-900 hover:!bg-blue-600 !text-white !font-black !text-[11px] uppercase !tracking-[0.4em] !shadow-2xl !shadow-blue-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group" 
+              className="w-full !py-5 !rounded-2xl !bg-slate-900 hover:!bg-blue-600 !text-white !font-black !text-sm uppercase !tracking-[0.3em] !shadow-2xl !shadow-blue-900/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2 group" 
               loading={loading}
             >
-              Send OTP <ArrowRight className="w-4 h-4 text-blue-400 transition-transform group-hover:translate-x-1" />
+              Send OTP <ArrowRight className="w-5 h-5 text-blue-400 transition-transform group-hover:translate-x-1" />
             </Button>
           </form>
 
@@ -100,7 +100,7 @@ const ForgotPassword = () => {
           
           <div className="mt-6 flex justify-center items-center gap-2 opacity-30 grayscale">
             <ShieldCheck className="w-3 h-3 text-slate-900" />
-            <span className="text-[7px] font-black text-slate-900 uppercase tracking-widest">
+            <span className="text-[9px] font-black text-slate-900 uppercase tracking-widest">
               ISO 27001 Security Standard
             </span>
           </div>
