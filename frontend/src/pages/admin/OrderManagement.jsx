@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -99,15 +98,14 @@ const OrderManagement = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const totalRevenue = orders.reduce((sum, o) => sum + (o.final_amount || 0), 0);
   const pendingOrders = orders.filter(o => o.order_status === 'pending').length;
   const paidOrders = orders.filter(o => o.payment_status === 'paid').length;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Order Management</h1>
@@ -416,7 +414,6 @@ const OrderManagement = () => {
           </Modal>
         )}
       </div>
-    </Layout>
   );
 };
 

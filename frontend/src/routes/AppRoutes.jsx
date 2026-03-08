@@ -1,15 +1,27 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
 import RequireAuth from '../components/common/RequireAuth';
+import Layout from '../components/layout/Layout';
 import PublicRoutes from './PublicRoutes';
 import CustomerRoutes from './CustomerRoutes';
 import DoctorRoutes from './DoctorRoutes';
 import AdminRoutes from './AdminRoutes';
 
+// Persistent layout: sidebar/navbar stay mounted; only content (Outlet) changes — smooth tab-like transition
+const DashboardShell = () => {
+  const location = useLocation();
+  return (
+    <Layout>
+      <div key={location.pathname} className="content-area animate-in fade-in duration-200">
+        <Outlet />
+      </div>
+    </Layout>
+  );
+};
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Protected routes must come before the catch-all so /doctor/* etc. are matched first */}
         <Route
           path="/customer/*"
           element={
@@ -26,15 +38,18 @@ const AppRoutes = () => {
             </RequireAuth>
           }
         />
+        {/* Admin: persistent layout so only content area changes on tab/link click */}
         <Route
-          path="/admin/*"
+          path="/admin"
           element={
             <RequireAuth roles={['staff', 'admin']}>
-              <AdminRoutes />
+              <DashboardShell />
             </RequireAuth>
           }
-        />
-        {/* Public routes last - catch-all /* matches everything not matched above */}
+        >
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="*" element={<AdminRoutes />} />
+        </Route>
         <Route path="/*" element={<PublicRoutes />} />
       </Routes>
     </BrowserRouter>

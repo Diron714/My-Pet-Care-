@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -128,14 +127,13 @@ const Chat = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const customerDoctorRooms = rooms.filter(r => r.room_type === 'customer_doctor').length;
   const customerStaffRooms = rooms.filter(r => r.room_type === 'customer_staff').length;
 
   return (
-    <Layout>
-      <div className="page-shell h-[calc(100vh-200px)]">
+    <div className="page-shell h-[calc(100vh-200px)]">
         <div className="page-header">
           <div>
             <h1 className="page-title">Chat Management</h1>
@@ -337,7 +335,6 @@ const Chat = () => {
           </div>
         </div>
       </div>
-    </Layout>
   );
 };
 

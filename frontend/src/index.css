@@ -127,5 +127,19 @@
   .link-primary {
     @apply text-slate-600 hover:text-slate-800 font-medium transition-colors;
   }
+
+  /* Smooth transition when only content area changes (tab / in-content navigation) */
+  .content-area {
+    animation: contentFadeIn 0.2s ease-out;
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 

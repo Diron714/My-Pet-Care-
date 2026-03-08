@@ -12,10 +12,7 @@ import {
   UserPlus, 
   ArrowRight, 
   Globe, 
-  CheckCircle2, 
-  Lock,
-  Smartphone,
-  ChevronDown
+  CheckCircle2
 } from 'lucide-react';
 
 const Register = () => {
@@ -56,7 +53,7 @@ const Register = () => {
         email: data.email,
         phone: data.phone,
         password: data.password,
-        role: data.role,
+        role: 'customer',
       });
 
       if (result.success) {
@@ -203,25 +200,6 @@ const Register = () => {
               className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
               required
             />
-
-            <div className="space-y-2 w-full">
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
-                Account Permission <span className="text-red-500">*</span>
-              </label>
-              <div className="relative">
-                <select
-                  id="role"
-                  {...register('role')}
-                  className="input-field w-full !rounded-2xl !border-2 !border-slate-200 bg-white focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-500/20 !p-4 !pr-12 transition-all font-semibold text-slate-900 outline-none appearance-none cursor-pointer shadow-sm peer"
-                >
-                  <option value="customer">Customer</option>
-                  <option value="doctor">Doctor</option>
-                  <option value="staff">Staff</option>
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none transition-transform duration-200 peer-focus:rotate-180 peer-focus:text-blue-500" />
-              </div>
-              {errors.role && <p className="mt-1 text-sm text-red-600">{errors.role.message}</p>}
-            </div>
 
             <Button 
               type="submit" 

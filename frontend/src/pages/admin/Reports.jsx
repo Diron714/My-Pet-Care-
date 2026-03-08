@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
@@ -111,11 +110,10 @@ const Reports = () => {
     return colors[tab.color] || colors.emerald;
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Reports & Analytics</h1>
@@ -490,7 +488,6 @@ const Reports = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 

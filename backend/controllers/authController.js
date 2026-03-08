@@ -29,8 +29,11 @@ export const register = async (req, res, next) => {
     // Validate request
     const validatedData = registerSchema.parse(req.body);
 
+    // Public registration always creates customer accounts
+    const dataWithRole = { ...validatedData, role: 'customer' };
+
     // Register user
-    const result = await registerUser(validatedData);
+    const result = await registerUser(dataWithRole);
 
     res.status(201).json({
       success: true,

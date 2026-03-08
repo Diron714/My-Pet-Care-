@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -152,15 +151,14 @@ const ProductManagement = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const availableProducts = products.filter(p => p.is_available).length;
   const totalStock = products.reduce((sum, p) => sum + (p.stock_quantity || 0), 0);
   const lowStock = products.filter(p => p.stock_quantity < 10 && p.stock_quantity > 0).length;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div className="flex-1">
             <h1 className="page-title">Product Management</h1>
@@ -513,7 +511,6 @@ const ProductManagement = () => {
           </form>
         </Modal>
       </div>
-    </Layout>
   );
 };
 
