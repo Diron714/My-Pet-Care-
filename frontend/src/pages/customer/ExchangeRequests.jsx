@@ -119,7 +119,7 @@ const ExchangeRequests = () => {
             <h1 className="page-title">Exchange Requests</h1>
             <p className="page-subtitle">Request exchanges for pets from your orders</p>
           </div>
-          <Button onClick={() => setShowForm(true)} className="!bg-primary-600 hover:!bg-primary-700">
+          <Button onClick={() => setShowForm(true)} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             New Exchange Request
           </Button>
@@ -272,7 +272,7 @@ const ExchangeRequests = () => {
             </div>
 
             <div className="flex space-x-4">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 Submit Request
               </Button>

@@ -242,12 +242,12 @@ const OrderManagement = () => {
               return (
                 <div
                   key={order.order_id}
-                  className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500"
+                  className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600"
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-start gap-4 mb-4">
-                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                        <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg flex-shrink-0">
                           <ShoppingCart className="w-6 h-6 text-white" />
                         </div>
                         <div className="flex-1">
@@ -348,9 +348,9 @@ const OrderManagement = () => {
             size="lg"
           >
             <div className="space-y-6">
-              <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
-                <p className="text-sm font-semibold text-primary-700 mb-1">Order: {selectedOrder.order_number}</p>
-                <p className="text-xs text-primary-600">Customer: {selectedOrder.customer?.user?.first_name} {selectedOrder.customer?.user?.last_name}</p>
+              <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <p className="text-sm font-semibold text-slate-700 mb-1">Order: {selectedOrder.order_number}</p>
+                <p className="text-xs text-slate-600">Customer: {selectedOrder.customer?.user?.first_name} {selectedOrder.customer?.user?.last_name}</p>
               </div>
 
               <div>
@@ -391,7 +391,7 @@ const OrderManagement = () => {
 
               <div className="flex space-x-4 pt-2">
                 <Button
-                  className="flex-1 !bg-primary-600 hover:!bg-primary-700"
+                  className="flex-1 !bg-slate-800 hover:!bg-slate-900"
                   onClick={() => {
                     const orderStatus = document.getElementById('orderStatus').value;
                     const paymentStatus = document.getElementById('paymentStatus').value;

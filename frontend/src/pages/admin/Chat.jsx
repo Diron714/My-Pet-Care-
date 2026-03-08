@@ -151,7 +151,7 @@ const Chat = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Chats</p>
                 <p className="text-2xl font-black text-slate-900">{rooms.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <MessageSquare className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -185,7 +185,7 @@ const Chat = () => {
           <button
             onClick={() => setFilter('all')}
             className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${filter === 'all'
-                ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
+                ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
                 : 'bg-white text-slate-600 border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               }`}
           >
@@ -230,7 +230,7 @@ const Chat = () => {
                     key={room.room_id}
                     onClick={() => setSelectedRoom(room)}
                     className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
-                        ? 'bg-primary-100 text-primary-800 font-semibold'
+                        ? 'bg-slate-100 text-slate-800 font-semibold'
                         : 'hover:bg-slate-100 text-slate-700'
                       }`}
                   >
@@ -290,14 +290,14 @@ const Chat = () => {
                         >
                           <div
                             className={`max-w-md p-4 rounded-2xl shadow-sm ${isAdminMessage
-                                ? 'bg-primary-600 text-white rounded-br-none'
+                                ? 'bg-slate-800 text-white rounded-br-none'
                                 : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
                               }`}
                           >
                             <p className="text-sm">{message.message_text}</p>
                             <p
                               className={`text-xs mt-1 ${isAdminMessage
-                                  ? 'text-primary-200'
+                                  ? 'text-slate-300'
                                   : 'text-slate-500'
                                 }`}
                             >

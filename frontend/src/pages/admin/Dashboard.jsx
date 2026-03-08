@@ -89,20 +89,20 @@ const Dashboard = () => {
           </div>
 
           <div className="card card-muted group hover:shadow-xl transition-all duration-300 relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-primary-100/50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-primary-200/50 transition-colors"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-slate-200/50 rounded-full blur-3xl -mr-16 -mt-16 group-hover:bg-slate-300/50 transition-colors"></div>
             <div className="flex items-center justify-between relative z-10">
               <div className="flex-1">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Orders</p>
                 <p className="text-3xl font-black text-slate-900 mb-1">{stats.totalOrders}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="flex items-center gap-1 text-xs text-primary-600 font-semibold">
+                  <div className="flex items-center gap-1 text-xs text-slate-600 font-semibold">
                     <ArrowUpRight className="w-3 h-3" />
                     <span>+8.2%</span>
                   </div>
                   <p className="text-xs text-slate-400">This month</p>
                 </div>
               </div>
-              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg shadow-primary-500/20 group-hover:scale-110 transition-transform">
+              <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg shadow-slate-500/20 group-hover:scale-110 transition-transform">
                 <ShoppingCart className="w-7 h-7 text-white" />
               </div>
             </div>
@@ -157,7 +157,7 @@ const Dashboard = () => {
                 <h2 className="text-xl font-bold text-slate-900">Recent Orders</h2>
                 <p className="text-xs text-slate-500 mt-1">Latest transactions</p>
               </div>
-              <a href="/admin/orders" className="text-primary-600 hover:text-primary-700 text-sm font-semibold flex items-center gap-1 group">
+              <a href="/admin/orders" className="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-1 group">
                 View All
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </a>
@@ -172,7 +172,7 @@ const Dashboard = () => {
                 {recentOrders.map((order, index) => (
                   <div
                     key={order.order_id}
-                    className="border border-slate-100 rounded-xl p-4 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200 group"
+                    className="border border-slate-100 rounded-xl p-4 hover:border-slate-200 hover:bg-slate-50/30 transition-all duration-200 group"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
@@ -191,7 +191,7 @@ const Dashboard = () => {
                         <p className="text-xs text-slate-500">{formatDate(order.created_at)}</p>
                       </div>
                       <div className="text-right">
-                        <p className="font-bold text-lg text-primary-600">
+                        <p className="font-bold text-lg text-slate-600">
                           {formatCurrencyLKR(order.final_amount)}
                         </p>
                       </div>
@@ -209,7 +209,7 @@ const Dashboard = () => {
                 <h2 className="text-xl font-bold text-slate-900">Recent Registrations</h2>
                 <p className="text-xs text-slate-500 mt-1">New user accounts</p>
               </div>
-              <a href="/admin/users" className="text-primary-600 hover:text-primary-700 text-sm font-semibold flex items-center gap-1 group">
+              <a href="/admin/users" className="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-1 group">
                 View All
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
               </a>
@@ -224,11 +224,11 @@ const Dashboard = () => {
                 {recentRegistrations.map((user) => (
                   <div
                     key={user.user_id}
-                    className="border border-slate-100 rounded-xl p-4 hover:border-primary-200 hover:bg-primary-50/30 transition-all duration-200 group"
+                    className="border border-slate-100 rounded-xl p-4 hover:border-slate-200 hover:bg-slate-50/30 transition-all duration-200 group"
                   >
                     <div className="flex justify-between items-start">
                       <div className="flex items-center gap-3 flex-1">
-                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-primary-500/20">
+                        <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold text-sm shadow-lg shadow-slate-500/20">
                           {user.first_name?.[0]}{user.last_name?.[0]}
                         </div>
                         <div className="flex-1">

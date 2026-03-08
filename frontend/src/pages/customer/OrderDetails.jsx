@@ -91,13 +91,13 @@ const OrderDetails = () => {
   return (
     <Layout>
       <div className="page-shell">
-        <Link to="/customer/orders" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6 font-semibold">
+        <Link to="/customer/orders" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-6 font-semibold">
           <ArrowLeft className="w-4 h-4" />
           Back to Orders
         </Link>
 
         {/* Order Header */}
-        <div className="card mb-6 border-l-4 border-l-primary-500">
+        <div className="card mb-6 border-l-4 border-l-slate-600">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             <div>
               <h1 className="text-3xl font-black text-slate-900 mb-2">Order #{order.order_number}</h1>
@@ -144,7 +144,7 @@ const OrderDetails = () => {
         {/* Order Items */}
         <div className="card mb-6">
           <div className="flex items-center gap-2 mb-6">
-            <Package className="w-5 h-5 text-primary-600" />
+            <Package className="w-5 h-5 text-slate-600" />
             <h2 className="text-xl font-bold text-slate-900">Order Items</h2>
           </div>
           <div className="space-y-4">
@@ -174,7 +174,7 @@ const OrderDetails = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-black text-primary-600">{formatCurrencyLKR(item.subtotal)}</p>
+                  <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(item.subtotal)}</p>
                 </div>
               </div>
             ))}
@@ -184,7 +184,7 @@ const OrderDetails = () => {
         {/* Order Summary */}
         <div className="card mb-6">
           <div className="flex items-center gap-2 mb-6">
-            <ShoppingCart className="w-5 h-5 text-primary-600" />
+            <ShoppingCart className="w-5 h-5 text-slate-600" />
             <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
           </div>
           <div className="space-y-3">
@@ -213,7 +213,7 @@ const OrderDetails = () => {
             <div className="pt-4 border-t-2 border-slate-200">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-slate-900">Total</span>
-                <span className="text-2xl font-black text-primary-600">{formatCurrencyLKR(order.final_amount)}</span>
+                <span className="text-2xl font-black text-slate-600">{formatCurrencyLKR(order.final_amount)}</span>
               </div>
             </div>
           </div>

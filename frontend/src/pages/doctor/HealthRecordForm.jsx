@@ -145,7 +145,7 @@ const HealthRecordForm = () => {
           <div>
             <button
               onClick={() => navigate('/doctor/health-records')}
-              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 text-sm font-semibold mb-1"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 text-sm font-semibold mb-1"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Health Records
@@ -244,7 +244,7 @@ const HealthRecordForm = () => {
             <div className="pt-2">
               <Button
                 type="submit"
-                className="w-full !bg-primary-600 hover:!bg-primary-700"
+                className="w-full !bg-slate-800 hover:!bg-slate-900"
                 loading={saving}
                 disabled={saving}
               >

@@ -108,10 +108,10 @@ const NotificationManagement = () => {
         };
       default:
         return {
-          gradient: 'from-primary-500 to-primary-600',
-          bg: 'bg-primary-50',
-          border: 'border-primary-200',
-          text: 'text-primary-700',
+          gradient: 'from-slate-700 to-slate-800',
+          bg: 'bg-slate-50',
+          border: 'border-slate-200',
+          text: 'text-slate-700',
         };
     }
   };
@@ -154,7 +154,7 @@ const NotificationManagement = () => {
             <h1 className="page-title">Notification Management</h1>
             <p className="page-subtitle">Send broadcast notifications to users and manage notification history</p>
           </div>
-          <Button onClick={() => setShowForm(true)} className="!bg-primary-600 hover:!bg-primary-700">
+          <Button onClick={() => setShowForm(true)} className="!bg-slate-800 hover:!bg-slate-900">
             <Send className="w-4 h-4 inline mr-2" />
             Send Notification
           </Button>
@@ -168,7 +168,7 @@ const NotificationManagement = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Sent</p>
                 <p className="text-2xl font-black text-slate-900">{notifications.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <Bell className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -281,12 +281,12 @@ const NotificationManagement = () => {
           size="lg"
         >
           <form onSubmit={handleSend} className="space-y-5">
-            <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center gap-2 mb-2">
-                <Bell className="w-5 h-5 text-primary-600" />
-                <p className="text-sm font-semibold text-primary-700">Create a new broadcast notification</p>
+                <Bell className="w-5 h-5 text-slate-600" />
+                <p className="text-sm font-semibold text-slate-700">Create a new broadcast notification</p>
               </div>
-              <p className="text-xs text-primary-600">Fill in the details below to send a notification to selected users</p>
+              <p className="text-xs text-slate-600">Fill in the details below to send a notification to selected users</p>
             </div>
 
             <div>
@@ -347,7 +347,7 @@ const NotificationManagement = () => {
             />
 
             <div className="flex space-x-4 pt-2">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <Send className="w-4 h-4 inline mr-2" />
                 Send Notification
               </Button>

@@ -98,7 +98,7 @@ const Checkout = () => {
         <div className="page-shell">
           <div className="card text-center py-12">
             <p className="text-slate-600 mb-4 font-semibold">Your cart is empty</p>
-            <Button onClick={() => navigate('/customer/products')} className="!bg-primary-600 hover:!bg-primary-700">
+            <Button onClick={() => navigate('/customer/products')} className="!bg-slate-800 hover:!bg-slate-900">
               Browse Products
             </Button>
           </div>
@@ -124,7 +124,7 @@ const Checkout = () => {
               {/* Shipping Address */}
               <div className="card">
                 <div className="flex items-center gap-2 mb-6">
-                  <MapPin className="w-5 h-5 text-primary-600" />
+                  <MapPin className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Shipping Address</h2>
                 </div>
                 <div className="space-y-4">
@@ -174,7 +174,7 @@ const Checkout = () => {
               {/* Payment Method */}
               <div className="card">
                 <div className="flex items-center gap-2 mb-6">
-                  <CreditCard className="w-5 h-5 text-primary-600" />
+                  <CreditCard className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Payment Method</h2>
                 </div>
                 <div className="space-y-3">
@@ -212,7 +212,7 @@ const Checkout = () => {
               {offers.length > 0 && (
                 <div className="card">
                   <div className="flex items-center gap-2 mb-6">
-                    <Gift className="w-5 h-5 text-primary-600" />
+                    <Gift className="w-5 h-5 text-slate-600" />
                     <h2 className="text-xl font-bold text-slate-900">Available Offers</h2>
                   </div>
                   <div className="space-y-3">
@@ -258,7 +258,7 @@ const Checkout = () => {
             <div className="lg:col-span-1">
               <div className="card sticky top-4">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
-                  <Truck className="w-5 h-5 text-primary-600" />
+                  <Truck className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
                 </div>
 
@@ -317,7 +317,7 @@ const Checkout = () => {
                   <div className="pt-4 border-t-2 border-slate-200">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-slate-900">Total</span>
-                      <span className="text-2xl font-black text-primary-600">{formatCurrencyLKR(finalDisplayAmount)}</span>
+                      <span className="text-2xl font-black text-slate-600">{formatCurrencyLKR(finalDisplayAmount)}</span>
                     </div>
                   </div>
                 </div>
@@ -337,7 +337,7 @@ const Checkout = () => {
                   />
                 </div>
 
-                <Button type="submit" className="w-full !bg-primary-600 hover:!bg-primary-700 !py-3.5" loading={loading}>
+                <Button type="submit" className="w-full !bg-slate-800 hover:!bg-slate-900 !py-3.5" loading={loading}>
                   <CheckCircle className="w-4 h-4 inline mr-2" />
                   Place Order
                 </Button>

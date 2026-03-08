@@ -52,7 +52,7 @@ const DoctorDetails = () => {
   return (
     <Layout>
       <div className="page-shell">
-        <Link to="/customer/doctors" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6 font-semibold">
+        <Link to="/customer/doctors" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-6 font-semibold">
           <ArrowLeft className="w-4 h-4" />
           Back to Doctors
         </Link>
@@ -121,13 +121,13 @@ const DoctorDetails = () => {
               </div>
 
               {/* Consultation Fee */}
-              <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border-2 border-primary-200 mb-4">
+              <div className="p-4 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border-2 border-slate-200 mb-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-1">Consultation Fee</p>
-                    <p className="text-2xl font-black text-primary-900">{formatCurrencyLKR(doctor.consultation_fee)}</p>
+                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Consultation Fee</p>
+                    <p className="text-2xl font-black text-slate-800">{formatCurrencyLKR(doctor.consultation_fee)}</p>
                   </div>
-                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                     <Stethoscope className="w-8 h-8 text-white" />
                   </div>
                 </div>
@@ -137,7 +137,7 @@ const DoctorDetails = () => {
               <div className="flex gap-3">
                 <Button
                   onClick={() => navigate(`/customer/appointments/book?doctorId=${id}`)}
-                  className="flex-1 !bg-primary-600 hover:!bg-primary-700"
+                  className="flex-1 !bg-slate-800 hover:!bg-slate-900"
                 >
                   <Calendar className="w-4 h-4 inline mr-2" />
                   Book Appointment
@@ -161,7 +161,7 @@ const DoctorDetails = () => {
             {/* About Doctor */}
             <div className="card">
               <div className="flex items-center gap-2 mb-6">
-                <User className="w-5 h-5 text-primary-600" />
+                <User className="w-5 h-5 text-slate-600" />
                 <h2 className="text-xl font-bold text-slate-900">About Doctor</h2>
               </div>
               <div className="space-y-4">
@@ -191,7 +191,7 @@ const DoctorDetails = () => {
             {schedule.length > 0 && (
               <div className="card">
                 <div className="flex items-center gap-2 mb-6">
-                  <Calendar className="w-5 h-5 text-primary-600" />
+                  <Calendar className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Available Schedule</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
@@ -209,7 +209,7 @@ const DoctorDetails = () => {
             {reviews.length > 0 && (
               <div className="card">
                 <div className="flex items-center gap-2 mb-6">
-                  <Star className="w-5 h-5 text-primary-600" />
+                  <Star className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Patient Reviews ({reviews.length})</h2>
                 </div>
                 <div className="space-y-4">
@@ -217,7 +217,7 @@ const DoctorDetails = () => {
                     <div key={review.feedback_id} className="p-4 bg-slate-50 rounded-xl border border-slate-200">
                       <div className="flex items-center justify-between mb-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center text-white font-bold">
+                          <div className="h-10 w-10 rounded-full bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center text-white font-bold">
                             {review.customer?.user?.first_name?.[0] || 'U'}
                           </div>
                           <div>

@@ -126,7 +126,7 @@ const PreBookingManagement = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Requests</p>
                 <p className="text-2xl font-black text-slate-900">{preBookings.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <Calendar className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -171,7 +171,7 @@ const PreBookingManagement = () => {
                 case 'rose':
                   return 'bg-rose-600 text-white shadow-lg shadow-rose-500/30';
                 default:
-                  return 'bg-primary-600 text-white shadow-lg shadow-primary-500/30';
+                  return 'bg-slate-800 text-white shadow-lg shadow-slate-500/30';
               }
             };
             const getIconColor = (color) => {
@@ -185,7 +185,7 @@ const PreBookingManagement = () => {
                 case 'rose':
                   return 'text-rose-600';
                 default:
-                  return 'text-primary-600';
+                  return 'text-slate-600';
               }
             };
             return (

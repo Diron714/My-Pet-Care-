@@ -81,14 +81,14 @@ const Offers = () => {
 
         {/* Loyalty Points Card */}
         {loyalty && (
-          <div className="card mb-6 bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200">
+          <div className="card mb-6 bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
             <div className="flex items-center justify-between">
               <div>
                 <div className="flex items-center gap-2 mb-3">
-                  <Sparkles className="w-5 h-5 text-primary-600" />
-                  <h2 className="text-2xl font-bold text-primary-900">Loyalty Points</h2>
+                  <Sparkles className="w-5 h-5 text-slate-600" />
+                  <h2 className="text-2xl font-bold text-slate-800">Loyalty Points</h2>
                 </div>
-                <p className="text-5xl font-black text-primary-600 mb-3">{loyalty.loyalty_points}</p>
+                <p className="text-5xl font-black text-slate-600 mb-3">{loyalty.loyalty_points}</p>
                 <div className="flex items-center gap-2">
                   <div className={`px-4 py-2 rounded-xl bg-gradient-to-br ${tierColors.gradient} flex items-center gap-2 shadow-lg`}>
                     <TierIcon className="w-5 h-5 text-white" />
@@ -96,7 +96,7 @@ const Offers = () => {
                   </div>
                 </div>
               </div>
-              <div className="h-32 w-32 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-2xl">
+              <div className="h-32 w-32 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-2xl">
                 <Gift className="w-16 h-16 text-white opacity-90" />
               </div>
             </div>
@@ -181,7 +181,7 @@ const Offers = () => {
         {/* Loyalty Tier Benefits */}
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <Award className="w-5 h-5 text-primary-600" />
+            <Award className="w-5 h-5 text-slate-600" />
             <h2 className="text-2xl font-bold text-slate-900">Loyalty Tier Benefits</h2>
           </div>
           <div className="table-shell">

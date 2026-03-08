@@ -169,7 +169,7 @@ const ProductManagement = () => {
           <Button onClick={() => {
             setEditingProduct(null);
             setShowForm(true);
-          }} className="!bg-primary-600 hover:!bg-primary-700">
+          }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             Add New Product
           </Button>
@@ -183,7 +183,7 @@ const ProductManagement = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Products</p>
                 <p className="text-2xl font-black text-slate-900">{products.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <Package className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -412,14 +412,14 @@ const ProductManagement = () => {
           size="lg"
         >
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center gap-2 mb-2">
-                <Package className="w-5 h-5 text-primary-600" />
-                <p className="text-sm font-semibold text-primary-700">
+                <Package className="w-5 h-5 text-slate-600" />
+                <p className="text-sm font-semibold text-slate-700">
                   {editingProduct ? 'Update product information' : 'Add a new product to the inventory'}
                 </p>
               </div>
-              <p className="text-xs text-primary-600">Fill in all the details below to {editingProduct ? 'update' : 'add'} the product</p>
+              <p className="text-xs text-slate-600">Fill in all the details below to {editingProduct ? 'update' : 'add'} the product</p>
             </div>
 
             <Input
@@ -495,7 +495,7 @@ const ProductManagement = () => {
             </div>
 
             <div className="flex space-x-4 pt-2">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <Package className="w-4 h-4 inline mr-2" />
                 {editingProduct ? 'Update' : 'Add'} Product
               </Button>

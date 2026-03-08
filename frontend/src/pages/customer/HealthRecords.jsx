@@ -98,7 +98,7 @@ const HealthRecords = () => {
         {/* Pet Selector */}
         <div className="card mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <PawPrint className="w-5 h-5 text-primary-600" />
+            <PawPrint className="w-5 h-5 text-slate-600" />
             <h2 className="text-lg font-bold text-slate-900">Select Pet</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -107,7 +107,7 @@ const HealthRecords = () => {
                 key={pet.customer_pet_id}
                 onClick={() => setSelectedPet(pet.customer_pet_id.toString())}
                 className={`p-4 rounded-xl border-2 transition-all ${selectedPet === pet.customer_pet_id.toString()
-                    ? 'border-primary-500 bg-primary-50'
+                    ? 'border-slate-600 bg-slate-50'
                     : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   }`}
               >
@@ -122,7 +122,7 @@ const HealthRecords = () => {
                       }}
                     />
                   ) : (
-                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
                       <PawPrint className="w-8 h-8 text-white" />
                     </div>
                   )}

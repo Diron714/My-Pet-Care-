@@ -81,7 +81,7 @@ const ProfileManagement = () => {
             <p className="page-subtitle">Manage your professional profile and credentials</p>
           </div>
           {!editMode && (
-            <Button onClick={() => setEditMode(true)} className="!bg-primary-600 hover:!bg-primary-700">
+            <Button onClick={() => setEditMode(true)} className="!bg-slate-800 hover:!bg-slate-900">
               <Edit className="w-4 h-4 inline mr-2" />
               Edit Profile
             </Button>
@@ -90,7 +90,7 @@ const ProfileManagement = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Profile Header */}
-          <div className="card p-8 bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200">
+          <div className="card p-8 bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
             <div className="flex items-center gap-6">
               {profile.image_url ? (
                 <div className="h-32 w-32 rounded-2xl overflow-hidden border-4 border-white shadow-xl">
@@ -104,7 +104,7 @@ const ProfileManagement = () => {
                   />
                 </div>
               ) : (
-                <div className="h-32 w-32 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-xl">
+                <div className="h-32 w-32 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-xl">
                   <User className="w-16 h-16 text-white" />
                 </div>
               )}
@@ -136,7 +136,7 @@ const ProfileManagement = () => {
           {/* Profile Information */}
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
-              <Stethoscope className="w-5 h-5 text-primary-600" />
+              <Stethoscope className="w-5 h-5 text-slate-600" />
               <h2 className="text-xl font-bold text-slate-900">Profile Information</h2>
             </div>
             {editMode ? (
@@ -200,7 +200,7 @@ const ProfileManagement = () => {
                   <p className="text-xs text-slate-500 mt-1">Upload a professional profile photo (optional)</p>
                 </div>
                 <div className="flex space-x-4 pt-4">
-                  <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700" loading={saving}>
+                  <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900" loading={saving}>
                     <CheckCircle className="w-4 h-4 inline mr-2" />
                     Save Changes
                   </Button>

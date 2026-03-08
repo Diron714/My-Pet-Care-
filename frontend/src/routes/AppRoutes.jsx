@@ -9,10 +9,7 @@ const AppRoutes = () => {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/*" element={<PublicRoutes />} />
-        
-        {/* Protected Customer Routes */}
+        {/* Protected routes must come before the catch-all so /doctor/* etc. are matched first */}
         <Route
           path="/customer/*"
           element={
@@ -21,8 +18,6 @@ const AppRoutes = () => {
             </RequireAuth>
           }
         />
-        
-        {/* Protected Doctor Routes */}
         <Route
           path="/doctor/*"
           element={
@@ -31,8 +26,6 @@ const AppRoutes = () => {
             </RequireAuth>
           }
         />
-        
-        {/* Protected Admin Routes */}
         <Route
           path="/admin/*"
           element={
@@ -41,6 +34,8 @@ const AppRoutes = () => {
             </RequireAuth>
           }
         />
+        {/* Public routes last - catch-all /* matches everything not matched above */}
+        <Route path="/*" element={<PublicRoutes />} />
       </Routes>
     </BrowserRouter>
   );

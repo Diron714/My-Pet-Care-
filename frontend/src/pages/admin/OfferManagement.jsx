@@ -118,10 +118,10 @@ const OfferManagement = () => {
         };
       default:
         return {
-          gradient: 'from-primary-500 to-primary-600',
-          bg: 'bg-primary-50',
-          border: 'border-primary-200',
-          text: 'text-primary-700',
+          gradient: 'from-slate-700 to-slate-800',
+          bg: 'bg-slate-50',
+          border: 'border-slate-200',
+          text: 'text-slate-700',
         };
     }
   };
@@ -161,7 +161,7 @@ const OfferManagement = () => {
           <Button onClick={() => {
             setEditingOffer(null);
             setShowForm(true);
-          }} className="!bg-primary-600 hover:!bg-primary-700">
+          }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             Create Offer
           </Button>
@@ -175,7 +175,7 @@ const OfferManagement = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Offers</p>
                 <p className="text-2xl font-black text-slate-900">{offers.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <Gift className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -437,7 +437,7 @@ const OfferManagement = () => {
             </div>
 
             <div className="flex space-x-4 pt-2">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <Gift className="w-4 h-4 inline mr-2" />
                 {editingOffer ? 'Update' : 'Create'} Offer
               </Button>

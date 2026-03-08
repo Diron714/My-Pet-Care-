@@ -125,7 +125,7 @@ const Appointments = () => {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Appointments</p>
                   <p className="text-2xl font-black text-slate-900">{appointments.length}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                   <Calendar className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -165,7 +165,7 @@ const Appointments = () => {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
+                    ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
@@ -189,9 +189,9 @@ const Appointments = () => {
             {appointments.map((appointment) => {
               const StatusIcon = getStatusIcon(appointment.status);
               return (
-                <div key={appointment.appointment_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500">
+                <div key={appointment.appointment_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                    <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg flex-shrink-0">
                       <Calendar className="w-8 h-8 text-white" />
                     </div>
                     <div className="flex-1">
@@ -273,7 +273,7 @@ const Appointments = () => {
                       <Button
                         size="sm"
                         onClick={() => handleComplete(appointment.appointment_id)}
-                        className="flex-1 !bg-primary-600 hover:!bg-primary-700"
+                        className="flex-1 !bg-slate-800 hover:!bg-slate-900"
                       >
                         <CheckCircle className="w-4 h-4 inline mr-1" />
                         Mark Complete

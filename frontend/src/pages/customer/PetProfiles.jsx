@@ -76,7 +76,7 @@ const PetProfiles = () => {
             <p className="page-subtitle">Manage your pets' profiles, health records, and care schedules</p>
           </div>
           <Link to="/customer/pet-profiles/new">
-            <Button className="!bg-primary-600 hover:!bg-primary-700">
+            <Button className="!bg-slate-800 hover:!bg-slate-900">
               <Plus className="w-4 h-4 inline mr-2" />
               Add New Pet
             </Button>
@@ -91,7 +91,7 @@ const PetProfiles = () => {
               message="Add your first pet profile to get started"
               action={
                 <Link to="/customer/pet-profiles/new">
-                  <Button className="!bg-primary-600 hover:!bg-primary-700">Add Pet Profile</Button>
+                  <Button className="!bg-slate-800 hover:!bg-slate-900">Add Pet Profile</Button>
                 </Link>
               }
             />
@@ -99,7 +99,7 @@ const PetProfiles = () => {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {pets.map((pet) => (
-              <div key={pet.customer_pet_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500 overflow-hidden">
+              <div key={pet.customer_pet_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600 overflow-hidden">
                 <div className="relative h-56 overflow-hidden rounded-t-2xl">
                   {pet.image_url ? (
                     <img
@@ -111,8 +111,8 @@ const PetProfiles = () => {
                       }}
                     />
                   ) : (
-                    <div className="h-full w-full bg-gradient-to-br from-primary-200 to-primary-300 flex items-center justify-center">
-                      <PawPrint className="w-20 h-20 text-primary-600 opacity-50" />
+                    <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                      <PawPrint className="w-20 h-20 text-slate-600 opacity-50" />
                     </div>
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-t-2xl" />

@@ -66,7 +66,7 @@ const ProductDetails = () => {
   return (
     <Layout>
       <div className="page-shell">
-        <Link to="/customer/products" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6 font-semibold">
+        <Link to="/customer/products" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-6 font-semibold">
           <ArrowLeft className="w-4 h-4" />
           Back to Products
         </Link>
@@ -85,8 +85,8 @@ const ProductDetails = () => {
                   }}
                 />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-primary-200 to-primary-300 flex items-center justify-center">
-                  <Package className="w-24 h-24 text-primary-600 opacity-50" />
+                <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                  <Package className="w-24 h-24 text-slate-600 opacity-50" />
                 </div>
               )}
               <div className="absolute top-4 right-4">
@@ -113,7 +113,7 @@ const ProductDetails = () => {
           {/* Product Information */}
           <div>
             <div className="mb-4">
-              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-primary-100 text-primary-700">
+              <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-slate-100 text-slate-700">
                 {product.category}
               </span>
             </div>
@@ -138,13 +138,13 @@ const ProductDetails = () => {
             )}
 
             <div className="space-y-4 mb-6">
-              <div className="p-5 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border-2 border-primary-200">
+              <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-1">Price</p>
-                    <p className="text-3xl font-black text-primary-900">{formatCurrencyLKR(product.price)}</p>
+                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Price</p>
+                    <p className="text-3xl font-black text-slate-800">{formatCurrencyLKR(product.price)}</p>
                   </div>
-                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                     <Tag className="w-8 h-8 text-white" />
                   </div>
                 </div>
@@ -194,7 +194,7 @@ const ProductDetails = () => {
             </div>
 
             {product.stock_quantity > 0 ? (
-              <Button onClick={handleAddToCart} className="w-full !bg-primary-600 hover:!bg-primary-700 !py-4">
+              <Button onClick={handleAddToCart} className="w-full !bg-slate-800 hover:!bg-slate-900 !py-4">
                 <ShoppingCart className="w-5 h-5 inline mr-2" />
                 Add to Cart
               </Button>
@@ -214,7 +214,7 @@ const ProductDetails = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((relatedProduct) => (
                 <Link key={relatedProduct.product_id} to={`/customer/products/${relatedProduct.product_id}`}>
-                  <div className="card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-l-primary-500">
+                  <div className="card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-l-slate-600">
                     <div className="relative h-48 overflow-hidden rounded-t-2xl">
                       {relatedProduct.image_url ? (
                         <img
@@ -226,15 +226,15 @@ const ProductDetails = () => {
                           }}
                         />
                       ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-primary-200 to-primary-300 flex items-center justify-center">
-                          <Package className="w-16 h-16 text-primary-600 opacity-50" />
+                        <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                          <Package className="w-16 h-16 text-slate-600 opacity-50" />
                         </div>
                       )}
                     </div>
                     <div className="p-4">
                       <h3 className="font-bold text-lg text-slate-900 mb-1">{relatedProduct.name}</h3>
                       <p className="text-sm text-slate-600 mb-2">{relatedProduct.category}</p>
-                      <p className="text-lg font-black text-primary-600">{formatCurrencyLKR(relatedProduct.price)}</p>
+                      <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(relatedProduct.price)}</p>
                     </div>
                   </div>
                 </Link>

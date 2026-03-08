@@ -11,16 +11,17 @@ import Chat from '../pages/doctor/Chat';
 const DoctorRoutes = () => {
   return (
     <Routes>
+      <Route path="/doctor" element={<Navigate to="/doctor/dashboard" replace />} />
+      <Route path="/doctor/health-records/new" element={<HealthRecordForm />} />
+      <Route path="/doctor/health-records/:id/edit" element={<HealthRecordForm />} />
+      <Route path="/doctor/appointments/:id" element={<AppointmentDetails />} />
       <Route path="/doctor/dashboard" element={<Dashboard />} />
       <Route path="/doctor/profile" element={<ProfileManagement />} />
       <Route path="/doctor/schedule" element={<ScheduleManagement />} />
       <Route path="/doctor/appointments" element={<Appointments />} />
-      <Route path="/doctor/appointments/:id" element={<AppointmentDetails />} />
       <Route path="/doctor/health-records" element={<HealthRecords />} />
-      <Route path="/doctor/health-records/new" element={<HealthRecordForm />} />
-      <Route path="/doctor/health-records/:id/edit" element={<HealthRecordForm />} />
       <Route path="/doctor/chat" element={<Chat />} />
-      <Route path="/doctor/*" element={<Navigate to="/doctor/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/doctor/dashboard" replace />} />
     </Routes>
   );
 };

@@ -160,13 +160,13 @@ const AppointmentDetails = () => {
           <div className="space-y-3">
             <button
               onClick={() => navigate('/doctor/appointments')}
-              className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 transition-all font-semibold"
+              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 transition-all font-semibold"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Appointments
             </button>
             <div className="flex items-center gap-4">
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-xl">
+              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-xl">
                 <Stethoscope className="w-8 h-8 text-white" />
               </div>
               <div>
@@ -270,13 +270,13 @@ const AppointmentDetails = () => {
             {healthHistory.length > 0 && (
               <div className="card">
                 <div className="flex items-center gap-2 mb-6">
-                  <History className="w-5 h-5 text-primary-600" />
+                  <History className="w-5 h-5 text-slate-600" />
                   <h2 className="text-lg font-bold text-slate-900">Recent Medical History</h2>
                 </div>
                 <div className="space-y-4">
                   {healthHistory.slice(0, 3).map((record) => (
-                    <div key={record.record_id} className="relative pl-6 border-l-2 border-primary-200 group">
-                      <div className="absolute left-[-5px] top-0 w-3 h-3 rounded-full bg-primary-500 group-hover:bg-primary-600 transition-colors" />
+                    <div key={record.record_id} className="relative pl-6 border-l-2 border-slate-200 group">
+                      <div className="absolute left-[-5px] top-0 w-3 h-3 rounded-full bg-slate-600 group-hover:bg-slate-700 transition-colors" />
                       <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">{formatDate(record.record_date)}</p>
                       <p className="text-sm font-semibold text-slate-700 line-clamp-2 leading-relaxed">
                         {record.diagnosis}
@@ -293,7 +293,7 @@ const AppointmentDetails = () => {
             <div className="card">
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-3">
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                     <ClipboardList className="w-6 h-6 text-white" />
                   </div>
                   <h2 className="text-2xl font-black text-slate-900">Clinical Assessment</h2>
@@ -347,7 +347,7 @@ const AppointmentDetails = () => {
                   <Button
                     onClick={handleSaveNotes}
                     disabled={saving}
-                    className="w-full !bg-primary-600 hover:!bg-primary-700 !py-4"
+                    className="w-full !bg-slate-800 hover:!bg-slate-900 !py-4"
                     loading={saving}
                   >
                     <ShieldCheck className="w-5 h-5 inline mr-2" />
@@ -373,7 +373,7 @@ const AppointmentDetails = () => {
               )}
 
               {appointment.status === 'accepted' && (
-                <Button onClick={handleComplete} className="col-span-full !bg-primary-600 hover:!bg-primary-700 !py-4">
+                <Button onClick={handleComplete} className="col-span-full !bg-slate-800 hover:!bg-slate-900 !py-4">
                   <CheckCircle2 className="w-5 h-5 inline mr-2" />
                   Finalize Medical Process
                 </Button>

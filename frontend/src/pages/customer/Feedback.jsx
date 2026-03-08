@@ -111,7 +111,7 @@ const Feedback = () => {
       case 'approved': return 'badge-success';
       case 'rejected': return 'badge-danger';
       case 'pending': return 'badge-warning';
-      default: return 'badge-primary';
+      default: return 'badge-info';
     }
   };
 
@@ -125,7 +125,7 @@ const Feedback = () => {
             <h1 className="page-title">Feedback & Ratings</h1>
             <p className="page-subtitle">Share your experience and help us improve</p>
           </div>
-          <Button onClick={() => setShowForm(true)} className="!bg-primary-600 hover:!bg-primary-700">
+          <Button onClick={() => setShowForm(true)} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             Submit Feedback
           </Button>
@@ -181,12 +181,12 @@ const Feedback = () => {
                     </div>
                   )}
                   {feedback.admin_response && (
-                    <div className="p-4 bg-primary-50 rounded-xl border border-primary-200 mb-3">
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-200 mb-3">
                       <div className="flex items-center gap-2 mb-1">
-                        <User className="w-4 h-4 text-primary-600" />
-                        <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider">Admin Response</p>
+                        <User className="w-4 h-4 text-slate-600" />
+                        <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Admin Response</p>
                       </div>
-                      <p className="text-sm text-primary-800">{feedback.admin_response}</p>
+                      <p className="text-sm text-slate-800">{feedback.admin_response}</p>
                     </div>
                   )}
                   <p className="text-xs text-slate-500 flex items-center gap-1">
@@ -290,7 +290,7 @@ const Feedback = () => {
             </div>
 
             <div className="flex space-x-4">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 Submit Feedback
               </Button>

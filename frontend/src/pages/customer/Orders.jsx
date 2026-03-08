@@ -88,7 +88,7 @@ const Orders = () => {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Orders</p>
                   <p className="text-3xl font-black text-slate-900">{totalOrders}</p>
                 </div>
-                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                   <ShoppingCart className="w-6 h-6 text-white" />
                 </div>
               </div>
@@ -97,7 +97,7 @@ const Orders = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Spent</p>
-                  <p className="text-3xl font-black text-primary-600">{formatCurrencyLKR(totalSpent)}</p>
+                  <p className="text-3xl font-black text-slate-600">{formatCurrencyLKR(totalSpent)}</p>
                 </div>
                 <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center shadow-lg">
                   <Package className="w-6 h-6 text-white" />
@@ -117,7 +117,7 @@ const Orders = () => {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
+                    ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
@@ -142,9 +142,9 @@ const Orders = () => {
               const StatusIcon = getStatusIcon(order.order_status);
               return (
                 <Link key={order.order_id} to={`/customer/orders/${order.order_id}`}>
-                  <div className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500">
+                  <div className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600">
                     <div className="flex items-start gap-4">
-                      <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                      <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg flex-shrink-0">
                         <ShoppingCart className="w-8 h-8 text-white" />
                       </div>
                       <div className="flex-1">
@@ -168,7 +168,7 @@ const Orders = () => {
                             <span>{order.items_count || 0} item(s)</span>
                           </div>
                           <div className="text-right md:text-left">
-                            <p className="text-xl font-black text-primary-600">{formatCurrencyLKR(order.final_amount)}</p>
+                            <p className="text-xl font-black text-slate-600">{formatCurrencyLKR(order.final_amount)}</p>
                           </div>
                         </div>
                       </div>

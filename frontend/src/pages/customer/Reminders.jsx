@@ -151,7 +151,7 @@ const Reminders = () => {
             setEditingReminder(null);
             reset();
             setShowForm(true);
-          }} className="!bg-primary-600 hover:!bg-primary-700">
+          }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             Add Reminder
           </Button>
@@ -210,7 +210,7 @@ const Reminders = () => {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 capitalize ${isActive
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
+                    ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
@@ -377,7 +377,7 @@ const Reminders = () => {
             </div>
 
             <div className="flex space-x-4">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 {editingReminder ? 'Update' : 'Create'} Reminder
               </Button>

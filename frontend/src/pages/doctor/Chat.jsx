@@ -114,11 +114,11 @@ const Chat = () => {
                   key={room.room_id}
                   onClick={() => setSelectedRoom(room)}
                   className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
-                      ? 'bg-primary-100 text-primary-800 font-semibold'
+                      ? 'bg-slate-100 text-slate-800 font-semibold'
                       : 'hover:bg-slate-100 text-slate-700'
                     }`}
                 >
-                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg flex-shrink-0">
+                  <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg flex-shrink-0">
                     <User className="w-6 h-6 text-white" />
                   </div>
                   <div className="flex-1 min-w-0">
@@ -138,7 +138,7 @@ const Chat = () => {
               <>
                 <div className="p-6 border-b border-slate-100 bg-white/70 backdrop-blur-sm">
                   <div className="flex items-center gap-3">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                       <User className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -162,28 +162,28 @@ const Chat = () => {
                     messages.map((message) => {
                       const isSentByCurrentUser = message.sender_id === user?.userId;
                       return (
-                        <div
-                          key={message.message_id}
+                      <div
+                        key={message.message_id}
                           className={`flex ${isSentByCurrentUser ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div
+                      >
+                        <div
                             className={`max-w-md p-4 rounded-2xl shadow-sm ${isSentByCurrentUser
-                                ? 'bg-primary-600 text-white rounded-br-none'
-                                : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
+                              ? 'bg-slate-800 text-white rounded-br-none'
+                              : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
+                            }`}
+                        >
+                          <p className="text-sm">{message.message_text}</p>
+                          <p
+                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
+                                ? 'text-slate-300'
+                                : 'text-slate-500'
                               }`}
                           >
-                            <p className="text-sm">{message.message_text}</p>
-                            <p
-                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
-                                  ? 'text-primary-200'
-                                  : 'text-slate-500'
-                                }`}
-                            >
-                              <Clock className="w-3 h-3" />
-                              {formatDateTime(message.created_at)}
-                            </p>
-                          </div>
+                            <Clock className="w-3 h-3" />
+                            {formatDateTime(message.created_at)}
+                          </p>
                         </div>
+                      </div>
                       );
                     })
                   )}

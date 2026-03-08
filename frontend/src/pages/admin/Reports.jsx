@@ -152,7 +152,7 @@ const Reports = () => {
               <Button
                 onClick={loadReport}
                 disabled={!dateRange.from || !dateRange.to}
-                className="w-full !bg-primary-600 hover:!bg-primary-700"
+                className="w-full !bg-slate-800 hover:!bg-slate-900"
               >
                 <FileText className="w-4 h-4 inline mr-2" />
                 Generate Report
@@ -401,7 +401,7 @@ const Reports = () => {
                 {/* Visual Analytics */}
                 <div className="mt-6">
                   <h3 className="font-semibold text-lg text-slate-900 mb-4 flex items-center gap-2">
-                    <BarChart3 className="w-5 h-5 text-primary-600" />
+                    <BarChart3 className="w-5 h-5 text-slate-600" />
                     Visual Analytics
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
