@@ -11,17 +11,26 @@ import Chat from '../pages/doctor/Chat';
 const DoctorRoutes = () => {
   return (
     <Routes>
-      <Route path="/doctor" element={<Navigate to="/doctor/dashboard" replace />} />
-      <Route path="/doctor/health-records/new" element={<HealthRecordForm />} />
-      <Route path="/doctor/health-records/:id/edit" element={<HealthRecordForm />} />
-      <Route path="/doctor/appointments/:id" element={<AppointmentDetails />} />
-      <Route path="/doctor/dashboard" element={<Dashboard />} />
-      <Route path="/doctor/profile" element={<ProfileManagement />} />
-      <Route path="/doctor/schedule" element={<ScheduleManagement />} />
-      <Route path="/doctor/appointments" element={<Appointments />} />
-      <Route path="/doctor/health-records" element={<HealthRecords />} />
-      <Route path="/doctor/chat" element={<Chat />} />
-      <Route path="*" element={<Navigate to="/doctor/dashboard" replace />} />
+      {/* When user hits /doctor, redirect to /doctor/dashboard */}
+      <Route index element={<Navigate to="dashboard" replace />} />
+
+      {/* Core doctor dashboard and profile routes */}
+      <Route path="dashboard" element={<Dashboard />} />
+      <Route path="profile" element={<ProfileManagement />} />
+      <Route path="schedule" element={<ScheduleManagement />} />
+
+      {/* Appointments & health records */}
+      <Route path="appointments" element={<Appointments />} />
+      <Route path="appointments/:id" element={<AppointmentDetails />} />
+      <Route path="health-records" element={<HealthRecords />} />
+      <Route path="health-records/new" element={<HealthRecordForm />} />
+      <Route path="health-records/:id/edit" element={<HealthRecordForm />} />
+
+      {/* Chat */}
+      <Route path="chat" element={<Chat />} />
+
+      {/* Fallback to dashboard for any unknown doctor sub-route */}
+      <Route path="*" element={<Navigate to="dashboard" replace />} />
     </Routes>
   );
 };

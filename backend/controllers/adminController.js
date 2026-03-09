@@ -221,6 +221,19 @@ export const createUser = async (req, res) => {
   try {
     const validatedData = createUserByStaffSchema.parse(req.body);
     const result = await createUserByStaff(validatedData);
+
+    // Log that this user account was created by an admin/staff member.
+    // This is later used at login time to allow exactly one pre-verification login.
+    try {
+      await pool.query(
+        `INSERT INTO audit_logs (user_id, action_type, entity_type, entity_id, description)
+         VALUES (?, 'CREATE_ADMIN_USER', 'user', ?, ?)`,
+        [req.user.userId, result.userId, `Admin created user account: ${result.email}`]
+      );
+    } catch (logError) {
+      console.error('Failed to log admin user creation:', logError);
+    }
+
     res.status(201).json({
       success: true,
       message: 'Account created. Credentials and a verification OTP have been sent to the user\'s email. They must verify before logging in.',

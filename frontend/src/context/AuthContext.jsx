@@ -45,7 +45,12 @@ export const AuthProvider = ({ children }) => {
         };
       }
 
-      const { accessToken, refreshToken, user: userData } = response.data.data;
+      const {
+        accessToken,
+        refreshToken,
+        user: userData,
+        mustVerifyEmail,
+      } = response.data.data;
 
       if (!accessToken || !refreshToken || !userData) {
         return {
@@ -59,7 +64,11 @@ export const AuthProvider = ({ children }) => {
       localStorage.setItem('user', JSON.stringify(userData));
 
       setUser(userData);
-      return { success: true, user: userData };
+      return {
+        success: true,
+        user: userData,
+        mustVerifyEmail: !!mustVerifyEmail,
+      };
     } catch (error) {
       console.error('Login error:', error);
       
