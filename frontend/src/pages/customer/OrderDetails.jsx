@@ -51,6 +51,36 @@ const OrderDetails = () => {
     }
   };
 
+  const handleVerifyPayment = async () => {
+    try {
+      setLoading(true);
+      const response = await api.post('/payments/payhere/verify', { order_id: id });
+      if (response.data.data.payment_status === 'paid') {
+        toast.success('Payment verified successfully!');
+        loadOrderDetails();
+      } else {
+        toast.error('Payment still pending on PayHere. Please wait a few minutes.');
+      }
+    } catch (error) {
+      toast.error('Failed to verify payment with PayHere');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMockSuccess = async () => {
+    try {
+      setLoading(true);
+      await api.post('/payments/mock-success', { order_id: id });
+      toast.success('Payment simulated successfully! (Dev Mode)');
+      loadOrderDetails();
+    } catch (error) {
+      toast.error('Failed to simulate payment');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownloadInvoice = async () => {
     try {
       const response = await api.get(`/orders/${id}/invoice`, { responseType: 'blob' });
@@ -230,6 +260,18 @@ const OrderDetails = () => {
               <XCircle className="w-4 h-4 inline mr-2" />
               Cancel Order
             </Button>
+          )}
+          {order.payment_status === 'pending' && order.payment_method === 'card' && (
+            <>
+              <Button onClick={handleVerifyPayment} variant="primary" className="!bg-blue-600 hover:!bg-blue-700">
+                <CheckCircle className="w-4 h-4 inline mr-2" />
+                Verify Payment Status
+              </Button>
+              <Button onClick={handleMockSuccess} variant="outline" className="!text-emerald-600 !border-emerald-600 hover:!bg-emerald-50">
+                <Sparkles className="w-4 h-4 inline mr-2" />
+                Simulate Success (Dev)
+              </Button>
+            </>
           )}
         </div>
       </div>

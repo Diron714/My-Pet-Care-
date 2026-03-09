@@ -394,12 +394,30 @@ export const createOrder = async (req, res) => {
 
     // Create order
     const orderNumber = generateOrderNumber();
+    
+    // For PayHere (card) payments, set initial payment status as pending
+    // For other methods, payment status depends on the method
+    let initialPaymentStatus = 'pending';
+    let initialOrderStatus = 'pending';
+    
+    if (payment_method === 'cash_on_delivery') {
+      initialPaymentStatus = 'pending';
+      initialOrderStatus = 'confirmed'; // COD orders are confirmed immediately
+    } else if (payment_method === 'bank_transfer') {
+      initialPaymentStatus = 'pending';
+      initialOrderStatus = 'pending'; // Wait for manual confirmation
+    } else if (payment_method === 'card') {
+      // PayHere - will be updated via webhook
+      initialPaymentStatus = 'pending';
+      initialOrderStatus = 'pending';
+    }
+    
     const [orderResult] = await connection.query(
       `INSERT INTO orders (order_number, customer_id, total_amount, discount_amount, loyalty_points_used, 
-                          final_amount, shipping_address, payment_method, loyalty_points_earned)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                          final_amount, shipping_address, payment_method, payment_status, order_status, loyalty_points_earned)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [orderNumber, customer.customer_id, totalAmount, pointsDiscount, loyalty_points_used, 
-       finalAmount, shipping_address, payment_method, pointsEarned]
+       finalAmount, shipping_address, payment_method, initialPaymentStatus, initialOrderStatus, pointsEarned]
     );
 
     const orderId = orderResult.insertId;
@@ -426,20 +444,27 @@ export const createOrder = async (req, res) => {
       }
     }
 
-    // Update customer loyalty points
-    await connection.query(
-      `UPDATE customers SET 
-         loyalty_points = loyalty_points - ? + ?,
-         total_spent = total_spent + ?
-       WHERE customer_id = ?`,
-      [pointsDiscount, pointsEarned, finalAmount, customer.customer_id]
-    );
+    // For PayHere payments, don't update loyalty points or clear cart until payment is confirmed
+    // For other payment methods, update immediately
+    if (payment_method !== 'card') {
+      // Update customer loyalty points (only for non-PayHere payments)
+      await connection.query(
+        `UPDATE customers SET 
+           loyalty_points = loyalty_points - ? + ?,
+           total_spent = total_spent + ?
+         WHERE customer_id = ?`,
+        [pointsDiscount, pointsEarned, finalAmount, customer.customer_id]
+      );
 
-    // Clear cart
-    await connection.query(
-      `DELETE FROM carts WHERE customer_id = ?`,
-      [customer.customer_id]
-    );
+      // Clear cart
+      await connection.query(
+        `DELETE FROM carts WHERE customer_id = ?`,
+        [customer.customer_id]
+      );
+    } else {
+      // For PayHere, we'll clear cart and update loyalty points after payment confirmation
+      // Just mark the order as created
+    }
 
     // Create notification
     await connection.query(
@@ -450,16 +475,34 @@ export const createOrder = async (req, res) => {
 
     await connection.commit();
 
-    res.status(201).json({
-      success: true,
-      message: 'Order created successfully',
-      data: {
-        order_id: orderId,
-        order_number: orderNumber,
-        final_amount: finalAmount,
-        loyalty_points_earned: pointsEarned
-      }
-    });
+    // Return response based on payment method
+    if (payment_method === 'card') {
+      // For PayHere, return order info so frontend can initiate payment
+      res.status(201).json({
+        success: true,
+        message: 'Order created. Please proceed with payment.',
+        data: {
+          order_id: orderId,
+          order_number: orderNumber,
+          final_amount: finalAmount,
+          loyalty_points_earned: pointsEarned,
+          requires_payment: true,
+          payment_method: 'card'
+        }
+      });
+    } else {
+      // For other payment methods, order is complete
+      res.status(201).json({
+        success: true,
+        message: 'Order created successfully',
+        data: {
+          order_id: orderId,
+          order_number: orderNumber,
+          final_amount: finalAmount,
+          loyalty_points_earned: pointsEarned
+        }
+      });
+    }
   } catch (error) {
     await connection.rollback();
     console.error('Create order error:', error);

@@ -68,16 +68,77 @@ const Checkout = () => {
 
     setLoading(true);
     try {
-      const response = await api.post('/orders', {
+      // Create order first
+      const orderResponse = await api.post('/orders', {
         shipping_address: `${data.address}, ${data.city}, ${data.state} ${data.zip}`,
         payment_method: paymentMethod,
         loyalty_points_used: loyaltyPointsUsed,
       });
 
-      if (response.data.success) {
-        toast.success('Order placed successfully!');
-        await clearCart();
-        navigate(`/customer/orders/${response.data.data.order_id}`);
+      if (orderResponse.data.success) {
+        const orderData = orderResponse.data.data;
+
+        // If payment method is card (PayHere), initiate payment
+        if (paymentMethod === 'card' && orderData.requires_payment) {
+          try {
+            // Initiate PayHere payment
+            const paymentResponse = await api.post('/payments/payhere/initiate', {
+              order_id: orderData.order_id
+            });
+
+            if (paymentResponse.data.success) {
+              const { payment_data, checkout_url } = paymentResponse.data.data;
+              
+              // Validate payment data exists
+              if (!payment_data || !checkout_url) {
+                toast.error('Invalid payment data received');
+                setLoading(false);
+                return;
+              }
+              
+              // Create and submit form to PayHere
+              const form = document.createElement('form');
+              form.method = 'POST';
+              form.action = checkout_url;
+              form.target = '_self'; // Submit in same window
+              
+              // Add all payment data as hidden fields
+              Object.keys(payment_data).forEach(key => {
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = key;
+                input.value = String(payment_data[key] || ''); // Ensure value is string
+                form.appendChild(input);
+              });
+              
+              // Append form to body and submit
+              document.body.appendChild(form);
+              
+              // Log form data for debugging (remove in production)
+              if (process.env.NODE_ENV === 'development') {
+                console.log('Submitting to PayHere:', {
+                  url: checkout_url,
+                  fields: Object.keys(payment_data)
+                });
+              }
+              
+              form.submit();
+              
+              // Form will redirect to PayHere, so we don't need to navigate
+              return;
+            }
+          } catch (paymentError) {
+            console.error('Payment initiation error:', paymentError);
+            toast.error(paymentError.response?.data?.message || 'Failed to initiate payment');
+            setLoading(false);
+            return;
+          }
+        } else {
+          // For other payment methods, order is complete
+          toast.success('Order placed successfully!');
+          await clearCart();
+          navigate(`/customer/orders/${orderData.order_id}`);
+        }
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to place order');
