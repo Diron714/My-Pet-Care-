@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -145,14 +144,13 @@ const OfferManagement = () => {
     return offer.is_active && !isOfferExpired(offer);
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const activeOffers = offers.filter(o => isOfferActive(o)).length;
   const expiredOffers = offers.filter(o => isOfferExpired(o)).length;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div className="flex-1">
             <h1 className="page-title">Offer Management</h1>
@@ -455,7 +453,6 @@ const OfferManagement = () => {
           </form>
         </Modal>
       </div>
-    </Layout>
   );
 };
 

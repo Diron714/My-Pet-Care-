@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -144,11 +143,10 @@ const NotificationManagement = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div className="flex-1">
             <h1 className="page-title">Notification Management</h1>
@@ -362,7 +360,6 @@ const NotificationManagement = () => {
           </form>
         </Modal>
       </div>
-    </Layout>
   );
 };
 

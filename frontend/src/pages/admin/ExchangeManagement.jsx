@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -79,11 +78,10 @@ const ExchangeManagement = () => {
     { value: 'completed', label: 'Completed', icon: RefreshCw, color: 'blue' },
   ];
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Exchange Management</h1>
@@ -219,7 +217,6 @@ const ExchangeManagement = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 

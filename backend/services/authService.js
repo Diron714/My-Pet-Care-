@@ -1,8 +1,26 @@
 import pool from '../config/database.js';
 import { hashPassword, comparePassword, checkPasswordHistory, savePasswordHistory } from './passwordService.js';
 import { storeOTP, verifyOTP } from './otpService.js';
-import { sendOTPEmail } from './emailService.js';
+import { sendOTPEmail, sendCredentialsEmail } from './emailService.js';
 import { generateTokenPair, storeRefreshToken, revokeAllUserTokens } from './jwtService.js';
+
+// Generate a random password that meets app requirements (8+ chars, upper, lower, number, special)
+const generateRandomPassword = () => {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghjkmnpqrstuvwxyz';
+  const numbers = '23456789';
+  const special = '!@#$%&*';
+  const all = upper + lower + numbers + special;
+  let pwd = '';
+  pwd += upper[Math.floor(Math.random() * upper.length)];
+  pwd += lower[Math.floor(Math.random() * lower.length)];
+  pwd += numbers[Math.floor(Math.random() * numbers.length)];
+  pwd += special[Math.floor(Math.random() * special.length)];
+  for (let i = 0; i < 8; i++) {
+    pwd += all[Math.floor(Math.random() * all.length)];
+  }
+  return pwd.split('').sort(() => Math.random() - 0.5).join('');
+};
 
 // Check if email exists
 export const emailExists = async (email) => {
@@ -114,6 +132,54 @@ export const registerUser = async (userData) => {
   const otpCode = await storeOTP(userId, email, 'email_verification', 10);
 
   // Send OTP email
+  await sendOTPEmail(email, otpCode, 'email_verification');
+
+  return { userId, email };
+};
+
+// Create user by staff/admin: send credentials email + verification OTP; user must verify before login
+export const createUserByStaff = async (userData) => {
+  const { firstName, lastName, email, phone, role } = userData;
+
+  if (await emailExists(email)) {
+    throw new Error('Email already registered');
+  }
+
+  const plainPassword = generateRandomPassword();
+  const passwordHash = await hashPassword(plainPassword);
+
+  const [result] = await pool.query(
+    `INSERT INTO users (first_name, last_name, email, phone, password_hash, role, is_verified, is_active)
+     VALUES (?, ?, ?, ?, ?, ?, FALSE, TRUE)`,
+    [firstName, lastName, email, phone, passwordHash, role]
+  );
+
+  const userId = result.insertId;
+
+  if (role === 'customer') {
+    await pool.query(
+      `INSERT INTO customers (user_id, loyalty_points, loyalty_tier, total_spent)
+       VALUES (?, 0, 'bronze', 0.00)`,
+      [userId]
+    );
+  } else if (role === 'doctor') {
+    await pool.query(
+      `INSERT INTO doctors (user_id, specialization, consultation_fee, is_available)
+       VALUES (?, 'General', 0.00, FALSE)`,
+      [userId]
+    );
+  } else if (role === 'staff' || role === 'admin') {
+    await pool.query(
+      'INSERT INTO staff (user_id) VALUES (?)',
+      [userId]
+    );
+  }
+
+  // Send login credentials to the user's email
+  await sendCredentialsEmail(email, plainPassword, firstName);
+
+  // Send verification OTP – user must verify email before they can log in
+  const otpCode = await storeOTP(userId, email, 'email_verification', 10);
   await sendOTPEmail(email, otpCode, 'email_verification');
 
   return { userId, email };

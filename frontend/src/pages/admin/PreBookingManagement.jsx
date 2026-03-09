@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -103,14 +102,13 @@ const PreBookingManagement = () => {
     { value: 'cancelled', label: 'Cancelled', icon: XCircle, color: 'rose' },
   ];
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const pendingCount = preBookings.filter(pb => pb.status === 'pending').length;
   const fulfilledCount = preBookings.filter(pb => pb.status === 'fulfilled').length;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Pre-Booking Management</h1>
@@ -334,7 +332,6 @@ const PreBookingManagement = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 

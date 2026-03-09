@@ -6,6 +6,7 @@ import {
   getDashboardChartData,
   getAllUsers,
   getUserById,
+  createUser,
   updateUserStatus,
   updateUserRole,
   getReport,
@@ -24,6 +25,7 @@ router.get('/dashboard', getDashboardStats);
 
 // User Management
 router.get('/users', getAllUsers);
+router.post('/users', createUser);
 router.get('/users/:id', getUserById);
 router.put('/users/:id/status', updateUserStatus);
 router.put('/users/:id/role', requireRole(['admin']), updateUserRole); // Only admin can change roles

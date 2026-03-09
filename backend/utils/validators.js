@@ -12,8 +12,17 @@ export const registerSchema = z.object({
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  role: z.enum(['customer', 'doctor', 'staff'], {
-    errorMap: () => ({ message: 'Role must be customer, doctor, or staff' })
+  role: z.enum(['customer', 'doctor', 'staff']).optional().default('customer')
+});
+
+// Staff-create user schema (email, firstName, lastName, phone, role)
+export const createUserByStaffSchema = z.object({
+  email: z.string().email('Invalid email format'),
+  firstName: z.string().min(1, 'First name is required').max(100),
+  lastName: z.string().min(1, 'Last name is required').max(100),
+  phone: z.string().min(10, 'Phone number must be at least 10 digits'),
+  role: z.enum(['customer', 'doctor', 'staff', 'admin'], {
+    errorMap: () => ({ message: 'Role must be customer, doctor, staff, or admin' })
   })
 });
 

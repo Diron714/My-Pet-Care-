@@ -42,13 +42,13 @@ const OTPVerification = () => {
   };
 
   const handleOtpChange = (index, value) => {
-    if (value.length > 1) return;
+    const digit = value.replace(/\D/g, '').slice(-1);
     const newOtp = [...otp];
-    newOtp[index] = value;
+    newOtp[index] = digit;
     setOtp(newOtp);
 
     // Auto-focus next input
-    if (value && index < 5) {
+    if (digit && index < 5) {
       document.getElementById(`otp-${index + 1}`)?.focus();
     }
   };
@@ -57,6 +57,17 @@ const OTPVerification = () => {
     if (e.key === 'Backspace' && !otp[index] && index > 0) {
       document.getElementById(`otp-${index - 1}`)?.focus();
     }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6).split('');
+    if (pasted.length === 0) return;
+    const newOtp = [...otp];
+    pasted.forEach((digit, i) => { newOtp[i] = digit; });
+    setOtp(newOtp);
+    const nextIndex = Math.min(pasted.length, 5);
+    document.getElementById(`otp-${nextIndex}`)?.focus();
   };
 
   const handleVerify = async () => {
@@ -122,11 +133,14 @@ const OTPVerification = () => {
                 key={index}
                 id={`otp-${index}`}
                 type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
                 maxLength="1"
                 value={digit}
                 onChange={(e) => handleOtpChange(index, e.target.value)}
                 onKeyDown={(e) => handleKeyDown(index, e)}
-                className="w-11 h-12 rounded-2xl border border-slate-200 bg-slate-50/60 text-center text-lg font-black tracking-[0.2em] text-slate-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                onPaste={handlePaste}
+                className="w-11 h-12 rounded-2xl border-2 border-slate-300 bg-white text-center text-lg font-black tracking-[0.2em] text-slate-900 placeholder:text-slate-300 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 focus:bg-white outline-none transition-all shadow-sm"
               />
             ))}
           </div>

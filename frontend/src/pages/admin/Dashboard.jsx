@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
+import { Link } from 'react-router-dom';
 import Loading from '../../components/common/Loading';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
@@ -52,11 +52,10 @@ const Dashboard = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Admin Dashboard</h1>
@@ -157,10 +156,10 @@ const Dashboard = () => {
                 <h2 className="text-xl font-bold text-slate-900">Recent Orders</h2>
                 <p className="text-xs text-slate-500 mt-1">Latest transactions</p>
               </div>
-              <a href="/admin/orders" className="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-1 group">
+              <Link to="/admin/orders" className="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-1 group">
                 View All
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </a>
+              </Link>
             </div>
             {recentOrders.length === 0 ? (
               <div className="text-center py-12">
@@ -209,10 +208,10 @@ const Dashboard = () => {
                 <h2 className="text-xl font-bold text-slate-900">Recent Registrations</h2>
                 <p className="text-xs text-slate-500 mt-1">New user accounts</p>
               </div>
-              <a href="/admin/users" className="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-1 group">
+              <Link to="/admin/users" className="text-slate-600 hover:text-slate-800 text-sm font-semibold flex items-center gap-1 group">
                 View All
                 <ArrowUpRight className="w-4 h-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-              </a>
+              </Link>
             </div>
             {recentRegistrations.length === 0 ? (
               <div className="text-center py-12">
@@ -287,7 +286,6 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
-    </Layout>
   );
 };
 
