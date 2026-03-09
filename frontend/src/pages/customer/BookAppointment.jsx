@@ -171,13 +171,13 @@ const BookAppointment = () => {
                 onChange={(e) => {
                   register('doctorId').onChange(e);
                   const doctor = doctors.find(d => d.doctor_id === parseInt(e.target.value));
-                  setSelectedDoctor(doctor);
+                  setSelectedDoctor(doctor || null);
                 }}
               >
                 <option value="">Select a doctor</option>
                 {doctors.map((doctor) => (
                   <option key={doctor.doctor_id} value={doctor.doctor_id}>
-                    Dr. {doctor.user?.first_name} {doctor.user?.last_name} - {doctor.specialization}
+                    Dr. {doctor.first_name} {doctor.last_name} - {doctor.specialization}
                   </option>
                 ))}
               </select>
@@ -195,7 +195,7 @@ const BookAppointment = () => {
                   {selectedDoctor.image_url ? (
                     <img
                       src={getImageSrc(selectedDoctor.image_url)}
-                      alt={`Dr. ${selectedDoctor.user?.first_name}`}
+                      alt={`Dr. ${selectedDoctor.first_name}`}
                       className="w-20 h-20 rounded-xl object-cover border-2 border-emerald-300"
                       onError={(e) => {
                         e.target.src = PLACEHOLDER_IMAGE;
@@ -206,9 +206,9 @@ const BookAppointment = () => {
                       <Stethoscope className="w-10 h-10 text-white" />
                     </div>
                   )}
-                  <div className="flex-1">
+                    <div className="flex-1">
                     <h3 className="font-bold text-lg text-emerald-900 mb-1">
-                      Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
+                      Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
                     </h3>
                     <p className="text-emerald-700 font-semibold mb-3">{selectedDoctor.specialization}</p>
                     <div className="flex items-center gap-2 p-3 bg-white/80 rounded-lg border border-emerald-200">
@@ -357,7 +357,7 @@ onError={(e) => {
                     <div>
                       <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Doctor</p>
                       <p className="font-bold text-slate-800">
-                        Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
+                        Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
                       </p>
                       <p className="text-sm text-slate-700">{selectedDoctor.specialization}</p>
                     </div>

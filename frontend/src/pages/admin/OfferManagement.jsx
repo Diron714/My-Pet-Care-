@@ -3,6 +3,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate, formatDateTime } from '../../utils/formatters';
 import { Plus, Edit, Trash2, Gift, Percent, DollarSign, Sparkles, Calendar, Clock, CheckCircle, XCircle, TrendingUp, Tag } from 'lucide-react';
@@ -22,6 +23,8 @@ const OfferManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingOffer, setEditingOffer] = useState(null);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadOffers();
@@ -68,14 +71,16 @@ const OfferManagement = () => {
   };
 
   const handleDelete = async (offerId) => {
-    if (!window.confirm('Are you sure you want to delete this offer?')) return;
-
     try {
+      setDeleteLoading(true);
       await api.delete(`/offers/${offerId}`);
       toast.success('Offer deleted');
       loadOffers();
     } catch (error) {
       toast.error('Failed to delete offer');
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -311,7 +316,7 @@ const OfferManagement = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleDelete(offer.offer_id)}
+                        onClick={() => setDeleteTarget(offer)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -452,6 +457,25 @@ const OfferManagement = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Delete confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Delete offer"
+          message={
+            deleteTarget
+              ? `Are you sure you want to delete offer "${deleteTarget.title}"?`
+              : ''
+          }
+          confirmLabel="Delete"
+          confirmVariant="danger"
+          loading={deleteLoading}
+          onCancel={() => {
+            if (deleteLoading) return;
+            setDeleteTarget(null);
+          }}
+          onConfirm={() => deleteTarget && handleDelete(deleteTarget.offer_id)}
+        />
       </div>
   );
 };

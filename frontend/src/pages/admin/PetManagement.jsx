@@ -4,6 +4,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, PawPrint, Search, Filter, RefreshCw, Dog, Cat, Bird, Rabbit, CheckCircle, XCircle, Package, DollarSign, Calendar, User } from 'lucide-react';
@@ -32,6 +33,8 @@ const PetManagement = () => {
     available: '',
     search: '',
   });
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadPets();
@@ -99,14 +102,16 @@ const PetManagement = () => {
   };
 
   const handleDelete = async (petId) => {
-    if (!window.confirm('Are you sure you want to delete this pet?')) return;
-
     try {
+      setDeleteLoading(true);
       await api.delete(`/pets/${petId}`);
       toast.success('Pet deleted');
       loadPets();
     } catch (error) {
       toast.error('Failed to delete pet');
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -253,8 +258,18 @@ const PetManagement = () => {
                   placeholder="Search pets..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-8"
                 />
+                {filters.search && (
+                  <button
+                    type="button"
+                    onClick={() => setFilters({ ...filters, search: '' })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    aria-label="Clear search"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
             <div>
@@ -426,7 +441,7 @@ const PetManagement = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleDelete(pet.pet_id)}
+                        onClick={() => setDeleteTarget(pet)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -588,6 +603,25 @@ const PetManagement = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Delete confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Delete pet"
+          message={
+            deleteTarget
+              ? `Are you sure you want to delete pet "${deleteTarget.name}"?`
+              : ''
+          }
+          confirmLabel="Delete"
+          confirmVariant="danger"
+          loading={deleteLoading}
+          onCancel={() => {
+            if (deleteLoading) return;
+            setDeleteTarget(null);
+          }}
+          onConfirm={() => deleteTarget && handleDelete(deleteTarget.pet_id)}
+        />
       </div>
   );
 };

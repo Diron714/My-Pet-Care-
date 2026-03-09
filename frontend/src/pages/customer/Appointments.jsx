@@ -4,6 +4,7 @@ import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate, formatTime, formatCurrency } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
@@ -22,6 +23,8 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     loadAppointments();
@@ -41,9 +44,8 @@ const Appointments = () => {
   };
 
   const handleCancel = async (appointmentId) => {
-    if (!window.confirm('Are you sure you want to cancel this appointment?')) return;
-
     try {
+      setCancelLoading(true);
       await api.put(`/appointments/${appointmentId}/status`, {
         status: 'cancelled',
       });
@@ -51,6 +53,9 @@ const Appointments = () => {
       loadAppointments();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to cancel appointment');
+    } finally {
+      setCancelLoading(false);
+      setCancelTarget(null);
     }
   };
 
@@ -87,8 +92,6 @@ const Appointments = () => {
     };
     return styles[color] || styles.slate;
   };
-
-  if (loading) return <Layout><Loading /></Layout>;
 
   const upcomingAppointments = appointments.filter(a => ['pending', 'accepted'].includes(a.status)).length;
   const completedAppointments = appointments.filter(a => a.status === 'completed').length;
@@ -168,7 +171,11 @@ const Appointments = () => {
           })}
         </div>
 
-        {appointments.length === 0 ? (
+        {loading && appointments.length === 0 ? (
+          <div className="card">
+            <Loading />
+          </div>
+        ) : appointments.length === 0 ? (
           <div className="card">
             <EmptyState
               icon={Calendar}
@@ -275,7 +282,7 @@ const Appointments = () => {
                         <Button
                           variant="danger"
                           size="sm"
-                          onClick={() => handleCancel(appointment.appointment_id)}
+                          onClick={() => setCancelTarget(appointment)}
                         >
                           Cancel
                         </Button>
@@ -287,6 +294,24 @@ const Appointments = () => {
             })}
           </div>
         )}
+        {/* Cancel confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!cancelTarget}
+          title="Cancel appointment"
+          message={
+            cancelTarget
+              ? `Are you sure you want to cancel appointment ${cancelTarget.appointment_number}?`
+              : ''
+          }
+          confirmLabel="Yes, cancel"
+          confirmVariant="danger"
+          loading={cancelLoading}
+          onCancel={() => {
+            if (cancelLoading) return;
+            setCancelTarget(null);
+          }}
+          onConfirm={() => cancelTarget && handleCancel(cancelTarget.appointment_id)}
+        />
       </div>
     </Layout>
   );
