@@ -8,6 +8,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import Modal from '../../components/common/Modal';
 import { petProfileSchema } from '../../utils/validators';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import api from '../../services/api';
 import toast from 'react-hot-toast';
 import { Plus, Trash2, PawPrint, User, Calendar, Syringe, Utensils, Upload, CheckCircle, AlertCircle } from 'lucide-react';
@@ -56,7 +57,11 @@ const PetProfileForm = () => {
         setValue('age', pet.age);
         setValue('gender', pet.gender);
         if (pet.image_url) {
-          setImagePreview(pet.image_url);
+          // Use full URL for display so the image loads from the API origin (backend)
+          const displayUrl = pet.image_url.startsWith('data:') || pet.image_url.startsWith('http')
+            ? pet.image_url
+            : getImageSrc(pet.image_url);
+          setImagePreview(displayUrl);
           setImageDataUrl(pet.image_url);
         }
       }
@@ -237,7 +242,7 @@ const PetProfileForm = () => {
                         alt="Pet preview"
                         className="h-full w-full object-cover"
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/150?text=Pet';
+                          e.target.src = PLACEHOLDER_IMAGE;
                         }}
                       />
                     </div>

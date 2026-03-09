@@ -5,6 +5,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc } from '../../utils/helpers';
 
 const PetListing = () => {
   const [pets, setPets] = useState([]);
@@ -124,7 +125,7 @@ const PetListing = () => {
                       <div className="relative h-48 rounded-2xl mb-4 overflow-hidden bg-gradient-to-br from-primary-100/60 via-emerald-50 to-slate-50 flex items-center justify-center">
                         {pet.image_url ? (
                           <img
-                            src={pet.image_url}
+                            src={getImageSrc(pet.image_url)}
                             alt={pet.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />

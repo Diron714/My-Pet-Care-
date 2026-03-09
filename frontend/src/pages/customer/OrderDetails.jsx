@@ -5,7 +5,7 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { getStatusColor } from '../../utils/helpers';
+import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 import { Download, ArrowLeft, ShoppingCart, MapPin, CreditCard, Package, Truck, CheckCircle, XCircle, DollarSign, Percent, Sparkles, Calendar } from 'lucide-react';
 
@@ -153,11 +153,11 @@ const OrderDetails = () => {
                 <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-slate-200 flex-shrink-0">
                   {item.image_url ? (
                     <img
-                      src={item.image_url}
+                      src={getImageSrc(item.image_url)}
                       alt={item.item_name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/200?text=Item';
+                        e.target.src = PLACEHOLDER_IMAGE;
                       }}
                     />
                   ) : (

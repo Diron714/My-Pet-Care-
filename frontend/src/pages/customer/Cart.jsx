@@ -6,6 +6,7 @@ import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import { useCart } from '../../context/CartContext';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Trash2, Plus, Minus, ShoppingCart, Package, DollarSign, ArrowRight, Tag, Truck } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -85,11 +86,11 @@ const Cart = () => {
                     <div className="relative w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 border-2 border-slate-200">
                       {item.image_url ? (
                         <img
-                          src={item.image_url}
+                          src={getImageSrc(item.image_url)}
                           alt={item.name}
                           className="w-full h-full object-cover"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/200?text=Product';
+                            e.target.src = PLACEHOLDER_IMAGE;
                           }}
                         />
                       ) : (

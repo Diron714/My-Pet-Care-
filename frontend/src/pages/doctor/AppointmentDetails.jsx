@@ -5,7 +5,7 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatDate, formatTime } from '../../utils/formatters';
-import { getStatusColor } from '../../utils/helpers';
+import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft,
@@ -215,11 +215,11 @@ const AppointmentDetails = () => {
                 {appointment.customer_pet?.image_url && (
                   <div className="relative h-32 w-32 rounded-2xl overflow-hidden border-2 border-white/20 mx-auto">
                     <img
-                      src={appointment.customer_pet.image_url}
+                      src={getImageSrc(appointment.customer_pet.image_url)}
                       alt={appointment.customer_pet.name}
                       className="h-full w-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/200?text=Pet';
+                        e.target.src = PLACEHOLDER_IMAGE;
                       }}
                     />
                   </div>

@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { saveBase64Image } from '../utils/imageUpload.js';
 
 // =============================================
 // PRODUCT MANAGEMENT
@@ -162,10 +163,20 @@ export const createProduct = async (req, res) => {
       });
     }
 
+    let dbImageUrl = null;
+    if (image_url && typeof image_url === 'string' && image_url.startsWith('data:image')) {
+      try {
+        const savedPath = await saveBase64Image(image_url, 'products');
+        if (savedPath) dbImageUrl = savedPath;
+      } catch (err) {
+        console.error('Error saving product image:', err);
+      }
+    }
+
     const [result] = await pool.query(
       `INSERT INTO products (name, category, description, price, stock_quantity, is_available, image_url, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, category, description || null, price, stock_quantity || 0, is_available !== false, image_url || null, created_by]
+      [name, category, description || null, price, stock_quantity || 0, is_available !== false, dbImageUrl, created_by]
     );
 
     // Log action
@@ -205,6 +216,16 @@ export const updateProduct = async (req, res) => {
       });
     }
 
+    let dbImageUrl = undefined;
+    if (image_url && typeof image_url === 'string' && image_url.startsWith('data:image')) {
+      try {
+        const savedPath = await saveBase64Image(image_url, 'products');
+        if (savedPath) dbImageUrl = savedPath;
+      } catch (err) {
+        console.error('Error saving product image:', err);
+      }
+    }
+
     await pool.query(
       `UPDATE products SET 
         name = COALESCE(?, name),
@@ -216,7 +237,7 @@ export const updateProduct = async (req, res) => {
         image_url = COALESCE(?, image_url),
         updated_at = NOW()
        WHERE product_id = ?`,
-      [name, category, description, price, stock_quantity, is_available, image_url, id]
+      [name, category, description, price, stock_quantity, is_available, dbImageUrl, id]
     );
 
     // Log action

@@ -9,6 +9,7 @@ import Input from '../../components/common/Input';
 import { appointmentSchema } from '../../utils/validators';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Calendar, Clock, Stethoscope, PawPrint, DollarSign, User, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -18,14 +19,6 @@ const formatCurrencyLKR = (amount) => {
     style: 'currency',
     currency: 'LKR',
   }).format(amount || 0);
-};
-
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-const getImageSrc = (rawUrl) => {
-  if (!rawUrl) return null;
-  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
-  const base = API_BASE.replace(/\/api\/?$/, '');
-  return `${base}${rawUrl}`;
 };
 
 const BookAppointment = () => {
@@ -201,11 +194,11 @@ const BookAppointment = () => {
                 <div className="flex items-start gap-4">
                   {selectedDoctor.image_url ? (
                     <img
-                      src={selectedDoctor.image_url}
+                      src={getImageSrc(selectedDoctor.image_url)}
                       alt={`Dr. ${selectedDoctor.user?.first_name}`}
                       className="w-20 h-20 rounded-xl object-cover border-2 border-emerald-300"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/200?text=Doctor';
+                        e.target.src = PLACEHOLDER_IMAGE;
                       }}
                     />
                   ) : (
@@ -272,9 +265,9 @@ const BookAppointment = () => {
                         src={getImageSrc(selectedPet.image_url)}
                         alt={selectedPet.name}
                         className="w-16 h-16 rounded-lg object-cover border-2 border-blue-300"
-                        onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/200?text=Pet';
-                        }}
+onError={(e) => {
+                        e.target.src = PLACEHOLDER_IMAGE;
+                      }}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-blue-300">
