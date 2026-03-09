@@ -8,6 +8,7 @@ import { formatCurrency } from '../../utils/formatters';
 import { Plus, Edit, Trash2, Package, Search, Filter, RefreshCw, CheckCircle, XCircle, DollarSign, ShoppingBag, Utensils, Gamepad2, Sparkles, Scissors, Heart, CheckCircle2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 
 // Format currency as LKR
 const formatCurrencyLKR = (amount) => {
@@ -22,6 +23,8 @@ const ProductManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [imageDataUrl, setImageDataUrl] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
   const [filters, setFilters] = useState({
     category: '',
     available: '',
@@ -50,6 +53,17 @@ const ProductManagement = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setImagePreview(reader.result);
+      setImageDataUrl(reader.result);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -60,6 +74,7 @@ const ProductManagement = () => {
       price: parseFloat(formData.get('price')),
       stock_quantity: parseInt(formData.get('stock_quantity')),
       is_available: formData.get('is_available') === 'on',
+      ...(imageDataUrl && { image_url: imageDataUrl }),
     };
 
     try {
@@ -69,6 +84,8 @@ const ProductManagement = () => {
       toast.success(editingProduct ? 'Product updated' : 'Product added');
       setShowForm(false);
       setEditingProduct(null);
+      setImageDataUrl(null);
+      setImagePreview(null);
       loadProducts();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save product');
@@ -166,6 +183,8 @@ const ProductManagement = () => {
           </div>
           <Button onClick={() => {
             setEditingProduct(null);
+            setImageDataUrl(null);
+            setImagePreview(null);
             setShowForm(true);
           }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
@@ -304,12 +323,12 @@ const ProductManagement = () => {
                   {/* Product Image */}
                   <div className="relative h-48 overflow-hidden rounded-t-2xl -mx-6 -mt-6 mb-4">
                     {product.image_url ? (
-                      <img
-                        src={product.image_url}
+                        <img
+                        src={getImageSrc(product.image_url)}
                         alt={product.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = 'https://via.placeholder.com/400x300?text=Product+Image';
+                          e.target.src = PLACEHOLDER_IMAGE;
                         }}
                       />
                     ) : (
@@ -377,6 +396,8 @@ const ProductManagement = () => {
                         size="sm"
                         onClick={() => {
                           setEditingProduct(product);
+                          setImageDataUrl(null);
+                          setImagePreview(null);
                           setShowForm(true);
                         }}
                         className="flex-1"
@@ -475,7 +496,16 @@ const ProductManagement = () => {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Product Image</label>
-              <input type="file" accept="image/*" className="input-field" />
+              {(imagePreview || editingProduct?.image_url) && (
+                <div className="mb-2 w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                  <img
+                    src={imagePreview || getImageSrc(editingProduct?.image_url)}
+                    alt="Preview"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              <input type="file" accept="image/*" className="input-field" onChange={handleImageChange} />
               <p className="text-xs text-slate-500 mt-1">Upload a high-quality image of the product</p>
             </div>
 

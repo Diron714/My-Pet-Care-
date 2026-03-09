@@ -6,6 +6,7 @@ import EmptyState from '../../components/common/EmptyState';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import { Package, Search, Filter, RefreshCw, ShoppingCart, CheckCircle, XCircle, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -127,12 +128,12 @@ const ProductListing = () => {
                     <div className="card overflow-hidden p-0 border-none shadow-lg hover:shadow-xl transition-all duration-300 relative">
                       <div className="relative h-56 overflow-hidden rounded-t-2xl">
                         {product.image_url ? (
-                          <img
-                            src={product.image_url}
+                            <img
+                            src={getImageSrc(product.image_url)}
                             alt={product.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/400?text=Product';
+                              e.target.src = PLACEHOLDER_IMAGE;
                             }}
                           />
                         ) : (

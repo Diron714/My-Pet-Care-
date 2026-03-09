@@ -5,6 +5,7 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Star, Calendar, MessageSquare, Stethoscope, Award, Clock, User, ArrowLeft, CheckCircle, GraduationCap, Heart } from 'lucide-react';
 
 // Format currency as LKR
@@ -64,11 +65,11 @@ const DoctorDetails = () => {
             <div className="relative w-40 h-40 rounded-2xl overflow-hidden flex-shrink-0 border-4 border-emerald-200 shadow-xl">
               {doctor.image_url ? (
                 <img
-                  src={doctor.image_url}
+                  src={getImageSrc(doctor.image_url)}
                   alt={`Dr. ${doctor.user?.first_name}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/400?text=Doctor';
+                    e.target.src = PLACEHOLDER_IMAGE;
                   }}
                 />
               ) : (

@@ -8,6 +8,7 @@ import Input from '../../components/common/Input';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { MapPin, CreditCard, Gift, Truck, Shield, CheckCircle, ArrowRight, Percent, DollarSign, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -329,11 +330,11 @@ const Checkout = () => {
                     <div key={item.cart_id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                       {item.image_url && (
                         <img
-                          src={item.image_url}
+                          src={getImageSrc(item.image_url)}
                           alt={item.name}
                           className="w-12 h-12 rounded-lg object-cover"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/100?text=Product';
+                            e.target.src = PLACEHOLDER_IMAGE;
                           }}
                         />
                       )}

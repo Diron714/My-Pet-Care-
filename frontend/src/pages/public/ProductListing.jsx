@@ -5,6 +5,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc } from '../../utils/helpers';
 
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
@@ -77,7 +78,7 @@ const ProductListing = () => {
                     <div className="card hover:shadow-lg transition-shadow cursor-pointer">
                       <div className="bg-gray-200 h-48 rounded-lg mb-4 flex items-center justify-center">
                         {product.image_url ? (
-                          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover rounded-lg" />
+                          <img src={getImageSrc(product.image_url)} alt={product.name} className="h-full w-full object-cover rounded-lg" />
                         ) : (
                           <span className="text-gray-400">No Image</span>
                         )}

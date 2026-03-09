@@ -6,6 +6,7 @@ import EmptyState from '../../components/common/EmptyState';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import { PawPrint, Search, Filter, RefreshCw, ShoppingCart, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -162,11 +163,11 @@ const PetListing = () => {
                       <div className="relative h-56 overflow-hidden rounded-t-2xl">
                         {pet.image_url ? (
                           <img
-                            src={pet.image_url}
+                            src={getImageSrc(pet.image_url)}
                             alt={pet.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/400?text=Pet';
+                              e.target.src = PLACEHOLDER_IMAGE;
                             }}
                           />
                         ) : (

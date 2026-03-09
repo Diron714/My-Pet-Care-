@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { User, Edit, Save, X, Stethoscope, GraduationCap, Briefcase, DollarSign, Star, Upload, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -22,6 +23,7 @@ const ProfileManagement = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [editMode, setEditMode] = useState(false);
+  const [imageDataUrl, setImageDataUrl] = useState(null);
 
   const {
     register,
@@ -53,13 +55,24 @@ const ProfileManagement = () => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setImageDataUrl(reader.result);
+    reader.readAsDataURL(file);
+  };
+
   const onSubmit = async (data) => {
     setSaving(true);
     try {
-      const response = await api.put('/doctors/profile', data);
+      const payload = { ...data };
+      if (imageDataUrl) payload.image_url = imageDataUrl;
+      const response = await api.put('/doctors/profile', payload);
       if (response.data.success) {
         toast.success('Profile updated successfully');
         setEditMode(false);
+        setImageDataUrl(null);
         loadProfile();
       }
     } catch (error) {
@@ -92,14 +105,14 @@ const ProfileManagement = () => {
           {/* Profile Header */}
           <div className="card p-8 bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
             <div className="flex items-center gap-6">
-              {profile.image_url ? (
+              {(imageDataUrl || profile.image_url) ? (
                 <div className="h-32 w-32 rounded-2xl overflow-hidden border-4 border-white shadow-xl">
                   <img
-                    src={profile.image_url}
+                    src={imageDataUrl || getImageSrc(profile.image_url)}
                     alt="Profile"
                     className="h-full w-full object-cover"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/200?text=Doctor';
+                      e.target.src = PLACEHOLDER_IMAGE;
                     }}
                   />
                 </div>
@@ -196,7 +209,7 @@ const ProfileManagement = () => {
                     <Upload className="w-4 h-4 inline mr-1" />
                     Profile Image
                   </label>
-                  <input type="file" accept="image/*" className="input-field !rounded-xl !py-3" />
+                  <input type="file" accept="image/*" className="input-field !rounded-xl !py-3" onChange={handleImageChange} />
                   <p className="text-xs text-slate-500 mt-1">Upload a professional profile photo (optional)</p>
                 </div>
                 <div className="flex space-x-4 pt-4">

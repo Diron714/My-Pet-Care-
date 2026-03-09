@@ -6,6 +6,7 @@ import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Plus, Edit, Trash2, Eye, PawPrint, User, Calendar, Heart, Syringe, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -14,16 +15,6 @@ const PetProfiles = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPet, setSelectedPet] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
-
-  const getImageSrc = (rawUrl) => {
-    if (!rawUrl) return null;
-    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
-      return rawUrl;
-    }
-    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
-    const base = apiBase.replace(/\/api\/?$/, '');
-    return `${base}${rawUrl}`;
-  };
 
   useEffect(() => {
     loadPets();
@@ -107,7 +98,7 @@ const PetProfiles = () => {
                       alt={pet.name}
                       className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/400?text=Pet';
+                        e.target.src = PLACEHOLDER_IMAGE;
                       }}
                     />
                   ) : (
@@ -180,7 +171,7 @@ const PetProfiles = () => {
                     alt={selectedPet.name}
                     className="h-full w-full object-cover"
                     onError={(e) => {
-                      e.target.src = 'https://via.placeholder.com/400?text=Pet';
+                      e.target.src = PLACEHOLDER_IMAGE;
                     }}
                   />
                 </div>
