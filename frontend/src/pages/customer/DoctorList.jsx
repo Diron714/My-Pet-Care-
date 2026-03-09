@@ -155,7 +155,7 @@ const DoctorList = () => {
 
                       <div className="flex-1 min-w-0">
                         <Link to={`/customer/doctors/${doctor.doctor_id}`}>
-                          <h3 className="font-bold text-xl text-slate-900 mb-1 hover:text-primary-600 transition-colors">
+                          <h3 className="font-bold text-xl text-slate-900 mb-1 hover:text-slate-800 transition-colors">
                             Dr. {doctor.user?.first_name} {doctor.user?.last_name}
                           </h3>
                         </Link>
@@ -207,7 +207,7 @@ const DoctorList = () => {
                             </Button>
                           </Link>
                           <Link to={`/customer/appointments/book?doctorId=${doctor.doctor_id}`} className="flex-1">
-                            <Button size="sm" className="w-full !bg-primary-600 hover:!bg-primary-700">
+                            <Button size="sm" className="w-full !bg-slate-800 hover:!bg-slate-900">
                               <Calendar className="w-4 h-4 inline mr-1" />
                               Book Now
                             </Button>

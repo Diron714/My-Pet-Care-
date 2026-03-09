@@ -15,7 +15,7 @@ export const getHealthRecords = async (req, res) => {
         const { userId, role } = req.user;
 
         let query = `
-            SELECT hr.*,
+            SELECT hr.*, 
                    cp.name        AS pet_name,
                    cp.species     AS pet_species,
                    cp.breed       AS pet_breed,
@@ -210,7 +210,7 @@ export const getHealthRecordById = async (req, res) => {
     try {
         const { id } = req.params;
         const [records] = await pool.query(
-            `SELECT hr.*,
+            `SELECT hr.*, 
                     cp.name  AS pet_name,
                     cp.species AS pet_species,
                     cp.breed AS pet_breed,

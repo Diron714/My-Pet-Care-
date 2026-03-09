@@ -71,7 +71,7 @@ const PetDetails = () => {
   return (
     <Layout>
       <div className="page-shell">
-        <Link to="/customer/pets" className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-700 mb-6 font-semibold">
+        <Link to="/customer/pets" className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-6 font-semibold">
           <ArrowLeft className="w-4 h-4" />
           Back to Pets
         </Link>
@@ -90,8 +90,8 @@ const PetDetails = () => {
                   }}
                 />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-primary-200 to-primary-300 flex items-center justify-center">
-                  <PawPrint className="w-24 h-24 text-primary-600 opacity-50" />
+                <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                  <PawPrint className="w-24 h-24 text-slate-600 opacity-50" />
                 </div>
               )}
               <div className="absolute top-4 right-4">
@@ -149,13 +149,13 @@ const PetDetails = () => {
                   <p className="font-bold text-amber-900 capitalize">{pet.gender}</p>
                 </div>
               </div>
-              <div className="p-5 bg-gradient-to-br from-primary-50 to-primary-100 rounded-xl border-2 border-primary-200">
+              <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl border-2 border-slate-200">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-1">Price</p>
-                    <p className="text-3xl font-black text-primary-900">{formatCurrencyLKR(pet.price)}</p>
+                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Price</p>
+                    <p className="text-3xl font-black text-slate-800">{formatCurrencyLKR(pet.price)}</p>
                   </div>
-                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                  <div className="h-16 w-16 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                     <DollarSign className="w-8 h-8 text-white" />
                   </div>
                 </div>
@@ -171,7 +171,7 @@ const PetDetails = () => {
 
             <div className="flex gap-3">
               {pet.is_available ? (
-                <Button onClick={handleAddToCart} className="flex-1 !bg-primary-600 hover:!bg-primary-700 !py-4">
+                <Button onClick={handleAddToCart} className="flex-1 !bg-slate-800 hover:!bg-slate-900 !py-4">
                   <ShoppingCart className="w-5 h-5 inline mr-2" />
                   Add to Cart
                 </Button>
@@ -192,7 +192,7 @@ const PetDetails = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedPets.map((relatedPet) => (
                 <Link key={relatedPet.pet_id} to={`/customer/pets/${relatedPet.pet_id}`}>
-                  <div className="card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-l-primary-500">
+                  <div className="card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-l-slate-600">
                     <div className="relative h-48 overflow-hidden rounded-t-2xl">
                       {relatedPet.image_url ? (
                         <img
@@ -204,15 +204,15 @@ const PetDetails = () => {
                           }}
                         />
                       ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-primary-200 to-primary-300 flex items-center justify-center">
-                          <PawPrint className="w-16 h-16 text-primary-600 opacity-50" />
+                        <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
+                          <PawPrint className="w-16 h-16 text-slate-600 opacity-50" />
                         </div>
                       )}
                     </div>
                     <div className="p-4">
                       <h3 className="font-bold text-lg text-slate-900 mb-1">{relatedPet.name}</h3>
                       <p className="text-sm text-slate-600 mb-2">{relatedPet.breed}</p>
-                      <p className="text-lg font-black text-primary-600">{formatCurrencyLKR(relatedPet.price)}</p>
+                      <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(relatedPet.price)}</p>
                     </div>
                   </div>
                 </Link>

@@ -101,7 +101,7 @@ const ScheduleManagement = () => {
           <Button onClick={() => {
             setEditingSchedule(null);
             setShowForm(true);
-          }} className="!bg-primary-600 hover:!bg-primary-700">
+          }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             Add Schedule Slot
           </Button>
@@ -110,7 +110,7 @@ const ScheduleManagement = () => {
         {/* Weekly Schedule View */}
         <div className="card mb-6">
           <div className="flex items-center gap-2 mb-6">
-            <Calendar className="w-5 h-5 text-primary-600" />
+            <Calendar className="w-5 h-5 text-slate-600" />
             <h2 className="text-xl font-bold text-slate-900">Weekly Schedule</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
@@ -144,7 +144,7 @@ const ScheduleManagement = () => {
         {/* Schedule List */}
         <div className="card">
           <div className="flex items-center gap-2 mb-6">
-            <Filter className="w-5 h-5 text-primary-600" />
+            <Filter className="w-5 h-5 text-slate-600" />
             <h2 className="text-xl font-bold text-slate-900">All Schedule Slots</h2>
           </div>
           {schedules.length === 0 ? (
@@ -300,7 +300,7 @@ const ScheduleManagement = () => {
             </div>
 
             <div className="flex space-x-4">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 {editingSchedule ? 'Update' : 'Add'} Schedule
               </Button>

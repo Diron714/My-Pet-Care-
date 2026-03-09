@@ -67,7 +67,7 @@ const HealthRecords = () => {
             <p className="page-subtitle">Manage and review comprehensive health records for all pets</p>
           </div>
           <Link to="/doctor/health-records/new">
-            <Button className="!bg-primary-600 hover:!bg-primary-700">
+            <Button className="!bg-slate-800 hover:!bg-slate-900">
               <Plus className="w-4 h-4 inline mr-2" />
               Create New Record
             </Button>
@@ -156,7 +156,7 @@ const HealthRecords = () => {
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
-                        <PawPrint className="w-4 h-4 text-primary-600" />
+                        <PawPrint className="w-4 h-4 text-slate-600" />
                         <span className="font-semibold text-slate-900">
                           {record.customer_pet?.name}
                         </span>

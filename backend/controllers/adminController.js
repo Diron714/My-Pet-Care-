@@ -1,4 +1,6 @@
 import pool from '../config/database.js';
+import { createUserByStaff } from '../services/authService.js';
+import { createUserByStaffSchema } from '../utils/validators.js';
 
 // =============================================
 // DASHBOARD STATISTICS
@@ -210,6 +212,42 @@ export const getUserById = async (req, res) => {
       success: false,
       message: 'Error fetching user',
       error: error.message
+    });
+  }
+};
+
+// POST /api/admin/users - Create user (staff/admin); sends credentials to email
+export const createUser = async (req, res) => {
+  try {
+    const validatedData = createUserByStaffSchema.parse(req.body);
+    const result = await createUserByStaff(validatedData);
+    res.status(201).json({
+      success: true,
+      message: 'Account created. Credentials and a verification OTP have been sent to the user\'s email. They must verify before logging in.',
+      data: result
+    });
+  } catch (error) {
+    if (error.name === 'ZodError') {
+      const errors = {};
+      error.errors.forEach((e) => {
+        const key = e.path?.[0];
+        if (key) errors[key] = e.message;
+      });
+      return res.status(400).json({
+        success: false,
+        message: 'Validation error',
+        errors
+      });
+    }
+    if (error.message === 'Email already registered') {
+      return res.status(409).json({
+        success: false,
+        message: error.message
+      });
+    }
+    res.status(500).json({
+      success: false,
+      message: error.message || 'Error creating user'
     });
   }
 };

@@ -65,7 +65,7 @@ const Dashboard = () => {
       case 'cancelled':
         return 'badge-danger';
       default:
-        return 'badge-primary';
+        return 'badge-info';
     }
   };
 
@@ -170,8 +170,8 @@ const Dashboard = () => {
                   to={action.path}
                   className="action-chip group"
                 >
-                  <Icon className="w-7 h-7 text-primary-600 mb-2 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm text-center font-medium text-slate-700 group-hover:text-primary-800">{action.label}</span>
+                  <Icon className="w-7 h-7 text-slate-600 mb-2 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm text-center font-medium text-slate-700 group-hover:text-slate-800">{action.label}</span>
                 </Link>
               );
             })}
@@ -182,7 +182,7 @@ const Dashboard = () => {
         <div className="card">
           <div className="flex justify-between items-center mb-5">
             <h2 className="text-xl font-semibold text-slate-800">Today's Appointments</h2>
-            <Link to="/doctor/appointments" className="text-primary-600 hover:text-primary-700 text-sm font-medium">
+            <Link to="/doctor/appointments" className="text-slate-600 hover:text-slate-800 text-sm font-medium">
               View All &rarr;
             </Link>
           </div>
@@ -193,7 +193,7 @@ const Dashboard = () => {
               {todayAppointments.map((appointment) => (
                 <div key={appointment.appointment_id} className="flex items-center justify-between border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
                   <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                    <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                       <Stethoscope className="w-6 h-6 text-white" />
                     </div>
                     <div>
@@ -207,7 +207,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                   <Link to={`/doctor/appointments/${appointment.appointment_id}`}>
-                    <button className="text-primary-600 hover:text-primary-700 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-primary-50 transition-colors">
+                    <button className="text-slate-600 hover:text-slate-800 text-sm font-semibold px-4 py-2 rounded-lg hover:bg-slate-50 transition-colors">
                       View Details
                     </button>
                   </Link>

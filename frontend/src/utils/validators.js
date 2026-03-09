@@ -14,7 +14,6 @@ export const registerSchema = z.object({
     .regex(/[0-9]/, 'Password must contain at least one number')
     .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
   confirmPassword: z.string(),
-  role: z.enum(['customer', 'doctor', 'staff']),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Passwords don't match",
   path: ['confirmPassword'],
@@ -79,7 +78,7 @@ export const exchangeRequestSchema = z.object({
 // Feedback schema
 export const feedbackSchema = z
   .object({
-    feedbackType: z.enum(['product', 'service', 'doctor']),
+  feedbackType: z.enum(['product', 'service', 'doctor']),
     itemId: z
       .number({
         invalid_type_error: 'Item selection is required',
@@ -87,8 +86,8 @@ export const feedbackSchema = z
       })
       .int()
       .nonnegative(),
-    rating: z.number().min(1).max(5),
-    comment: z.string().optional(),
+  rating: z.number().min(1).max(5),
+  comment: z.string().optional(),
   })
   .refine(
     (data) => data.feedbackType === 'service' || data.itemId >= 1,

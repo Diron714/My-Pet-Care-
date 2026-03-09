@@ -61,7 +61,7 @@ const Notifications = () => {
       case 'appointment': return { gradient: 'from-emerald-500 to-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200' };
       case 'offer': return { gradient: 'from-amber-500 to-amber-600', bg: 'bg-amber-50', border: 'border-amber-200' };
       case 'system': return { gradient: 'from-slate-500 to-slate-600', bg: 'bg-slate-50', border: 'border-slate-200' };
-      default: return { gradient: 'from-primary-500 to-primary-600', bg: 'bg-primary-50', border: 'border-primary-200' };
+      default: return { gradient: 'from-slate-700 to-slate-800', bg: 'bg-slate-50', border: 'border-slate-200' };
     }
   };
 
@@ -142,7 +142,7 @@ const Notifications = () => {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                    ? 'bg-primary-600 text-white shadow-lg shadow-primary-500/30'
+                    ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
                     : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >

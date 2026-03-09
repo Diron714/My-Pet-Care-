@@ -66,7 +66,7 @@ const Cart = () => {
               message="Start shopping to add items to your cart"
               action={
                 <Link to="/customer/products">
-                  <Button className="!bg-primary-600 hover:!bg-primary-700">
+                  <Button className="!bg-slate-800 hover:!bg-slate-900">
                     <Package className="w-4 h-4 inline mr-2" />
                     Browse Products
                   </Button>
@@ -79,7 +79,7 @@ const Cart = () => {
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
               {displayItems.map((item) => (
-                <div key={item.cart_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500">
+                <div key={item.cart_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600">
                   <div className="flex items-start gap-4">
                     {/* Product Image */}
                     <div className="relative w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 border-2 border-slate-200">
@@ -142,7 +142,7 @@ const Cart = () => {
                         {/* Total Price */}
                         <div className="text-right">
                           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total</p>
-                          <p className="text-xl font-black text-primary-600">
+                          <p className="text-xl font-black text-slate-600">
                             {formatCurrencyLKR((item.unitPrice || 0) * (item.quantity || 0))}
                           </p>
                         </div>
@@ -157,7 +157,7 @@ const Cart = () => {
             <div className="lg:col-span-1">
               <div className="card sticky top-4">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-slate-100">
-                  <ShoppingCart className="w-5 h-5 text-primary-600" />
+                  <ShoppingCart className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Order Summary</h2>
                 </div>
 
@@ -183,7 +183,7 @@ const Cart = () => {
                   <div className="pt-4 border-t-2 border-slate-200">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-bold text-slate-900">Total</span>
-                      <span className="text-2xl font-black text-primary-600">{formatCurrencyLKR(total)}</span>
+                      <span className="text-2xl font-black text-slate-600">{formatCurrencyLKR(total)}</span>
                     </div>
                   </div>
                 </div>
@@ -191,7 +191,7 @@ const Cart = () => {
                 <div className="space-y-3">
                   <Button
                     onClick={() => navigate('/customer/checkout')}
-                    className="w-full !bg-primary-600 hover:!bg-primary-700 !py-3.5"
+                    className="w-full !bg-slate-800 hover:!bg-slate-900 !py-3.5"
                   >
                     <ArrowRight className="w-4 h-4 inline mr-2" />
                     Proceed to Checkout

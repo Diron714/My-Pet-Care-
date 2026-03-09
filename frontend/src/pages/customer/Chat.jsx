@@ -35,7 +35,7 @@ const Chat = () => {
         navigate('/customer/chat', { replace: true });
       });
     } else {
-      loadRooms();
+    loadRooms();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
@@ -227,7 +227,7 @@ const Chat = () => {
           <div className="w-80 border-r border-slate-100 bg-slate-50/50 overflow-y-auto shrink-0">
             <div className="p-6 border-b border-slate-100 space-y-3">
               <div>
-                <h3 className="font-bold text-xl text-slate-800 mb-1">Conversations</h3>
+              <h3 className="font-bold text-xl text-slate-800 mb-1">Conversations</h3>
                 <p className="text-xs text-slate-500">Select a chat or start a new one</p>
               </div>
               <div className="space-y-2">
@@ -263,7 +263,7 @@ const Chat = () => {
                 size="sm"
                 onClick={createSupportChatRoom}
                 loading={creatingSupportRoom}
-                className="w-full !bg-primary-600 hover:!bg-primary-700"
+                className="w-full !bg-slate-800 hover:!bg-slate-900"
               >
                 <MessageCircle className="w-4 h-4 inline mr-1" />
                 Start Support Chat
@@ -278,7 +278,7 @@ const Chat = () => {
                     key={room.room_id}
                     onClick={() => setSelectedRoom(room)}
                     className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
-                        ? 'bg-primary-100 text-primary-800 font-semibold'
+                        ? 'bg-slate-100 text-slate-800 font-semibold'
                         : 'hover:bg-slate-100 text-slate-700'
                       }`}
                   >
@@ -332,28 +332,28 @@ const Chat = () => {
                     messages.map((message) => {
                       const isSentByCurrentUser = message.sender_id === user?.userId;
                       return (
-                        <div
-                          key={message.message_id}
+                      <div
+                        key={message.message_id}
                           className={`flex ${isSentByCurrentUser ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div
+                      >
+                        <div
                             className={`max-w-md p-4 rounded-2xl shadow-sm ${isSentByCurrentUser
-                                ? 'bg-primary-600 text-white rounded-br-none'
-                                : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
+                              ? 'bg-slate-800 text-white rounded-br-none'
+                              : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
+                            }`}
+                        >
+                          <p className="text-sm">{message.message_text}</p>
+                          <p
+                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
+                                ? 'text-slate-300'
+                                : 'text-slate-500'
                               }`}
                           >
-                            <p className="text-sm">{message.message_text}</p>
-                            <p
-                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
-                                  ? 'text-primary-200'
-                                  : 'text-slate-500'
-                                }`}
-                            >
-                              <Clock className="w-3 h-3" />
-                              {formatDateTime(message.created_at)}
-                            </p>
-                          </div>
+                            <Clock className="w-3 h-3" />
+                            {formatDateTime(message.created_at)}
+                          </p>
                         </div>
+                      </div>
                       );
                     })
                   )}

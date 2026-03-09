@@ -124,7 +124,7 @@ const PetListing = () => {
                 <Button
                   variant="outline"
                   onClick={() => setFilters({ species: '', breed: '', minPrice: '', maxPrice: '', available: true })}
-                  className="w-full !rounded-xl !py-3 text-primary-600 hover:text-primary-700"
+                  className="w-full !rounded-xl !py-3 text-slate-600 hover:text-slate-800"
                 >
                   <RefreshCw className="w-4 h-4 inline mr-1" />
                   Reset Filters
@@ -192,17 +192,17 @@ const PetListing = () => {
                       </div>
                       <div className="p-5">
                         <Link to={`/customer/pets/${pet.pet_id}`}>
-                          <h3 className="font-bold text-xl text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">{pet.name}</h3>
+                          <h3 className="font-bold text-xl text-slate-900 mb-1 group-hover:text-slate-800 transition-colors">{pet.name}</h3>
                         </Link>
                         <p className="text-slate-500 text-sm mb-3">{pet.species} - <span className="font-semibold">{pet.breed}</span></p>
                         <div className="flex items-center justify-between mb-4">
-                          <p className="text-2xl font-black text-primary-700">{formatCurrencyLKR(pet.price)}</p>
+                          <p className="text-2xl font-black text-slate-700">{formatCurrencyLKR(pet.price)}</p>
                           <span className="text-xs font-semibold text-slate-400">{pet.age} months old</span>
                         </div>
                         {pet.is_available && (
                           <Button
                             onClick={() => handleAddToCart(pet.pet_id)}
-                            className="w-full !bg-primary-600 hover:!bg-primary-700"
+                            className="w-full !bg-slate-800 hover:!bg-slate-900"
                             size="sm"
                           >
                             <ShoppingCart className="w-4 h-4 inline mr-2" />

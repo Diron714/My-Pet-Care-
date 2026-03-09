@@ -148,7 +148,7 @@ const PetProfileForm = () => {
           {/* Basic Information */}
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
-              <PawPrint className="w-5 h-5 text-primary-600" />
+              <PawPrint className="w-5 h-5 text-slate-600" />
               <h2 className="text-xl font-bold text-slate-900">Basic Information</h2>
             </div>
             <div className="space-y-4">
@@ -252,14 +252,14 @@ const PetProfileForm = () => {
             <div className="card">
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                  <Syringe className="w-5 h-5 text-primary-600" />
+                  <Syringe className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Vaccination Details</h2>
                 </div>
                 <Button
                   type="button"
                   size="sm"
                   onClick={() => setShowVaccinationForm(true)}
-                  className="!bg-primary-600 hover:!bg-primary-700"
+                  className="!bg-slate-800 hover:!bg-slate-900"
                 >
                   <Plus className="w-4 h-4 inline mr-2" />
                   Add Vaccination
@@ -302,14 +302,14 @@ const PetProfileForm = () => {
             <div className="card">
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2">
-                  <Utensils className="w-5 h-5 text-primary-600" />
+                  <Utensils className="w-5 h-5 text-slate-600" />
                   <h2 className="text-xl font-bold text-slate-900">Feeding Schedules</h2>
                 </div>
                 <Button
                   type="button"
                   size="sm"
                   onClick={() => setShowFeedingForm(true)}
-                  className="!bg-primary-600 hover:!bg-primary-700"
+                  className="!bg-slate-800 hover:!bg-slate-900"
                 >
                   <Plus className="w-4 h-4 inline mr-2" />
                   Add Schedule
@@ -347,7 +347,7 @@ const PetProfileForm = () => {
           )}
 
           <div className="flex space-x-4">
-            <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700" loading={loading}>
+            <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900" loading={loading}>
               <CheckCircle className="w-4 h-4 inline mr-2" />
               {isEdit ? 'Update' : 'Create'} Pet Profile
             </Button>

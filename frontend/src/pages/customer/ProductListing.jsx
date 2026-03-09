@@ -90,7 +90,7 @@ const ProductListing = () => {
                 <Button
                   variant="outline"
                   onClick={() => setFilters({ category: '' })}
-                  className="w-full !rounded-xl !py-3 text-primary-600 hover:text-primary-700"
+                  className="w-full !rounded-xl !py-3 text-slate-600 hover:text-slate-800"
                 >
                   <RefreshCw className="w-4 h-4 inline mr-1" />
                   Reset Filters
@@ -159,20 +159,20 @@ const ProductListing = () => {
                       <div className="p-5">
                         <Link to={`/customer/products/${product.product_id}`}>
                           <div className="mb-2">
-                            <span className="px-2 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider bg-primary-100 text-primary-700">
+                            <span className="px-2 py-1 rounded-lg text-xs font-semibold uppercase tracking-wider bg-slate-100 text-slate-700">
                               {product.category}
                             </span>
                           </div>
-                          <h3 className="font-bold text-xl text-slate-900 mb-1 group-hover:text-primary-600 transition-colors">{product.name}</h3>
+                          <h3 className="font-bold text-xl text-slate-900 mb-1 group-hover:text-slate-800 transition-colors">{product.name}</h3>
                         </Link>
                         <div className="flex items-center justify-between mb-4">
-                          <p className="text-2xl font-black text-primary-700">{formatCurrencyLKR(product.price)}</p>
+                          <p className="text-2xl font-black text-slate-700">{formatCurrencyLKR(product.price)}</p>
                           <span className="text-xs font-semibold text-slate-400">Stock: {product.stock_quantity}</span>
                         </div>
                         {product.stock_quantity > 0 && (
                           <Button
                             onClick={() => handleAddToCart(product.product_id)}
-                            className="w-full !bg-primary-600 hover:!bg-primary-700"
+                            className="w-full !bg-slate-800 hover:!bg-slate-900"
                             size="sm"
                           >
                             <ShoppingCart className="w-4 h-4 inline mr-2" />

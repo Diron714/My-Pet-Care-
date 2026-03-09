@@ -12,9 +12,7 @@ import {
   UserPlus, 
   ArrowRight, 
   Globe, 
-  CheckCircle2, 
-  Lock,
-  Smartphone
+  CheckCircle2
 } from 'lucide-react';
 
 const Register = () => {
@@ -55,7 +53,7 @@ const Register = () => {
         email: data.email,
         phone: data.phone,
         password: data.password,
-        role: data.role,
+        role: 'customer',
       });
 
       if (result.success) {
@@ -75,8 +73,8 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex bg-white font-sans antialiased">
-      {/* Left Side: Cinematic Branding Section */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-slate-900 flex-col items-center justify-center p-16 overflow-hidden">
+      {/* Left Side: Cinematic Branding Section - sticky so it doesn't move when scrolling */}
+      <div className="hidden lg:flex lg:w-1/2 lg:sticky lg:top-0 lg:h-screen relative bg-slate-900 flex-col items-center justify-center p-16 overflow-hidden shrink-0">
         {/* Master Theme Gradients */}
         <div className="absolute inset-0 z-0">
           <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
@@ -132,6 +130,7 @@ const Register = () => {
                 {...register('firstName')}
                 error={errors.firstName?.message}
                 className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+                required
               />
               <Input
                 label="Last Name"
@@ -139,6 +138,7 @@ const Register = () => {
                 {...register('lastName')}
                 error={errors.lastName?.message}
                 className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+                required
               />
             </div>
 
@@ -149,6 +149,7 @@ const Register = () => {
               {...register('email')}
               error={errors.email?.message}
               className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+              required
             />
 
             <Input
@@ -158,6 +159,7 @@ const Register = () => {
               {...register('phone')}
               error={errors.phone?.message}
               className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+              required
             />
 
             <div className="space-y-2">
@@ -168,6 +170,7 @@ const Register = () => {
                 {...register('password')}
                 error={errors.password?.message}
                 className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+                required
               />
               {password && (
                 <div className="px-1 pt-1">
@@ -195,20 +198,8 @@ const Register = () => {
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
               className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+              required
             />
-
-            <div className="space-y-2">
-               <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest ml-1">Account Permission</label>
-               <select
-                {...register('role')}
-                className="w-full !rounded-2xl border-2 border-slate-200 bg-white focus:!border-blue-500 !p-4 transition-all font-semibold text-slate-900 outline-none appearance-none cursor-pointer shadow-sm"
-              >
-                <option value="customer">Customer</option>
-                <option value="doctor">Doctor</option>
-                <option value="staff">Staff</option>
-              </select>
-              {errors.role && <p className="mt-1 text-xs text-rose-600 font-bold uppercase">{errors.role.message}</p>}
-            </div>
 
             <Button 
               type="submit" 

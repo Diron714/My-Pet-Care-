@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -79,11 +78,10 @@ const ExchangeManagement = () => {
     { value: 'completed', label: 'Completed', icon: RefreshCw, color: 'blue' },
   ];
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Exchange Management</h1>
@@ -123,11 +121,11 @@ const ExchangeManagement = () => {
         ) : (
           <div className="grid grid-cols-1 gap-4">
             {exchanges.map((exchange) => (
-              <div key={exchange.exchange_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-primary-500">
+              <div key={exchange.exchange_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600">
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                      <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                         <Package className="w-6 h-6 text-white" />
                       </div>
                       <div>
@@ -219,7 +217,6 @@ const ExchangeManagement = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 

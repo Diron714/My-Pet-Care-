@@ -165,7 +165,7 @@ const BookAppointment = () => {
           {/* Doctor Selection */}
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
-              <Stethoscope className="w-5 h-5 text-primary-600" />
+              <Stethoscope className="w-5 h-5 text-slate-600" />
               <h2 className="text-xl font-bold text-slate-900">Select Doctor</h2>
             </div>
             <div>
@@ -234,7 +234,7 @@ const BookAppointment = () => {
           {/* Pet Selection */}
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
-              <PawPrint className="w-5 h-5 text-primary-600" />
+              <PawPrint className="w-5 h-5 text-slate-600" />
               <h2 className="text-xl font-bold text-slate-900">Select Pet</h2>
             </div>
             {pets.length === 0 ? (
@@ -294,7 +294,7 @@ const BookAppointment = () => {
           {/* Date & Time Selection */}
           <div className="card">
             <div className="flex items-center gap-2 mb-6">
-              <Calendar className="w-5 h-5 text-primary-600" />
+              <Calendar className="w-5 h-5 text-slate-600" />
               <h2 className="text-xl font-bold text-slate-900">Select Date & Time</h2>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -352,31 +352,31 @@ const BookAppointment = () => {
 
           {/* Appointment Summary */}
           {selectedDoctor && selectedPet && selectedDate && (
-            <div className="card bg-gradient-to-br from-primary-50 to-primary-100 border-2 border-primary-200">
+            <div className="card bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
               <div className="flex items-center gap-2 mb-4">
-                <CheckCircle className="w-5 h-5 text-primary-600" />
-                <h2 className="text-xl font-bold text-primary-900">Appointment Summary</h2>
+                <CheckCircle className="w-5 h-5 text-slate-600" />
+                <h2 className="text-xl font-bold text-slate-800">Appointment Summary</h2>
               </div>
               <div className="space-y-4">
-                <div className="p-4 bg-white/80 rounded-xl border border-primary-200">
+                <div className="p-4 bg-white/80 rounded-xl border border-slate-200">
                   <div className="flex items-center gap-3 mb-2">
-                    <Stethoscope className="w-5 h-5 text-primary-600" />
+                    <Stethoscope className="w-5 h-5 text-slate-600" />
                     <div>
-                      <p className="text-xs font-semibold text-primary-700 uppercase tracking-wider mb-1">Doctor</p>
-                      <p className="font-bold text-primary-900">
+                      <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Doctor</p>
+                      <p className="font-bold text-slate-800">
                         Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
                       </p>
-                      <p className="text-sm text-primary-700">{selectedDoctor.specialization}</p>
+                      <p className="text-sm text-slate-700">{selectedDoctor.specialization}</p>
                     </div>
                   </div>
                 </div>
-                <div className="p-4 bg-white/80 rounded-xl border border-primary-200">
+                <div className="p-4 bg-white/80 rounded-xl border border-slate-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <DollarSign className="w-5 h-5 text-primary-600" />
-                      <p className="text-sm font-semibold text-primary-700 uppercase tracking-wider">Consultation Fee</p>
+                      <DollarSign className="w-5 h-5 text-slate-600" />
+                      <p className="text-sm font-semibold text-slate-700 uppercase tracking-wider">Consultation Fee</p>
                     </div>
-                    <p className="text-2xl font-black text-primary-900">{formatCurrencyLKR(selectedDoctor.consultation_fee)}</p>
+                    <p className="text-2xl font-black text-slate-800">{formatCurrencyLKR(selectedDoctor.consultation_fee)}</p>
                   </div>
                 </div>
               </div>
@@ -386,7 +386,7 @@ const BookAppointment = () => {
           <div className="flex space-x-4">
             <Button
               type="submit"
-              className="flex-1 !bg-primary-600 hover:!bg-primary-700"
+              className="flex-1 !bg-slate-800 hover:!bg-slate-900"
               loading={loading}
               disabled={pets.length === 0}
             >

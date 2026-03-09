@@ -1,17 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
+import Input from '../../components/common/Input';
+import Modal from '../../components/common/Modal';
 import api from '../../services/api';
 import { formatDate, formatDateTime } from '../../utils/formatters';
-import { ToggleLeft, ToggleRight, Edit, Users, User, Stethoscope, Shield, Search, Filter, RefreshCw, CheckCircle, XCircle, Mail, Calendar, ShieldCheck, UserCheck, UserX, Crown } from 'lucide-react';
+import { ToggleLeft, ToggleRight, Edit, Users, User, Stethoscope, Shield, Search, Filter, RefreshCw, CheckCircle, XCircle, Mail, Calendar, ShieldCheck, UserCheck, UserX, Crown, UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
+
+const defaultCreateForm = {
+  email: '',
+  firstName: '',
+  lastName: '',
+  phone: '',
+  role: 'customer',
+};
 
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [createModalOpen, setCreateModalOpen] = useState(false);
+  const [createForm, setCreateForm] = useState(defaultCreateForm);
+  const [createLoading, setCreateLoading] = useState(false);
+  const [createErrors, setCreateErrors] = useState({});
   const [filters, setFilters] = useState({
     role: '',
     status: '',
@@ -53,6 +66,42 @@ const UserManagement = () => {
       loadUsers();
     } catch (error) {
       toast.error('Failed to update user status');
+    }
+  };
+
+  const handleCreateAccount = async (e) => {
+    e.preventDefault();
+    const err = {};
+    if (!createForm.email?.trim()) err.email = 'Email is required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(createForm.email)) err.email = 'Invalid email';
+    if (!createForm.firstName?.trim()) err.firstName = 'First name is required';
+    if (!createForm.lastName?.trim()) err.lastName = 'Last name is required';
+    if (!createForm.phone?.trim()) err.phone = 'Mobile number is required';
+    else if (createForm.phone.replace(/\D/g, '').length < 10) err.phone = 'Enter at least 10 digits';
+    if (!createForm.role) err.role = 'Role is required';
+    setCreateErrors(err);
+    if (Object.keys(err).length > 0) return;
+
+    setCreateLoading(true);
+    try {
+      await api.post('/admin/users', {
+        email: createForm.email.trim(),
+        firstName: createForm.firstName.trim(),
+        lastName: createForm.lastName.trim(),
+        phone: createForm.phone.trim(),
+        role: createForm.role,
+      });
+      toast.success('Account created. Credentials and verification OTP sent. User must verify their email before logging in.');
+      setCreateModalOpen(false);
+      setCreateForm(defaultCreateForm);
+      setCreateErrors({});
+      loadUsers();
+    } catch (error) {
+      const msg = error.response?.data?.message || 'Failed to create account';
+      toast.error(msg);
+      if (error.response?.data?.errors) setCreateErrors(error.response.data.errors);
+    } finally {
+      setCreateLoading(false);
     }
   };
 
@@ -133,7 +182,7 @@ const UserManagement = () => {
     return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.is_active).length;
@@ -142,14 +191,89 @@ const UserManagement = () => {
   const doctors = users.filter(u => u.role === 'doctor').length;
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">User Management</h1>
             <p className="page-subtitle">Manage user accounts, roles, and permissions</p>
           </div>
+          <Button onClick={() => setCreateModalOpen(true)} className="flex items-center gap-2">
+            <UserPlus className="w-5 h-5" />
+            Create account
+          </Button>
         </div>
+
+        {/* Create account modal */}
+        <Modal
+          isOpen={createModalOpen}
+          onClose={() => { setCreateModalOpen(false); setCreateForm(defaultCreateForm); setCreateErrors({}); }}
+          title="Create account"
+          size="lg"
+        >
+          <form onSubmit={handleCreateAccount} className="space-y-4">
+            <Input
+              label="Email"
+              type="email"
+              placeholder="user@example.com"
+              value={createForm.email}
+              onChange={(e) => setCreateForm({ ...createForm, email: e.target.value })}
+              error={createErrors.email}
+              required
+            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Input
+                label="First name"
+                placeholder="John"
+                value={createForm.firstName}
+                onChange={(e) => setCreateForm({ ...createForm, firstName: e.target.value })}
+                error={createErrors.firstName}
+                required
+              />
+              <Input
+                label="Last name"
+                placeholder="Doe"
+                value={createForm.lastName}
+                onChange={(e) => setCreateForm({ ...createForm, lastName: e.target.value })}
+                error={createErrors.lastName}
+                required
+              />
+            </div>
+            <Input
+              label="Mobile number"
+              type="tel"
+              placeholder="e.g. 0771234567"
+              value={createForm.phone}
+              onChange={(e) => setCreateForm({ ...createForm, phone: e.target.value })}
+              error={createErrors.phone}
+              required
+            />
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Role <span className="text-red-500">*</span></label>
+              <select
+                value={createForm.role}
+                onChange={(e) => setCreateForm({ ...createForm, role: e.target.value })}
+                className="input-field w-full"
+              >
+                <option value="customer">Customer</option>
+                <option value="doctor">Doctor</option>
+                <option value="staff">Staff</option>
+                <option value="admin">Admin</option>
+              </select>
+              {createErrors.role && <p className="mt-1 text-sm text-red-600">{createErrors.role}</p>}
+            </div>
+            <p className="text-sm text-slate-500">
+              A temporary password and a verification OTP will be sent to the user&apos;s email. They must verify their email before they can log in.
+            </p>
+            <div className="flex gap-2 pt-2">
+              <Button type="button" variant="outline" onClick={() => setCreateModalOpen(false)} className="flex-1">
+                Cancel
+              </Button>
+              <Button type="submit" loading={createLoading} className="flex-1">
+                Create account
+              </Button>
+            </div>
+          </form>
+        </Modal>
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
@@ -159,7 +283,7 @@ const UserManagement = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Users</p>
                 <p className="text-2xl font-black text-slate-900">{totalUsers}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <Users className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -392,7 +516,6 @@ const UserManagement = () => {
           </div>
         )}
       </div>
-    </Layout>
   );
 };
 

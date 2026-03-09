@@ -15,8 +15,10 @@ const RequireAuth = ({ children, roles = [] }) => {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Check role if specified
-  if (roles.length > 0 && !roles.includes(user?.role)) {
+  // Check role if specified (case-insensitive: backend may return 'Doctor' or 'doctor')
+  const userRole = user?.role?.toLowerCase?.();
+  const allowedRoles = roles.map((r) => r?.toLowerCase?.());
+  if (roles.length > 0 && (!userRole || !allowedRoles.includes(userRole))) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">

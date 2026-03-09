@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -161,14 +160,13 @@ const PetManagement = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading) return <Loading />;
 
   const availablePets = pets.filter(p => p.is_available).length;
   const totalStock = pets.reduce((sum, p) => sum + (p.stock_quantity || 0), 0);
 
   return (
-    <Layout>
-      <div className="page-shell">
+    <div className="page-shell">
         <div className="page-header">
           <div className="flex-1">
             <h1 className="page-title">Pet Management</h1>
@@ -177,7 +175,7 @@ const PetManagement = () => {
           <Button onClick={() => {
             setEditingPet(null);
             setShowForm(true);
-          }} className="!bg-primary-600 hover:!bg-primary-700">
+          }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
             Add New Pet
           </Button>
@@ -191,7 +189,7 @@ const PetManagement = () => {
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">Total Pets</p>
                 <p className="text-2xl font-black text-slate-900">{pets.length}</p>
               </div>
-              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+              <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-lg">
                 <PawPrint className="w-6 h-6 text-white" />
               </div>
             </div>
@@ -430,14 +428,14 @@ const PetManagement = () => {
           size="lg"
         >
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="p-4 bg-primary-50 rounded-xl border border-primary-100">
+            <div className="p-4 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center gap-2 mb-2">
-                <PawPrint className="w-5 h-5 text-primary-600" />
-                <p className="text-sm font-semibold text-primary-700">
+                <PawPrint className="w-5 h-5 text-slate-600" />
+                <p className="text-sm font-semibold text-slate-700">
                   {editingPet ? 'Update pet information' : 'Add a new pet to the inventory'}
                 </p>
               </div>
-              <p className="text-xs text-primary-600">Fill in all the details below to {editingPet ? 'update' : 'add'} the pet</p>
+              <p className="text-xs text-slate-600">Fill in all the details below to {editingPet ? 'update' : 'add'} the pet</p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -543,7 +541,7 @@ const PetManagement = () => {
             </div>
 
             <div className="flex space-x-4 pt-2">
-              <Button type="submit" className="flex-1 !bg-primary-600 hover:!bg-primary-700">
+              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
                 <PawPrint className="w-4 h-4 inline mr-2" />
                 {editingPet ? 'Update' : 'Add'} Pet
               </Button>
@@ -561,7 +559,6 @@ const PetManagement = () => {
           </form>
         </Modal>
       </div>
-    </Layout>
   );
 };
 

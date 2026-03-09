@@ -10,25 +10,25 @@
 
 @layer components {
   .btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-full bg-primary-600 text-white font-semibold shadow-sm hover:bg-primary-700 hover:shadow-md active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-2xl bg-slate-800 text-white font-semibold shadow-sm hover:bg-slate-900 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
   }
   
   .btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-full bg-white text-slate-700 border border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 hover:shadow-md active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-2xl bg-white text-slate-700 border-2 border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
   }
   
   .input-field {
-    @apply w-full px-4 py-2 rounded-xl border border-slate-200 bg-white shadow-sm text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
+    @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
   }
   
   .card {
-    @apply bg-white/90 backdrop-blur-sm rounded-2xl shadow-md hover:shadow-lg border border-slate-100 p-6 transition-shadow duration-150;
+    @apply bg-white rounded-2xl border border-slate-100 shadow-sm p-6 transition-shadow duration-150;
   }
 }
 
 @layer base {
   body {
-    @apply selection:bg-primary-100 selection:text-primary-900;
+    @apply selection:bg-slate-200 selection:text-slate-900;
   }
 }
 
@@ -43,25 +43,16 @@
   }
 
   .page-title {
-    @apply text-3xl font-bold tracking-tight text-slate-900;
+    @apply text-3xl font-bold tracking-tight text-slate-800;
   }
 
   .page-subtitle {
     @apply text-sm text-slate-500;
   }
 
-  /* Premium card overrides */
+  /* Dashboard-theme cards */
   .card {
-    @apply relative bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-200 overflow-hidden;
-  }
-
-  .card::before {
-    content: "";
-    @apply pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-primary-300/60 via-primary-500/40 to-primary-300/60 opacity-0 transition-opacity duration-200;
-  }
-
-  .card:hover::before {
-    @apply opacity-100;
+    @apply bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden p-6;
   }
 
   .card-body {
@@ -72,9 +63,8 @@
     @apply bg-slate-50/80;
   }
 
-  /* Input enhancement */
   .input-field {
-    @apply w-full px-4 py-2 rounded-xl border border-slate-200 bg-white/90 backdrop-blur text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
+    @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
   }
 
   /* Tables */
@@ -99,7 +89,7 @@
   }
 
   .table tbody tr {
-    @apply odd:bg-white even:bg-slate-50/40 hover:bg-primary-50/40 transition-colors;
+    @apply odd:bg-white even:bg-slate-50/40 hover:bg-slate-50 transition-colors;
   }
 
   /* Badges / status pills */
@@ -125,7 +115,31 @@
 
   /* Chips for quick actions */
   .action-chip {
-    @apply flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white/80 px-4 py-4 text-center text-sm text-slate-700 hover:border-primary-400 hover:bg-primary-50/70 hover:text-primary-800 transition-all duration-150;
+    @apply flex flex-col items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-4 text-center text-sm text-slate-700 hover:border-slate-300 hover:bg-slate-50 transition-all duration-150;
+  }
+
+  /* Dashboard-theme section heading */
+  .section-title {
+    @apply text-lg font-semibold text-slate-800 mb-4;
+  }
+
+  /* Link style matching dashboard */
+  .link-primary {
+    @apply text-slate-600 hover:text-slate-800 font-medium transition-colors;
+  }
+
+  /* Smooth transition when only content area changes (tab / in-content navigation) */
+  .content-area {
+    animation: contentFadeIn 0.2s ease-out;
+  }
+}
+
+@keyframes contentFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
