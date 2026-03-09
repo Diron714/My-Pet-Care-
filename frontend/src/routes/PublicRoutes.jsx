@@ -39,7 +39,7 @@ const PublicRoutes = () => {
       />
       <Route
         path="/otp-verification"
-        element={isAuthenticated ? <Navigate to={dashboardPath} /> : <OTPVerification />}
+        element={<OTPVerification />}
       />
       <Route
         path="/login"
