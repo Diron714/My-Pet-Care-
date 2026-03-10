@@ -124,8 +124,8 @@ export const createPet = async (req, res) => {
     const { name, species, breed, age, gender, description, price, stock_quantity, is_available, image_url } = req.body;
     const created_by = req.user.userId;
 
-    // Validate required fields
-    if (!name || !species || !breed || !age || !gender || !price) {
+    // Validate required fields (pet name is optional now)
+    if (!species || !breed || !age || !gender || !price) {
       return res.status(400).json({
         success: false,
         message: 'Missing required fields'

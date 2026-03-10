@@ -70,9 +70,18 @@ const PetManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const rawSpecies = formData.get('species');
+    const customSpecies = formData.get('custom_species')?.toString().trim();
+    const species = rawSpecies === '__custom__' ? customSpecies : rawSpecies;
+
+    if (!species) {
+      toast.error('Species is required');
+      return;
+    }
+
     const data = {
       name: formData.get('name'),
-      species: formData.get('species'),
+      species,
       breed: formData.get('breed'),
       age: parseInt(formData.get('age')),
       gender: formData.get('gender'),
@@ -461,23 +470,42 @@ const PetManagement = () => {
 
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="Pet Name"
+                label="Pet Name (optional)"
                 name="name"
                 defaultValue={editingPet?.name || ''}
-                required
                 placeholder="e.g., Max, Luna"
               />
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
                   Species <span className="text-red-500">*</span>
                 </label>
-                <select name="species" className="input-field" required defaultValue={editingPet?.species || ''}>
+                <select
+                  name="species"
+                  className="input-field mb-2"
+                  required
+                  defaultValue={
+                    editingPet && !['Dog', 'Cat', 'Bird', 'Rabbit'].includes(editingPet.species)
+                      ? '__custom__'
+                      : editingPet?.species || ''
+                  }
+                >
                   <option value="">Select species</option>
                   <option value="Dog">Dog</option>
                   <option value="Cat">Cat</option>
                   <option value="Bird">Bird</option>
                   <option value="Rabbit">Rabbit</option>
+                  <option value="__custom__">Other (type below)</option>
                 </select>
+                <Input
+                  label="Custom species (if Other)"
+                  name="custom_species"
+                  defaultValue={
+                    editingPet && !['Dog', 'Cat', 'Bird', 'Rabbit'].includes(editingPet.species)
+                      ? editingPet.species
+                      : ''
+                  }
+                  placeholder="e.g., Hamster, Turtle"
+                />
               </div>
             </div>
 
@@ -506,7 +534,6 @@ const PetManagement = () => {
                   <option value="">Select gender</option>
                   <option value="male">Male</option>
                   <option value="female">Female</option>
-                  <option value="other">Other</option>
                 </select>
               </div>
             </div>
