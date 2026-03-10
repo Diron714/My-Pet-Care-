@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -10,8 +10,6 @@ const Navbar = () => {
   const { cartItemCount = 0 } = useCart();
   const { unreadCount = 0 } = useNotifications();
   const navigate = useNavigate();
-
-  const [profileOpen, setProfileOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -102,11 +100,8 @@ const Navbar = () => {
                     </span>
                   )}
                 </Link>
-                <div className="relative">
-                  <button
-                    onClick={() => setProfileOpen((prev) => !prev)}
-                    className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-50 hover:to-slate-100 border border-slate-200 hover:border-slate-300 transition-all duration-200 group"
-                  >
+                <div className="relative group">
+                  <button className="flex items-center space-x-2 px-3 py-2 rounded-xl bg-gradient-to-br from-slate-50 to-slate-100 hover:from-slate-50 hover:to-slate-100 border border-slate-200 hover:border-slate-300 transition-all duration-200 group">
                     <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-md">
                       <User className="w-4 h-4 text-white" />
                     </div>
@@ -114,11 +109,7 @@ const Navbar = () => {
                       {user?.firstName || user?.first_name || 'User'}
                     </span>
                   </button>
-                  <div
-                    className={`absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl py-2 border border-slate-100 z-50 ${
-                      profileOpen ? '' : 'hidden'
-                    }`}
-                  >
+                  <div className="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl py-2 border border-slate-100 hidden group-hover:block z-50">
                     <Link 
                       to={getDashboardPath()} 
                       className="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-slate-800 transition-colors group"
@@ -130,10 +121,7 @@ const Navbar = () => {
                     </Link>
                     <div className="h-px bg-slate-100 my-1"></div>
                     <button
-                      onClick={() => {
-                        setProfileOpen(false);
-                        handleLogout();
-                      }}
+                      onClick={handleLogout}
                       className="flex items-center gap-3 w-full text-left px-4 py-3 text-slate-700 hover:bg-rose-50 hover:text-rose-700 transition-colors group"
                     >
                       <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-rose-500 to-rose-600 flex items-center justify-center">

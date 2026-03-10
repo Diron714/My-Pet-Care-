@@ -5,7 +5,6 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { exchangeRequestSchema } from '../../utils/validators';
@@ -21,8 +20,6 @@ const ExchangeRequests = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [cancelTarget, setCancelTarget] = useState(null);
-  const [cancelLoading, setCancelLoading] = useState(false);
 
   const {
     register,
@@ -85,16 +82,14 @@ const ExchangeRequests = () => {
   };
 
   const handleCancel = async (exchangeId) => {
+    if (!window.confirm('Are you sure you want to cancel this exchange request?')) return;
+
     try {
-      setCancelLoading(true);
       await api.delete(`/exchanges/${exchangeId}`);
       toast.success('Exchange request cancelled');
       loadRequests();
     } catch (error) {
       toast.error('Failed to cancel request');
-    } finally {
-      setCancelLoading(false);
-      setCancelTarget(null);
     }
   };
 
@@ -188,7 +183,7 @@ const ExchangeRequests = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => setCancelTarget(request)}
+                        onClick={() => handleCancel(request.exchange_id)}
                         className="w-full"
                       >
                         <X className="w-4 h-4 inline mr-1" />
@@ -294,25 +289,6 @@ const ExchangeRequests = () => {
             </div>
           </form>
         </Modal>
-
-        {/* Cancel confirmation dialog */}
-        <ConfirmDialog
-          isOpen={!!cancelTarget}
-          title="Cancel exchange request"
-          message={
-            cancelTarget
-              ? `Are you sure you want to cancel exchange request #${cancelTarget.exchange_id}?`
-              : ''
-          }
-          confirmLabel="Yes, cancel"
-          confirmVariant="danger"
-          loading={cancelLoading}
-          onCancel={() => {
-            if (cancelLoading) return;
-            setCancelTarget(null);
-          }}
-          onConfirm={() => cancelTarget && handleCancel(cancelTarget.exchange_id)}
-        />
       </div>
     </Layout>
   );

@@ -5,7 +5,6 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Star, Calendar, MessageSquare, Stethoscope, Award, Clock, User, ArrowLeft, CheckCircle, GraduationCap, Heart } from 'lucide-react';
 
 // Format currency as LKR
@@ -65,11 +64,11 @@ const DoctorDetails = () => {
             <div className="relative w-40 h-40 rounded-2xl overflow-hidden flex-shrink-0 border-4 border-emerald-200 shadow-xl">
               {doctor.image_url ? (
                 <img
-                  src={getImageSrc(doctor.image_url)}
-                  alt={`Dr. ${doctor.first_name}`}
+                  src={doctor.image_url}
+                  alt={`Dr. ${doctor.user?.first_name}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    e.target.src = PLACEHOLDER_IMAGE;
+                    e.target.src = 'https://via.placeholder.com/400?text=Doctor';
                   }}
                 />
               ) : (
@@ -83,7 +82,7 @@ const DoctorDetails = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h1 className="text-3xl font-black text-slate-900 mb-2">
-                    Dr. {doctor.first_name} {doctor.last_name}
+                    Dr. {doctor.user?.first_name} {doctor.user?.last_name}
                   </h1>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-200">

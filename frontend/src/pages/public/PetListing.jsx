@@ -5,7 +5,6 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
-import { getImageSrc } from '../../utils/helpers';
 
 const PetListing = () => {
   const [pets, setPets] = useState([]);
@@ -105,24 +104,14 @@ const PetListing = () => {
 
           {/* Main Content */}
           <div className="flex-1">
-            <div className="mb-4 relative">
+            <div className="mb-4">
               <input
                 type="text"
                 placeholder="Search pets..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="input-field pr-8"
+                className="input-field"
               />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear search"
-                >
-                  ×
-                </button>
-              )}
             </div>
 
             {pets.length === 0 ? (
@@ -135,7 +124,7 @@ const PetListing = () => {
                       <div className="relative h-48 rounded-2xl mb-4 overflow-hidden bg-gradient-to-br from-primary-100/60 via-emerald-50 to-slate-50 flex items-center justify-center">
                         {pet.image_url ? (
                           <img
-                            src={getImageSrc(pet.image_url)}
+                            src={pet.image_url}
                             alt={pet.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                           />

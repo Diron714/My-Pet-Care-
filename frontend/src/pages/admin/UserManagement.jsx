@@ -350,18 +350,8 @@ const UserManagement = () => {
                   placeholder="Search users..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="input-field pl-10 pr-8"
+                  className="input-field pl-10"
                 />
-                {filters.search && (
-                  <button
-                    type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    aria-label="Clear search"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                )}
               </div>
             </div>
             <div>

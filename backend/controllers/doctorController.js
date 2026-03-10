@@ -173,18 +173,7 @@ export const getDoctorProfile = async (req, res) => {
 export const updateDoctorProfile = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const { specialization, qualifications, experience_years, consultation_fee, is_available, image_url } = req.body;
-
-        let dbImageUrl = image_url;
-        if (image_url && typeof image_url === 'string' && image_url.startsWith('data:image')) {
-            try {
-                const { saveBase64Image } = await import('../utils/imageUpload.js');
-                const savedPath = await saveBase64Image(image_url, 'doctors');
-                if (savedPath) dbImageUrl = savedPath;
-            } catch (err) {
-                console.error('Error saving doctor profile image:', err);
-            }
-        }
+        const { specialization, qualifications, experience_years, consultation_fee, is_available } = req.body;
 
         const [result] = await pool.query(
             `UPDATE doctors SET 
@@ -193,10 +182,9 @@ export const updateDoctorProfile = async (req, res) => {
         experience_years = COALESCE(?, experience_years),
         consultation_fee = COALESCE(?, consultation_fee),
         is_available = COALESCE(?, is_available),
-        image_url = COALESCE(?, image_url),
         updated_at = NOW()
        WHERE user_id = ?`,
-            [specialization, qualifications, experience_years, consultation_fee, is_available, dbImageUrl, userId]
+            [specialization, qualifications, experience_years, consultation_fee, is_available, userId]
         );
 
         if (result.affectedRows === 0) {

@@ -4,7 +4,6 @@ import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate, formatTime, formatCurrency } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
@@ -23,8 +22,6 @@ const Appointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [rejectTarget, setRejectTarget] = useState(null);
-  const [rejectLoading, setRejectLoading] = useState(false);
 
   useEffect(() => {
     loadAppointments();
@@ -57,8 +54,9 @@ const Appointments = () => {
   };
 
   const handleReject = async (appointmentId) => {
+    if (!window.confirm('Are you sure you want to reject this appointment?')) return;
+
     try {
-      setRejectLoading(true);
       await api.put(`/appointments/${appointmentId}/status`, {
         status: 'rejected',
       });
@@ -66,9 +64,6 @@ const Appointments = () => {
       loadAppointments();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to reject appointment');
-    } finally {
-      setRejectLoading(false);
-      setRejectTarget(null);
     }
   };
 
@@ -267,7 +262,7 @@ const Appointments = () => {
                         <Button
                           variant="danger"
                           size="sm"
-                          onClick={() => setRejectTarget(appointment)}
+                          onClick={() => handleReject(appointment.appointment_id)}
                         >
                           <XCircle className="w-4 h-4 inline mr-1" />
                           Reject
@@ -290,24 +285,6 @@ const Appointments = () => {
             })}
           </div>
         )}
-        {/* Reject confirmation dialog */}
-        <ConfirmDialog
-          isOpen={!!rejectTarget}
-          title="Reject appointment"
-          message={
-            rejectTarget
-              ? `Are you sure you want to reject appointment ${rejectTarget.appointment_number}?`
-              : ''
-          }
-          confirmLabel="Yes, reject"
-          confirmVariant="danger"
-          loading={rejectLoading}
-          onCancel={() => {
-            if (rejectLoading) return;
-            setRejectTarget(null);
-          }}
-          onConfirm={() => rejectTarget && handleReject(rejectTarget.appointment_id)}
-        />
       </div>
     </Layout>
   );

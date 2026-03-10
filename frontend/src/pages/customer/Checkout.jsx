@@ -8,7 +8,6 @@ import Input from '../../components/common/Input';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { MapPin, CreditCard, Gift, Truck, Shield, CheckCircle, ArrowRight, Percent, DollarSign, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -69,77 +68,16 @@ const Checkout = () => {
 
     setLoading(true);
     try {
-      // Create order first
-      const orderResponse = await api.post('/orders', {
+      const response = await api.post('/orders', {
         shipping_address: `${data.address}, ${data.city}, ${data.state} ${data.zip}`,
         payment_method: paymentMethod,
         loyalty_points_used: loyaltyPointsUsed,
       });
 
-      if (orderResponse.data.success) {
-        const orderData = orderResponse.data.data;
-
-        // If payment method is card (PayHere), initiate payment
-        if (paymentMethod === 'card' && orderData.requires_payment) {
-          try {
-            // Initiate PayHere payment
-            const paymentResponse = await api.post('/payments/payhere/initiate', {
-              order_id: orderData.order_id
-            });
-
-            if (paymentResponse.data.success) {
-              const { payment_data, checkout_url } = paymentResponse.data.data;
-              
-              // Validate payment data exists
-              if (!payment_data || !checkout_url) {
-                toast.error('Invalid payment data received');
-                setLoading(false);
-                return;
-              }
-              
-              // Create and submit form to PayHere
-              const form = document.createElement('form');
-              form.method = 'POST';
-              form.action = checkout_url;
-              form.target = '_self'; // Submit in same window
-              
-              // Add all payment data as hidden fields
-              Object.keys(payment_data).forEach(key => {
-                const input = document.createElement('input');
-                input.type = 'hidden';
-                input.name = key;
-                input.value = String(payment_data[key] || ''); // Ensure value is string
-                form.appendChild(input);
-              });
-              
-              // Append form to body and submit
-              document.body.appendChild(form);
-              
-              // Log form data for debugging (remove in production)
-              if (process.env.NODE_ENV === 'development') {
-                console.log('Submitting to PayHere:', {
-                  url: checkout_url,
-                  fields: Object.keys(payment_data)
-                });
-              }
-              
-              form.submit();
-              
-              // Form will redirect to PayHere, so we don't need to navigate
-              return;
-            }
-          } catch (paymentError) {
-            console.error('Payment initiation error:', paymentError);
-            toast.error(paymentError.response?.data?.message || 'Failed to initiate payment');
-            setLoading(false);
-            return;
-          }
-        } else {
-          // For other payment methods, order is complete
-          toast.success('Order placed successfully!');
-          await clearCart();
-          navigate(`/customer/orders/${orderData.order_id}`);
-        }
+      if (response.data.success) {
+        toast.success('Order placed successfully!');
+        await clearCart();
+        navigate(`/customer/orders/${response.data.data.order_id}`);
       }
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to place order');
@@ -330,11 +268,11 @@ const Checkout = () => {
                     <div key={item.cart_id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
                       {item.image_url && (
                         <img
-                          src={getImageSrc(item.image_url)}
+                          src={item.image_url}
                           alt={item.name}
                           className="w-12 h-12 rounded-lg object-cover"
                           onError={(e) => {
-                            e.target.src = PLACEHOLDER_IMAGE;
+                            e.target.src = 'https://via.placeholder.com/100?text=Product';
                           }}
                         />
                       )}

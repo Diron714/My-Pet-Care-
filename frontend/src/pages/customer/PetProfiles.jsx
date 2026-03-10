@@ -5,9 +5,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Plus, Edit, Trash2, Eye, PawPrint, User, Calendar, Heart, Syringe, Utensils } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -16,8 +14,16 @@ const PetProfiles = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPet, setSelectedPet] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
+
+  const getImageSrc = (rawUrl) => {
+    if (!rawUrl) return null;
+    if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) {
+      return rawUrl;
+    }
+    const apiBase = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+    const base = apiBase.replace(/\/api\/?$/, '');
+    return `${base}${rawUrl}`;
+  };
 
   useEffect(() => {
     loadPets();
@@ -37,16 +43,14 @@ const PetProfiles = () => {
   };
 
   const handleDelete = async (petId) => {
+    if (!window.confirm('Are you sure you want to delete this pet profile?')) return;
+
     try {
-      setDeleteLoading(true);
       await api.delete(`/customer-pets/${petId}`);
       toast.success('Pet profile deleted');
       loadPets();
     } catch (error) {
       toast.error('Failed to delete pet profile');
-    } finally {
-      setDeleteLoading(false);
-      setDeleteTarget(null);
     }
   };
 
@@ -103,7 +107,7 @@ const PetProfiles = () => {
                       alt={pet.name}
                       className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                       onError={(e) => {
-                        e.target.src = PLACEHOLDER_IMAGE;
+                        e.target.src = 'https://via.placeholder.com/400?text=Pet';
                       }}
                     />
                   ) : (
@@ -148,7 +152,7 @@ const PetProfiles = () => {
                     <Button
                       variant="danger"
                       size="sm"
-                      onClick={() => setDeleteTarget(pet)}
+                      onClick={() => handleDelete(pet.customer_pet_id)}
                     >
                       <Trash2 className="w-4 h-4 inline mr-1" />
                       Delete
@@ -176,7 +180,7 @@ const PetProfiles = () => {
                     alt={selectedPet.name}
                     className="h-full w-full object-cover"
                     onError={(e) => {
-                      e.target.src = PLACEHOLDER_IMAGE;
+                      e.target.src = 'https://via.placeholder.com/400?text=Pet';
                     }}
                   />
                 </div>
@@ -214,25 +218,6 @@ const PetProfiles = () => {
             </div>
           </Modal>
         )}
-
-        {/* Delete confirmation dialog */}
-        <ConfirmDialog
-          isOpen={!!deleteTarget}
-          title="Delete pet profile"
-          message={
-            deleteTarget
-              ? `Are you sure you want to delete pet profile "${deleteTarget.name}"?`
-              : ''
-          }
-          confirmLabel="Delete"
-          confirmVariant="danger"
-          loading={deleteLoading}
-          onCancel={() => {
-            if (deleteLoading) return;
-            setDeleteTarget(null);
-          }}
-          onConfirm={() => deleteTarget && handleDelete(deleteTarget.customer_pet_id)}
-        />
       </div>
     </Layout>
   );
