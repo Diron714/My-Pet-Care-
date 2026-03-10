@@ -6,7 +6,6 @@ import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { FileText, Download, Stethoscope, Calendar, User, PawPrint, Pill, Clipboard, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -115,11 +114,11 @@ const HealthRecords = () => {
                 <div className="flex items-center gap-3">
                   {pet.image_url ? (
                     <img
-                      src={getImageSrc(pet.image_url)}
+                      src={pet.image_url}
                       alt={pet.name}
                       className="w-16 h-16 rounded-lg object-cover border-2 border-slate-200"
                       onError={(e) => {
-                        e.target.src = PLACEHOLDER_IMAGE;
+                        e.target.src = 'https://via.placeholder.com/100?text=Pet';
                       }}
                     />
                   ) : (

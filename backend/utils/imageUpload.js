@@ -1,10 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Same uploads root as server.js (backend/uploads) so static files are served correctly
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOADS_ROOT = path.join(__dirname, '..', 'uploads');
 
 // Save a base64-encoded image to disk and return a public URL path.
 export const saveBase64Image = async (dataUrl, subfolder = 'customer-pets') => {
@@ -24,7 +19,8 @@ export const saveBase64Image = async (dataUrl, subfolder = 'customer-pets') => {
 
   const buffer = Buffer.from(base64Data, 'base64');
 
-  const targetDir = path.join(UPLOADS_ROOT, subfolder);
+  const uploadsRoot = path.join(path.dirname(new URL('../server.js', import.meta.url).pathname), 'uploads');
+  const targetDir = path.join(uploadsRoot, subfolder);
 
   await fs.promises.mkdir(targetDir, { recursive: true });
 

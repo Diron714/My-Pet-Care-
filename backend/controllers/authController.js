@@ -10,9 +10,7 @@ import {
 import {
   verifyAndDecodeRefreshToken,
   generateTokenPair,
-  revokeRefreshToken,
-  getRefreshToken,
-  getRefreshTokenByToken
+  revokeRefreshToken
 } from '../services/jwtService.js';
 import {
   registerSchema,
@@ -146,10 +144,12 @@ export const refreshToken = async (req, res, next) => {
     const decoded = verifyAndDecodeRefreshToken(validatedData.refreshToken);
 
     // Get token from database
+    const { getRefreshTokenByToken } = await import('../services/jwtService.js');
     let tokenRecord = await getRefreshTokenByToken(validatedData.refreshToken);
     
     // If not found by token string, try by tokenId from decoded
     if (!tokenRecord && decoded.tokenId) {
+      const { getRefreshToken } = await import('../services/jwtService.js');
       tokenRecord = await getRefreshToken(decoded.tokenId);
     }
     

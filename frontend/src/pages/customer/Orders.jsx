@@ -64,6 +64,8 @@ const Orders = () => {
     { value: 'cancelled', label: 'Cancelled', icon: XCircle, color: 'rose' },
   ];
 
+  if (loading) return <Layout><Loading /></Layout>;
+
   const totalOrders = orders.length;
   const totalSpent = orders.reduce((sum, order) => sum + (order.final_amount || 0), 0);
 
@@ -126,11 +128,7 @@ const Orders = () => {
           })}
         </div>
 
-        {loading && orders.length === 0 ? (
-          <div className="card">
-            <Loading />
-          </div>
-        ) : orders.length === 0 ? (
+        {orders.length === 0 ? (
           <div className="card">
             <EmptyState
               icon={FileText}

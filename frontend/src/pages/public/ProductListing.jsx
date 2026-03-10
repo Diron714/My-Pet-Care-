@@ -5,7 +5,6 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
-import { getImageSrc } from '../../utils/helpers';
 
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
@@ -59,24 +58,14 @@ const ProductListing = () => {
           </aside>
 
           <div className="flex-1">
-            <div className="mb-4 relative">
+            <div className="mb-4">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="input-field pr-8"
+                className="input-field"
               />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear search"
-                >
-                  ×
-                </button>
-              )}
             </div>
 
             {products.length === 0 ? (
@@ -88,7 +77,7 @@ const ProductListing = () => {
                     <div className="card hover:shadow-lg transition-shadow cursor-pointer">
                       <div className="bg-gray-200 h-48 rounded-lg mb-4 flex items-center justify-center">
                         {product.image_url ? (
-                          <img src={getImageSrc(product.image_url)} alt={product.name} className="h-full w-full object-cover rounded-lg" />
+                          <img src={product.image_url} alt={product.name} className="h-full w-full object-cover rounded-lg" />
                         ) : (
                           <span className="text-gray-400">No Image</span>
                         )}

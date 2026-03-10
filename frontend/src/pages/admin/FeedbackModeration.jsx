@@ -3,7 +3,6 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
 import { Star, Check, X, MessageSquare, Package, Stethoscope, ShoppingBag, Filter, User, Calendar, ThumbsUp, ThumbsDown, Clock } from 'lucide-react';
@@ -21,8 +20,6 @@ const FeedbackModeration = () => {
     status: '',
     rating: '',
   });
-  const [rejectTarget, setRejectTarget] = useState(null);
-  const [rejectLoading, setRejectLoading] = useState(false);
 
   useEffect(() => {
     loadFeedbacks();
@@ -56,16 +53,14 @@ const FeedbackModeration = () => {
   };
 
   const handleReject = async (feedbackId) => {
+    if (!window.confirm('Are you sure you want to reject this feedback?')) return;
+
     try {
-      setRejectLoading(true);
       await api.put(`/feedback/${feedbackId}/status`, { status: 'rejected' });
       toast.success('Feedback rejected');
       loadFeedbacks();
     } catch (error) {
       toast.error('Failed to reject feedback');
-    } finally {
-      setRejectLoading(false);
-      setRejectTarget(null);
     }
   };
 
@@ -291,7 +286,7 @@ const FeedbackModeration = () => {
                           <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => setRejectTarget(feedback)}
+                            onClick={() => handleReject(feedback.feedback_id)}
                           >
                             <X className="w-4 h-4 inline mr-1" />
                             Reject
@@ -385,25 +380,6 @@ const FeedbackModeration = () => {
             </div>
           </Modal>
         )}
-
-        {/* Reject confirmation dialog */}
-        <ConfirmDialog
-          isOpen={!!rejectTarget}
-          title="Reject feedback"
-          message={
-            rejectTarget
-              ? 'Are you sure you want to reject this feedback?'
-              : ''
-          }
-          confirmLabel="Yes, reject"
-          confirmVariant="danger"
-          loading={rejectLoading}
-          onCancel={() => {
-            if (rejectLoading) return;
-            setRejectTarget(null);
-          }}
-          onConfirm={() => rejectTarget && handleReject(rejectTarget.feedback_id)}
-        />
       </div>
   );
 };

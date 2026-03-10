@@ -220,8 +220,8 @@ export const getChatMessages = async (req, res) => {
       room_id: m.room_id,
       sender_id: m.sender_id,
       message_text: m.message_text,
-      is_read: !!m.is_read,
-      read_at: m.read_at || null,
+      is_read: m.is_read,
+      read_at: m.read_at,
       sender: {
         first_name: m.first_name,
         last_name: m.last_name,
@@ -273,43 +273,16 @@ export const sendMessage = async (req, res) => {
       [id, userId, messageText.trim()]
     );
 
-    const messageId = result.insertId;
-
     // Update room's updated_at
     await pool.query(
       `UPDATE chat_rooms SET updated_at = NOW() WHERE room_id = ?`,
       [id]
     );
 
-    // Return full message so frontend can show sent/read status
-    const [rows] = await pool.query(
-      `SELECT cm.*, u.first_name, u.last_name, u.role
-       FROM chat_messages cm
-       JOIN users u ON cm.sender_id = u.user_id
-       WHERE cm.message_id = ?`,
-      [messageId]
-    );
-
-    const m = rows[0];
-    const data = m ? {
-      message_id: m.message_id,
-      room_id: m.room_id,
-      sender_id: m.sender_id,
-      message_text: m.message_text,
-      is_read: !!m.is_read,
-      read_at: m.read_at || null,
-      sender: {
-        first_name: m.first_name,
-        last_name: m.last_name,
-        role: m.role
-      },
-      created_at: m.created_at
-    } : { message_id: messageId };
-
     res.status(201).json({
       success: true,
       message: 'Message sent',
-      data
+      data: { message_id: result.insertId }
     });
   } catch (error) {
     res.status(500).json({

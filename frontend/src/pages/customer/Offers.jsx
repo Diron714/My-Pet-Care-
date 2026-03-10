@@ -6,7 +6,6 @@ import Modal from '../../components/common/Modal';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Gift, Star, Percent, Calendar, Sparkles, Award, Crown, Trophy, Medal } from 'lucide-react';
 
 // Format currency as LKR
@@ -122,11 +121,11 @@ const Offers = () => {
                   <div className="relative h-40 bg-gradient-to-br from-amber-500 to-amber-600 mb-4">
                     {offer.image_url ? (
                       <img
-                        src={getImageSrc(offer.image_url)}
+                        src={offer.image_url}
                         alt={offer.title}
                         className="w-full h-full object-cover opacity-80"
                         onError={(e) => {
-                          e.target.src = PLACEHOLDER_IMAGE;
+                          e.target.src = 'https://via.placeholder.com/400?text=Offer';
                         }}
                       />
                     ) : null}

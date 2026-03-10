@@ -4,8 +4,8 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
-import { formatDateTime, formatRelativeTime } from '../../utils/formatters';
-import { MessageSquare, Send, Stethoscope, User, Clock, MessageCircle, Check, CheckCheck } from 'lucide-react';
+import { formatDateTime } from '../../utils/formatters';
+import { MessageSquare, Send, Stethoscope, User, Clock, MessageCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 
@@ -17,7 +17,6 @@ const Chat = () => {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
-  const messageListRef = useRef(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -33,13 +32,7 @@ const Chat = () => {
   }, [selectedRoom]);
 
   useEffect(() => {
-    if (!messages.length) return;
-    const container = messageListRef.current;
-    if (container) {
-      container.scrollTop = container.scrollHeight;
-    } else {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' });
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }, [messages]);
 
   const loadRooms = async () => {
@@ -75,21 +68,14 @@ const Chat = () => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedRoom) return;
 
-    const text = newMessage.trim();
-    setNewMessage('');
     setSending(true);
     try {
-      const { data } = await api.post(`/chat/rooms/${selectedRoom.room_id}/messages`, {
-        messageText: text,
+      await api.post(`/chat/rooms/${selectedRoom.room_id}/messages`, {
+        messageText: newMessage,
       });
-      const sent = data?.data;
-      if (sent?.message_id && sent?.created_at) {
-        setMessages((prev) => [...prev, { ...sent, is_read: false, read_at: null }]);
-      } else {
-        loadMessages();
-      }
+      setNewMessage('');
+      loadMessages();
     } catch (error) {
-      setNewMessage(text);
       toast.error('Failed to send message');
     } finally {
       setSending(false);
@@ -165,10 +151,7 @@ const Chat = () => {
                     </div>
                   </div>
                 </div>
-                <div
-                  ref={messageListRef}
-                  className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-slate-50/60"
-                >
+                <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-slate-50/60">
                   {messages.length === 0 ? (
                     <EmptyState
                       icon={MessageSquare}
@@ -190,35 +173,15 @@ const Chat = () => {
                             }`}
                         >
                           <p className="text-sm">{message.message_text}</p>
-                          <div
-                              className={`text-xs mt-1 flex items-center justify-between gap-2 flex-wrap ${isSentByCurrentUser
+                          <p
+                              className={`text-xs mt-1 flex items-center gap-1 ${isSentByCurrentUser
                                 ? 'text-slate-300'
                                 : 'text-slate-500'
                               }`}
                           >
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 flex-shrink-0" />
-                              {formatDateTime(message.created_at)}
-                            </span>
-                            {isSentByCurrentUser && (
-                              <span className="flex items-center gap-1">
-                                {message.is_read ? (
-                                  <>
-                                    <CheckCheck className="w-3.5 h-3.5 flex-shrink-0" />
-                                    <span>Read</span>
-                                    {message.read_at && (
-                                      <span className="opacity-80">· {formatRelativeTime(message.read_at)}</span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                                    <span>Sent</span>
-                                  </>
-                                )}
-                              </span>
-                            )}
-                          </div>
+                            <Clock className="w-3 h-3" />
+                            {formatDateTime(message.created_at)}
+                          </p>
                         </div>
                       </div>
                       );

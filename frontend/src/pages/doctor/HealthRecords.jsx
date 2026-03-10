@@ -88,18 +88,8 @@ const HealthRecords = () => {
                 placeholder="Search by pet name"
                 value={filters.petName}
                 onChange={(e) => setFilters({ ...filters, petName: e.target.value })}
-                className="input-field !rounded-xl !py-2.5 !pl-10 pr-8"
+                className="input-field !rounded-xl !py-2.5 !pl-10"
               />
-              {filters.petName && (
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, petName: '' })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear pet name search"
-                >
-                  ×
-                </button>
-              )}
             </div>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -108,18 +98,8 @@ const HealthRecords = () => {
                 placeholder="Search by customer name"
                 value={filters.customerName}
                 onChange={(e) => setFilters({ ...filters, customerName: e.target.value })}
-                className="input-field !rounded-xl !py-2.5 !pl-10 pr-8"
+                className="input-field !rounded-xl !py-2.5 !pl-10"
               />
-              {filters.customerName && (
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, customerName: '' })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear customer name search"
-                >
-                  ×
-                </button>
-              )}
             </div>
             <div className="relative">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />

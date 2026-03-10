@@ -75,21 +75,6 @@ export const getStatusColor = (status) => {
   return colors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
 };
 
-export const getImageSrc = (url) => {
-  if (!url) return null;
-  if (url.startsWith('http://') || url.startsWith('https://')) return url;
-  const path = url.startsWith('/') ? url : `/${url}`;
-  const apiBase = import.meta.env.VITE_API_BASE_URL || '';
-  const isRelativeApi = !apiBase || apiBase.startsWith('/');
-  if (isRelativeApi) return path;
-  const base = apiBase.replace(/\/api\/?$/, '') || 'http://localhost:5000';
-  return `${base}${path}`;
-};
-
-// Inline placeholder when image fails to load (avoids external placeholder services that can 400)
-export const PLACEHOLDER_IMAGE =
-  'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="150" height="150" viewBox="0 0 150 150"><rect fill="%23e2e8f0" width="150" height="150"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%2394a3b8" font-family="sans-serif" font-size="14">No image</text></svg>');
-
 // Debounce function
 export const debounce = (func, wait) => {
   let timeout;

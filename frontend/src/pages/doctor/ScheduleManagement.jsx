@@ -4,7 +4,6 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { Plus, Edit, Trash2, Clock, Calendar, CheckCircle, XCircle, Filter } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -15,8 +14,6 @@ const ScheduleManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingSchedule, setEditingSchedule] = useState(null);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadSchedules();
@@ -60,16 +57,14 @@ const ScheduleManagement = () => {
   };
 
   const handleDelete = async (scheduleId) => {
+    if (!window.confirm('Are you sure you want to delete this schedule?')) return;
+
     try {
-      setDeleteLoading(true);
       await api.delete(`/doctors/schedule/${scheduleId}`);
       toast.success('Schedule deleted');
       loadSchedules();
     } catch (error) {
       toast.error('Failed to delete schedule');
-    } finally {
-      setDeleteLoading(false);
-      setDeleteTarget(null);
     }
   };
 
@@ -222,7 +217,7 @@ const ScheduleManagement = () => {
                           <Button
                             variant="danger"
                             size="sm"
-                            onClick={() => setDeleteTarget(schedule)}
+                            onClick={() => handleDelete(schedule.schedule_id)}
                             className="!rounded-lg !px-3 !py-1.5"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -322,25 +317,6 @@ const ScheduleManagement = () => {
             </div>
           </form>
         </Modal>
-
-        {/* Delete confirmation dialog */}
-        <ConfirmDialog
-          isOpen={!!deleteTarget}
-          title="Delete schedule slot"
-          message={
-            deleteTarget
-              ? `Are you sure you want to delete this schedule slot on ${deleteTarget.day_of_week}?`
-              : ''
-          }
-          confirmLabel="Delete"
-          confirmVariant="danger"
-          loading={deleteLoading}
-          onCancel={() => {
-            if (deleteLoading) return;
-            setDeleteTarget(null);
-          }}
-          onConfirm={() => deleteTarget && handleDelete(deleteTarget.schedule_id)}
-        />
       </div>
     </Layout>
   );

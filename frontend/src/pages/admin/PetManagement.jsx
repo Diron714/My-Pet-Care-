@@ -4,13 +4,11 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
-import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { Plus, Edit, Trash2, ToggleLeft, ToggleRight, PawPrint, Search, Filter, RefreshCw, Dog, Cat, Bird, Rabbit, CheckCircle, XCircle, Package, DollarSign, Calendar, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 
 // Format currency as LKR
 const formatCurrencyLKR = (amount) => {
@@ -25,16 +23,12 @@ const PetManagement = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
-  const [imageDataUrl, setImageDataUrl] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
   const [filters, setFilters] = useState({
     species: '',
     breed: '',
     available: '',
     search: '',
   });
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadPets();
@@ -59,17 +53,6 @@ const PetManagement = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setImagePreview(reader.result);
-      setImageDataUrl(reader.result);
-    };
-    reader.readAsDataURL(file);
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -83,7 +66,6 @@ const PetManagement = () => {
       price: parseFloat(formData.get('price')),
       stock_quantity: parseInt(formData.get('stock_quantity')),
       is_available: formData.get('is_available') === 'on',
-      ...(imageDataUrl && { image_url: imageDataUrl }),
     };
 
     try {
@@ -93,8 +75,6 @@ const PetManagement = () => {
       toast.success(editingPet ? 'Pet updated' : 'Pet added');
       setShowForm(false);
       setEditingPet(null);
-      setImageDataUrl(null);
-      setImagePreview(null);
       loadPets();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save pet');
@@ -102,16 +82,14 @@ const PetManagement = () => {
   };
 
   const handleDelete = async (petId) => {
+    if (!window.confirm('Are you sure you want to delete this pet?')) return;
+
     try {
-      setDeleteLoading(true);
       await api.delete(`/pets/${petId}`);
       toast.success('Pet deleted');
       loadPets();
     } catch (error) {
       toast.error('Failed to delete pet');
-    } finally {
-      setDeleteLoading(false);
-      setDeleteTarget(null);
     }
   };
 
@@ -196,8 +174,6 @@ const PetManagement = () => {
           </div>
           <Button onClick={() => {
             setEditingPet(null);
-            setImageDataUrl(null);
-            setImagePreview(null);
             setShowForm(true);
           }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
@@ -258,18 +234,8 @@ const PetManagement = () => {
                   placeholder="Search pets..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="input-field pl-10 pr-8"
+                  className="input-field pl-10"
                 />
-                {filters.search && (
-                  <button
-                    type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    aria-label="Clear search"
-                  >
-                    <XCircle className="w-4 h-4" />
-                  </button>
-                )}
               </div>
             </div>
             <div>
@@ -335,11 +301,11 @@ const PetManagement = () => {
                   <div className="relative h-48 overflow-hidden rounded-t-2xl -mx-6 -mt-6 mb-4">
                     {pet.image_url ? (
                       <img
-                        src={getImageSrc(pet.image_url)}
+                        src={pet.image_url}
                         alt={pet.name}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.target.src = PLACEHOLDER_IMAGE;
+                          e.target.src = 'https://via.placeholder.com/400x300?text=Pet+Image';
                         }}
                       />
                     ) : (
@@ -431,8 +397,6 @@ const PetManagement = () => {
                         size="sm"
                         onClick={() => {
                           setEditingPet(pet);
-                          setImageDataUrl(null);
-                          setImagePreview(null);
                           setShowForm(true);
                         }}
                       >
@@ -441,7 +405,7 @@ const PetManagement = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => setDeleteTarget(pet)}
+                        onClick={() => handleDelete(pet.pet_id)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -559,16 +523,7 @@ const PetManagement = () => {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Pet Image</label>
-              {(imagePreview || editingPet?.image_url) && (
-                <div className="mb-2 w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                  <img
-                    src={imagePreview || getImageSrc(editingPet?.image_url)}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <input type="file" accept="image/*" className="input-field" onChange={handleImageChange} />
+              <input type="file" accept="image/*" className="input-field" />
               <p className="text-xs text-slate-500 mt-1">Upload a high-quality image of the pet</p>
             </div>
 
@@ -603,25 +558,6 @@ const PetManagement = () => {
             </div>
           </form>
         </Modal>
-
-        {/* Delete confirmation dialog */}
-        <ConfirmDialog
-          isOpen={!!deleteTarget}
-          title="Delete pet"
-          message={
-            deleteTarget
-              ? `Are you sure you want to delete pet "${deleteTarget.name}"?`
-              : ''
-          }
-          confirmLabel="Delete"
-          confirmVariant="danger"
-          loading={deleteLoading}
-          onCancel={() => {
-            if (deleteLoading) return;
-            setDeleteTarget(null);
-          }}
-          onConfirm={() => deleteTarget && handleDelete(deleteTarget.pet_id)}
-        />
       </div>
   );
 };

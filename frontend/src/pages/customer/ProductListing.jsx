@@ -6,7 +6,6 @@ import EmptyState from '../../components/common/EmptyState';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import Button from '../../components/common/Button';
 import { Package, Search, Filter, RefreshCw, ShoppingCart, CheckCircle, XCircle, Tag } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -56,6 +55,8 @@ const ProductListing = () => {
     }
   };
 
+  if (loading) return <Layout><Loading /></Layout>;
+
   return (
     <Layout>
       <div className="page-shell">
@@ -69,7 +70,7 @@ const ProductListing = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <aside className="lg:w-72 shrink-0">
-            <div className="card p-6">
+            <div className="card p-6 sticky top-28">
               <div className="flex items-center gap-2 mb-6">
                 <Filter className="w-5 h-5 text-slate-500" />
                 <h3 className="font-bold text-lg text-slate-800">Category</h3>
@@ -109,23 +110,9 @@ const ProductListing = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 className="input-field !rounded-xl !py-3 !pl-10 bg-slate-50"
               />
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => setSearch('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear search"
-                >
-                  <XCircle className="w-4 h-4" />
-                </button>
-              )}
             </div>
 
-            {loading && products.length === 0 ? (
-              <div className="card">
-                <Loading />
-              </div>
-            ) : products.length === 0 ? (
+            {products.length === 0 ? (
               <div className="card">
                 <EmptyState
                   icon={Package}
@@ -140,12 +127,12 @@ const ProductListing = () => {
                     <div className="card overflow-hidden p-0 border-none shadow-lg hover:shadow-xl transition-all duration-300 relative">
                       <div className="relative h-56 overflow-hidden rounded-t-2xl">
                         {product.image_url ? (
-                            <img
-                            src={getImageSrc(product.image_url)}
+                          <img
+                            src={product.image_url}
                             alt={product.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                             onError={(e) => {
-                              e.target.src = PLACEHOLDER_IMAGE;
+                              e.target.src = 'https://via.placeholder.com/400?text=Product';
                             }}
                           />
                         ) : (

@@ -9,7 +9,6 @@ import Input from '../../components/common/Input';
 import { appointmentSchema } from '../../utils/validators';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
-import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { Calendar, Clock, Stethoscope, PawPrint, DollarSign, User, ArrowRight, CheckCircle, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -19,6 +18,14 @@ const formatCurrencyLKR = (amount) => {
     style: 'currency',
     currency: 'LKR',
   }).format(amount || 0);
+};
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const getImageSrc = (rawUrl) => {
+  if (!rawUrl) return null;
+  if (rawUrl.startsWith('http://') || rawUrl.startsWith('https://')) return rawUrl;
+  const base = API_BASE.replace(/\/api\/?$/, '');
+  return `${base}${rawUrl}`;
 };
 
 const BookAppointment = () => {
@@ -171,13 +178,13 @@ const BookAppointment = () => {
                 onChange={(e) => {
                   register('doctorId').onChange(e);
                   const doctor = doctors.find(d => d.doctor_id === parseInt(e.target.value));
-                  setSelectedDoctor(doctor || null);
+                  setSelectedDoctor(doctor);
                 }}
               >
                 <option value="">Select a doctor</option>
                 {doctors.map((doctor) => (
                   <option key={doctor.doctor_id} value={doctor.doctor_id}>
-                    Dr. {doctor.first_name} {doctor.last_name} - {doctor.specialization}
+                    Dr. {doctor.user?.first_name} {doctor.user?.last_name} - {doctor.specialization}
                   </option>
                 ))}
               </select>
@@ -194,11 +201,11 @@ const BookAppointment = () => {
                 <div className="flex items-start gap-4">
                   {selectedDoctor.image_url ? (
                     <img
-                      src={getImageSrc(selectedDoctor.image_url)}
-                      alt={`Dr. ${selectedDoctor.first_name}`}
+                      src={selectedDoctor.image_url}
+                      alt={`Dr. ${selectedDoctor.user?.first_name}`}
                       className="w-20 h-20 rounded-xl object-cover border-2 border-emerald-300"
                       onError={(e) => {
-                        e.target.src = PLACEHOLDER_IMAGE;
+                        e.target.src = 'https://via.placeholder.com/200?text=Doctor';
                       }}
                     />
                   ) : (
@@ -206,9 +213,9 @@ const BookAppointment = () => {
                       <Stethoscope className="w-10 h-10 text-white" />
                     </div>
                   )}
-                    <div className="flex-1">
+                  <div className="flex-1">
                     <h3 className="font-bold text-lg text-emerald-900 mb-1">
-                      Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
+                      Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
                     </h3>
                     <p className="text-emerald-700 font-semibold mb-3">{selectedDoctor.specialization}</p>
                     <div className="flex items-center gap-2 p-3 bg-white/80 rounded-lg border border-emerald-200">
@@ -265,9 +272,9 @@ const BookAppointment = () => {
                         src={getImageSrc(selectedPet.image_url)}
                         alt={selectedPet.name}
                         className="w-16 h-16 rounded-lg object-cover border-2 border-blue-300"
-onError={(e) => {
-                        e.target.src = PLACEHOLDER_IMAGE;
-                      }}
+                        onError={(e) => {
+                          e.target.src = 'https://via.placeholder.com/200?text=Pet';
+                        }}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-blue-300">
@@ -357,7 +364,7 @@ onError={(e) => {
                     <div>
                       <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Doctor</p>
                       <p className="font-bold text-slate-800">
-                        Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
+                        Dr. {selectedDoctor.user?.first_name} {selectedDoctor.user?.last_name}
                       </p>
                       <p className="text-sm text-slate-700">{selectedDoctor.specialization}</p>
                     </div>

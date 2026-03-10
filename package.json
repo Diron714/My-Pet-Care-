@@ -1,5 +1,4 @@
 {
-  "type": "module",
   "devDependencies": {
     "axios": "^1.13.3",
     "dotenv": "^17.2.3",
