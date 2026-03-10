@@ -44,6 +44,7 @@ const AppointmentDetails = () => {
   const [healthHistory, setHealthHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [notes, setNotes] = useState({
     diagnosis: '',
     prescription: '',
@@ -65,13 +66,18 @@ const AppointmentDetails = () => {
 
       const historyRes = await api.get(`/health-records/pet/${appointmentData.customer_pet_id}`);
       setHealthHistory(historyRes.data.data || []);
-      if (appointmentData.doctor_notes) {
-        setNotes({
-          diagnosis: appointmentData.diagnosis ?? '',
-          prescription: appointmentData.prescription ?? '',
-          treatmentNotes: appointmentData.doctor_notes ?? '',
-        });
-      }
+      const initialNotes = {
+        diagnosis: appointmentData.diagnosis ?? '',
+        prescription: appointmentData.prescription ?? '',
+        treatmentNotes: appointmentData.doctor_notes ?? '',
+      };
+      setNotes(initialNotes);
+
+      const hasExistingNotes =
+        (initialNotes.diagnosis && initialNotes.diagnosis.trim() !== '') ||
+        (initialNotes.prescription && initialNotes.prescription.trim() !== '') ||
+        (initialNotes.treatmentNotes && initialNotes.treatmentNotes.trim() !== '');
+      setIsEditing(!hasExistingNotes);
     } catch (error) {
       console.error('Error loading appointment details:', error);
       setAppointment(null);
@@ -87,8 +93,22 @@ const AppointmentDetails = () => {
         status: appointment.status,
         doctor_notes: notes.treatmentNotes || notes.diagnosis || notes.prescription || '',
       });
+
+      // Also persist diagnosis & prescription into health records so they
+      // reliably show up for both doctor and customer views on reload.
+      if (notes.diagnosis || notes.prescription || notes.treatmentNotes) {
+        await api.post('/health-records', {
+          appointment_id: id,
+          customer_pet_id: appointment.customer_pet_id,
+          diagnosis: notes.diagnosis,
+          prescription: notes.prescription,
+          treatment_notes: notes.treatmentNotes,
+        });
+      }
+
       toast.success('Consultation notes synchronized');
       loadAppointmentDetails();
+      setIsEditing(false);
     } catch (error) {
       toast.error('Synchronization failure');
     } finally {
@@ -313,10 +333,11 @@ const AppointmentDetails = () => {
                     Diagnosis Details
                   </label>
                   <textarea
+                    disabled={!isEditing}
                     value={notes.diagnosis}
                     onChange={(e) => setNotes({ ...notes, diagnosis: e.target.value })}
                     rows={4}
-                    className="input-field !rounded-xl !py-4"
+                    className="input-field !rounded-xl !py-4 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     placeholder="Enter professional clinical observations..."
                   />
                 </div>
@@ -327,10 +348,11 @@ const AppointmentDetails = () => {
                     Prescription Specifications
                   </label>
                   <textarea
+                    disabled={!isEditing}
                     value={notes.prescription}
                     onChange={(e) => setNotes({ ...notes, prescription: e.target.value })}
                     rows={4}
-                    className="input-field !rounded-xl !py-4"
+                    className="input-field !rounded-xl !py-4 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     placeholder="Document necessary medications and dosages..."
                   />
                 </div>
@@ -341,24 +363,35 @@ const AppointmentDetails = () => {
                     Observation Notes
                   </label>
                   <textarea
+                    disabled={!isEditing}
                     value={notes.treatmentNotes}
                     onChange={(e) => setNotes({ ...notes, treatmentNotes: e.target.value })}
                     rows={4}
-                    className="input-field !rounded-xl !py-4"
+                    className="input-field !rounded-xl !py-4 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     placeholder="Internal treatment and follow-up guidance..."
                   />
                 </div>
 
                 <div className="pt-4">
-                  <Button
-                    onClick={handleSaveNotes}
-                    disabled={saving}
-                    className="w-full !bg-slate-800 hover:!bg-slate-900 !py-4"
-                    loading={saving}
-                  >
-                    <ShieldCheck className="w-5 h-5 inline mr-2" />
-                    Save Clinical Progress
-                  </Button>
+                  {isEditing ? (
+                    <Button
+                      onClick={handleSaveNotes}
+                      disabled={saving}
+                      className="w-full !bg-slate-800 hover:!bg-slate-900 !py-4"
+                      loading={saving}
+                    >
+                      <ShieldCheck className="w-5 h-5 inline mr-2" />
+                      Save Clinical Progress
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      className="w-full !bg-slate-700 hover:!bg-slate-800 !py-4"
+                    >
+                      <ShieldCheck className="w-5 h-5 inline mr-2" />
+                      Edit Clinical Progress
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
