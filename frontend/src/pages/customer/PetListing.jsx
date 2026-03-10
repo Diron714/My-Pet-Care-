@@ -66,8 +66,6 @@ const PetListing = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
-
   return (
     <Layout>
       <div className="page-shell">
@@ -81,7 +79,7 @@ const PetListing = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <aside className="lg:w-72 shrink-0">
-            <div className="card p-6 sticky top-28">
+            <div className="card p-6">
               <div className="flex items-center gap-2 mb-6">
                 <Filter className="w-5 h-5 text-slate-500" />
                 <h3 className="font-bold text-lg text-slate-800">Filters</h3>
@@ -145,9 +143,23 @@ const PetListing = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 className="input-field !rounded-xl !py-3 !pl-10 bg-slate-50"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
-            {pets.length === 0 ? (
+            {loading && pets.length === 0 ? (
+              <div className="card">
+                <Loading />
+              </div>
+            ) : pets.length === 0 ? (
               <div className="card">
                 <EmptyState
                   icon={PawPrint}

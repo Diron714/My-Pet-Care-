@@ -66,7 +66,7 @@ const DoctorDetails = () => {
               {doctor.image_url ? (
                 <img
                   src={getImageSrc(doctor.image_url)}
-                  alt={`Dr. ${doctor.user?.first_name}`}
+                  alt={`Dr. ${doctor.first_name}`}
                   className="w-full h-full object-cover"
                   onError={(e) => {
                     e.target.src = PLACEHOLDER_IMAGE;
@@ -83,7 +83,7 @@ const DoctorDetails = () => {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h1 className="text-3xl font-black text-slate-900 mb-2">
-                    Dr. {doctor.user?.first_name} {doctor.user?.last_name}
+                    Dr. {doctor.first_name} {doctor.last_name}
                   </h1>
                   <div className="flex items-center gap-3 mb-3">
                     <div className="px-4 py-2 bg-emerald-50 rounded-xl border border-emerald-200">
