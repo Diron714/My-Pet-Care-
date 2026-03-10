@@ -3,9 +3,10 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
-import { getStatusColor } from '../../utils/helpers';
+import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 import { Download, ArrowLeft, ShoppingCart, MapPin, CreditCard, Package, Truck, CheckCircle, XCircle, DollarSign, Percent, Sparkles, Calendar } from 'lucide-react';
 
@@ -22,6 +23,8 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     loadOrderDetails();
@@ -40,14 +43,46 @@ const OrderDetails = () => {
   };
 
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
-
     try {
+      setCancelLoading(true);
       await api.put(`/orders/${id}/cancel`);
       toast.success('Order cancelled successfully');
       loadOrderDetails();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to cancel order');
+    } finally {
+      setCancelLoading(false);
+      setCancelConfirmOpen(false);
+    }
+  };
+
+  const handleVerifyPayment = async () => {
+    try {
+      setLoading(true);
+      const response = await api.post('/payments/payhere/verify', { order_id: id });
+      if (response.data.data.payment_status === 'paid') {
+        toast.success('Payment verified successfully!');
+        loadOrderDetails();
+      } else {
+        toast.error('Payment still pending on PayHere. Please wait a few minutes.');
+      }
+    } catch (error) {
+      toast.error('Failed to verify payment with PayHere');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMockSuccess = async () => {
+    try {
+      setLoading(true);
+      await api.post('/payments/mock-success', { order_id: id });
+      toast.success('Payment simulated successfully! (Dev Mode)');
+      loadOrderDetails();
+    } catch (error) {
+      toast.error('Failed to simulate payment');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -153,11 +188,11 @@ const OrderDetails = () => {
                 <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-slate-200 flex-shrink-0">
                   {item.image_url ? (
                     <img
-                      src={item.image_url}
+                      src={getImageSrc(item.image_url)}
                       alt={item.item_name}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/200?text=Item';
+                        e.target.src = PLACEHOLDER_IMAGE;
                       }}
                     />
                   ) : (
@@ -226,12 +261,38 @@ const OrderDetails = () => {
             Download Invoice
           </Button>
           {order.order_status === 'pending' && (
-            <Button onClick={handleCancel} variant="danger">
+            <Button onClick={() => setCancelConfirmOpen(true)} variant="danger">
               <XCircle className="w-4 h-4 inline mr-2" />
               Cancel Order
             </Button>
           )}
+          {order.payment_status === 'pending' && order.payment_method === 'card' && (
+            <>
+              <Button onClick={handleVerifyPayment} variant="primary" className="!bg-blue-600 hover:!bg-blue-700">
+                <CheckCircle className="w-4 h-4 inline mr-2" />
+                Verify Payment Status
+              </Button>
+              <Button onClick={handleMockSuccess} variant="outline" className="!text-emerald-600 !border-emerald-600 hover:!bg-emerald-50">
+                <Sparkles className="w-4 h-4 inline mr-2" />
+                Simulate Success (Dev)
+              </Button>
+            </>
+          )}
         </div>
+        {/* Cancel confirmation dialog */}
+        <ConfirmDialog
+          isOpen={cancelConfirmOpen}
+          title="Cancel order"
+          message={`Are you sure you want to cancel order #${order.order_number}?`}
+          confirmLabel="Yes, cancel"
+          confirmVariant="danger"
+          loading={cancelLoading}
+          onCancel={() => {
+            if (cancelLoading) return;
+            setCancelConfirmOpen(false);
+          }}
+          onConfirm={handleCancel}
+        />
       </div>
     </Layout>
   );

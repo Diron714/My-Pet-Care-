@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
@@ -20,6 +21,8 @@ const ExchangeManagement = () => {
   const [exchanges, setExchanges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   useEffect(() => {
     loadExchanges();
@@ -49,14 +52,16 @@ const ExchangeManagement = () => {
   };
 
   const handleReject = async (exchangeId) => {
-    if (!window.confirm('Are you sure you want to reject this exchange request?')) return;
-
     try {
+      setRejectLoading(true);
       await api.put(`/exchanges/${exchangeId}/reject`);
       toast.success('Exchange request rejected');
       loadExchanges();
     } catch (error) {
       toast.error('Failed to reject exchange');
+    } finally {
+      setRejectLoading(false);
+      setRejectTarget(null);
     }
   };
 
@@ -192,7 +197,7 @@ const ExchangeManagement = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleReject(exchange.exchange_id)}
+                        onClick={() => setRejectTarget(exchange)}
                       >
                         <X className="w-4 h-4 inline mr-1" />
                         Reject
@@ -216,6 +221,24 @@ const ExchangeManagement = () => {
             ))}
           </div>
         )}
+        {/* Reject confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!rejectTarget}
+          title="Reject exchange request"
+          message={
+            rejectTarget
+              ? 'Are you sure you want to reject this exchange request?'
+              : ''
+          }
+          confirmLabel="Yes, reject"
+          confirmVariant="danger"
+          loading={rejectLoading}
+          onCancel={() => {
+            if (rejectLoading) return;
+            setRejectTarget(null);
+          }}
+          onConfirm={() => rejectTarget && handleReject(rejectTarget.exchange_id)}
+        />
       </div>
   );
 };

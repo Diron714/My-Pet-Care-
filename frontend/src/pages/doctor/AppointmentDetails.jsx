@@ -3,9 +3,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate, formatTime } from '../../utils/formatters';
-import { getStatusColor } from '../../utils/helpers';
+import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 import {
   ArrowLeft,
@@ -48,6 +49,8 @@ const AppointmentDetails = () => {
     prescription: '',
     treatmentNotes: '',
   });
+  const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   useEffect(() => {
     loadAppointmentDetails();
@@ -106,8 +109,8 @@ const AppointmentDetails = () => {
   };
 
   const handleReject = async () => {
-    if (!window.confirm('Confirm rejection of this session?')) return;
     try {
+      setRejectLoading(true);
       await api.put(`/appointments/${id}/status`, {
         status: 'rejected',
       });
@@ -115,6 +118,9 @@ const AppointmentDetails = () => {
       navigate('/doctor/appointments');
     } catch (error) {
       toast.error('Failed to reject session');
+    } finally {
+      setRejectLoading(false);
+      setRejectConfirmOpen(false);
     }
   };
 
@@ -215,11 +221,11 @@ const AppointmentDetails = () => {
                 {appointment.customer_pet?.image_url && (
                   <div className="relative h-32 w-32 rounded-2xl overflow-hidden border-2 border-white/20 mx-auto">
                     <img
-                      src={appointment.customer_pet.image_url}
+                      src={getImageSrc(appointment.customer_pet.image_url)}
                       alt={appointment.customer_pet.name}
                       className="h-full w-full object-cover"
                       onError={(e) => {
-                        e.target.src = 'https://via.placeholder.com/200?text=Pet';
+                        e.target.src = PLACEHOLDER_IMAGE;
                       }}
                     />
                   </div>
@@ -365,7 +371,7 @@ const AppointmentDetails = () => {
                     <CheckCircle2 className="w-5 h-5 inline mr-2" />
                     Accept Session
                   </Button>
-                  <Button onClick={handleReject} variant="danger" className="!py-4">
+                  <Button onClick={() => setRejectConfirmOpen(true)} variant="danger" className="!py-4">
                     <XCircle className="w-5 h-5 inline mr-2" />
                     Reject Session
                   </Button>
@@ -392,6 +398,20 @@ const AppointmentDetails = () => {
             </div>
           </div>
         </div>
+        {/* Reject confirmation dialog */}
+        <ConfirmDialog
+          isOpen={rejectConfirmOpen}
+          title="Reject session"
+          message="Are you sure you want to reject this appointment?"
+          confirmLabel="Yes, reject"
+          confirmVariant="danger"
+          loading={rejectLoading}
+          onCancel={() => {
+            if (rejectLoading) return;
+            setRejectConfirmOpen(false);
+          }}
+          onConfirm={handleReject}
+        />
       </div>
     </Layout>
   );

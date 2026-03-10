@@ -6,7 +6,8 @@ import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
-import { Star, Calendar, Stethoscope, Search, Filter, RefreshCw, Award, Clock, User } from 'lucide-react';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
+import { Star, Calendar, Stethoscope, Search, Filter, RefreshCw, Award, Clock, User, XCircle } from 'lucide-react';
 
 // Format currency as LKR
 const formatCurrencyLKR = (amount) => {
@@ -19,10 +20,11 @@ const formatCurrencyLKR = (amount) => {
 const DoctorList = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(true);
+  // By default, show all doctors (including those not yet marked available)
   const [filters, setFilters] = useState({
     specialization: '',
     rating: '',
-    available: true,
+    available: false,
   });
   const [search, setSearch] = useState('');
 
@@ -49,8 +51,6 @@ const DoctorList = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
-
   return (
     <Layout>
       <div className="page-shell">
@@ -64,7 +64,7 @@ const DoctorList = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <aside className="lg:w-72 shrink-0">
-            <div className="card p-6 sticky top-28">
+            <div className="card p-6">
               <div className="flex items-center gap-2 mb-6">
                 <Filter className="w-5 h-5 text-slate-500" />
                 <h3 className="font-bold text-lg text-slate-800">Filters</h3>
@@ -99,7 +99,7 @@ const DoctorList = () => {
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => setFilters({ specialization: '', rating: '', available: true })}
+                  onClick={() => setFilters({ specialization: '', rating: '', available: false })}
                   className="w-full !rounded-xl !py-3"
                 >
                   <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -120,9 +120,23 @@ const DoctorList = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 className="input-field !rounded-xl !py-3 !pl-10 bg-slate-50"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  <XCircle className="w-4 h-4" />
+                </button>
+              )}
             </div>
 
-            {doctors.length === 0 ? (
+            {loading && doctors.length === 0 ? (
+              <div className="card">
+                <Loading />
+              </div>
+            ) : doctors.length === 0 ? (
               <div className="card">
                 <EmptyState
                   icon={Stethoscope}
@@ -139,11 +153,11 @@ const DoctorList = () => {
                       <div className="relative w-24 h-24 rounded-xl overflow-hidden flex-shrink-0 border-2 border-emerald-200">
                         {doctor.image_url ? (
                           <img
-                            src={doctor.image_url}
+                            src={getImageSrc(doctor.image_url)}
                             alt={`Dr. ${doctor.user?.first_name}`}
                             className="w-full h-full object-cover"
                             onError={(e) => {
-                              e.target.src = 'https://via.placeholder.com/200?text=Doctor';
+                              e.target.src = PLACEHOLDER_IMAGE;
                             }}
                           />
                         ) : (
@@ -156,7 +170,7 @@ const DoctorList = () => {
                       <div className="flex-1 min-w-0">
                         <Link to={`/customer/doctors/${doctor.doctor_id}`}>
                           <h3 className="font-bold text-xl text-slate-900 mb-1 hover:text-slate-800 transition-colors">
-                            Dr. {doctor.user?.first_name} {doctor.user?.last_name}
+                            Dr. {doctor.first_name} {doctor.last_name}
                           </h3>
                         </Link>
                         <div className="flex items-center gap-2 mb-2">

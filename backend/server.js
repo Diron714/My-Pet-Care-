@@ -78,6 +78,7 @@ import customerPetRoutes from './routes/customerPetRoutes.js';
 import healthRecordRoutes from './routes/healthRecordRoutes.js';
 import reminderRoutes from './routes/reminderRoutes.js';
 import customerRoutes from './routes/customerRoutes.js';
+import paymentRoutes from './routes/paymentRoutes.js';
 
 // Auth routes
 app.use('/api/auth', authRoutes);
@@ -102,6 +103,7 @@ app.use('/api/customer-pets', customerPetRoutes);
 app.use('/api/health-records', healthRecordRoutes);
 app.use('/api/reminders', reminderRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // 404 handler
 app.use(notFound);

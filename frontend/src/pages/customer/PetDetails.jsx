@@ -6,6 +6,7 @@ import Button from '../../components/common/Button';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
+import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import { PawPrint, ShoppingCart, Clock, ArrowLeft, Heart, Calendar, CheckCircle, XCircle, User, DollarSign, Plus } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -82,11 +83,11 @@ const PetDetails = () => {
             <div className="relative h-96 rounded-2xl overflow-hidden border-4 border-slate-200 shadow-xl">
               {pet.image_url ? (
                 <img
-                  src={pet.image_url}
+                  src={getImageSrc(pet.image_url)}
                   alt={pet.name}
                   className="h-full w-full object-cover"
                   onError={(e) => {
-                    e.target.src = 'https://via.placeholder.com/800?text=Pet';
+                    e.target.src = PLACEHOLDER_IMAGE;
                   }}
                 />
               ) : (
@@ -196,11 +197,11 @@ const PetDetails = () => {
                     <div className="relative h-48 overflow-hidden rounded-t-2xl">
                       {relatedPet.image_url ? (
                         <img
-                          src={relatedPet.image_url}
+                          src={getImageSrc(relatedPet.image_url)}
                           alt={relatedPet.name}
                           className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
                           onError={(e) => {
-                            e.target.src = 'https://via.placeholder.com/400?text=Pet';
+                            e.target.src = PLACEHOLDER_IMAGE;
                           }}
                         />
                       ) : (

@@ -1,4 +1,5 @@
 import pool from '../config/database.js';
+import { saveBase64Image } from '../utils/imageUpload.js';
 
 // =============================================
 // PET MANAGEMENT (Store Inventory)
@@ -131,10 +132,20 @@ export const createPet = async (req, res) => {
       });
     }
 
+    let dbImageUrl = null;
+    if (image_url && typeof image_url === 'string' && image_url.startsWith('data:image')) {
+      try {
+        const savedPath = await saveBase64Image(image_url, 'pets');
+        if (savedPath) dbImageUrl = savedPath;
+      } catch (err) {
+        console.error('Error saving pet image:', err);
+      }
+    }
+
     const [result] = await pool.query(
       `INSERT INTO pets (name, species, breed, age, gender, description, price, stock_quantity, is_available, image_url, created_by)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [name, species, breed, age, gender, description || null, price, stock_quantity || 1, is_available !== false, image_url || null, created_by]
+      [name, species, breed, age, gender, description || null, price, stock_quantity || 1, is_available !== false, dbImageUrl, created_by]
     );
 
     // Log action
@@ -174,6 +185,16 @@ export const updatePet = async (req, res) => {
       });
     }
 
+    let dbImageUrl = undefined; // keep existing when no new image
+    if (image_url && typeof image_url === 'string' && image_url.startsWith('data:image')) {
+      try {
+        const savedPath = await saveBase64Image(image_url, 'pets');
+        if (savedPath) dbImageUrl = savedPath;
+      } catch (err) {
+        console.error('Error saving pet image:', err);
+      }
+    }
+
     await pool.query(
       `UPDATE pets SET 
         name = COALESCE(?, name),
@@ -188,7 +209,7 @@ export const updatePet = async (req, res) => {
         image_url = COALESCE(?, image_url),
         updated_at = NOW()
        WHERE pet_id = ?`,
-      [name, species, breed, age, gender, description, price, stock_quantity, is_available, image_url, id]
+      [name, species, breed, age, gender, description, price, stock_quantity, is_available, dbImageUrl, id]
     );
 
     // Log action
