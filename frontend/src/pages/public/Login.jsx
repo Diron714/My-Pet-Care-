@@ -37,14 +37,29 @@ const Login = () => {
     try {
       const result = await login(data.email, data.password);
       if (result.success && result.user) {
-        toast.success('Login successful!');
-        setTimeout(() => {
-          const role = result.user.role;
-          if (role === 'customer') navigate('/customer/dashboard');
-          else if (role === 'doctor') navigate('/doctor/dashboard');
-          else if (role === 'admin' || role === 'staff') navigate('/admin/dashboard');
-          else navigate('/login');
-        }, 500);
+        const role = result.user.role;
+
+        // If this is an admin-created user logging in for the first time,
+        // redirect them to the OTP/email verification screen instead of dashboard.
+        if (result.mustVerifyEmail) {
+          toast.success('Login successful! Please verify your email to continue.');
+          setTimeout(() => {
+            navigate('/otp-verification', {
+              state: {
+                email: result.user.email,
+                otpType: 'email_verification',
+              },
+            });
+          }, 500);
+        } else {
+          toast.success('Login successful!');
+          setTimeout(() => {
+            if (role === 'customer') navigate('/customer/dashboard');
+            else if (role === 'doctor') navigate('/doctor/dashboard');
+            else if (role === 'admin' || role === 'staff') navigate('/admin/dashboard');
+            else navigate('/login');
+          }, 500);
+        }
       } else {
         const errorMsg = result.message || 'Login failed. Please check your credentials.';
         toast.error(errorMsg);

@@ -210,8 +210,43 @@ export const loginUser = async (email, password) => {
     throw new Error('Invalid email or password');
   }
 
+  // Determine if this account was created via the admin/staff "create user" flow.
+  // We infer this from an audit_log entry created when an admin creates the account.
+  let isAdminCreatedUser = false;
   if (!user.is_verified) {
-    throw new Error('Please verify your email first');
+    const [adminCreateLogs] = await pool.query(
+      `SELECT 1 FROM audit_logs 
+       WHERE entity_type = 'user' 
+         AND entity_id = ? 
+         AND action_type = 'CREATE_ADMIN_USER'
+       LIMIT 1`,
+      [user.user_id]
+    );
+    isAdminCreatedUser = adminCreateLogs.length > 0;
+  }
+
+  // By default all unverified users are blocked.
+  // Exception: admin-created users are allowed exactly ONE login before verification.
+  if (!user.is_verified) {
+    if (!isAdminCreatedUser) {
+      throw new Error('Please verify your email first');
+    }
+
+    // For admin-created accounts, check if they have already logged in before.
+    const [previousLoginLogs] = await pool.query(
+      `SELECT 1 FROM audit_logs 
+       WHERE action_type = 'login' 
+         AND entity_type = 'user' 
+         AND user_id = ?
+       LIMIT 1`,
+      [user.user_id]
+    );
+    const hasLoggedInBefore = previousLoginLogs.length > 0;
+
+    if (hasLoggedInBefore) {
+      // Second and subsequent logins are blocked until email is verified.
+      throw new Error('Please verify your email first');
+    }
   }
 
   if (!user.is_active) {
@@ -240,6 +275,10 @@ export const loginUser = async (email, password) => {
     [user.user_id]
   );
 
+  // Frontend can use this flag to force redirect to "Verify Email" screen for admin-created users.
+  const mustVerifyEmail =
+    !user.is_verified && isAdminCreatedUser;
+
   return {
     accessToken,
     refreshToken,
@@ -250,7 +289,8 @@ export const loginUser = async (email, password) => {
       lastName: user.last_name,
       role: user.role,
       profile: userWithProfile?.profile
-    }
+    },
+    mustVerifyEmail
   };
 };
 
