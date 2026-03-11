@@ -13,10 +13,31 @@ const NotificationManagement = () => {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [targetAudience, setTargetAudience] = useState('');
+  const [usersList, setUsersList] = useState([]);
+  const [usersLoading, setUsersLoading] = useState(false);
 
   useEffect(() => {
     loadNotifications();
   }, []);
+
+  // Load users when opening send form (for specific-user targeting)
+  useEffect(() => {
+    if (!showForm) return;
+    const loadUsers = async () => {
+      try {
+        setUsersLoading(true);
+        const response = await api.get('/admin/users?status=active&limit=500');
+        setUsersList(response.data.data || []);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        toast.error('Could not load user list');
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+    loadUsers();
+  }, [showForm]);
 
   const loadNotifications = async () => {
     try {
@@ -33,18 +54,29 @@ const NotificationManagement = () => {
   const handleSend = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const target = formData.get('target');
     const data = {
-      target: formData.get('target'),
+      target,
       notificationType: formData.get('notification_type'),
       title: formData.get('title'),
       message: formData.get('message'),
       relatedId: formData.get('related_id') || null,
     };
 
+    if (target === 'specific') {
+      const userId = formData.get('user_id');
+      if (!userId) {
+        toast.error('Please select a user to send the notification to');
+        return;
+      }
+      data.userId = parseInt(userId, 10);
+    }
+
     try {
       await api.post('/notifications/broadcast', data);
       toast.success('Notification sent successfully');
       setShowForm(false);
+      setTargetAudience('');
       loadNotifications();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to send notification');
@@ -123,6 +155,8 @@ const NotificationManagement = () => {
         return User;
       case 'doctors':
         return Stethoscope;
+      case 'specific':
+        return User;
       default:
         return Target;
     }
@@ -152,7 +186,13 @@ const NotificationManagement = () => {
             <h1 className="page-title">Notification Management</h1>
             <p className="page-subtitle">Send broadcast notifications to users and manage notification history</p>
           </div>
-          <Button onClick={() => setShowForm(true)} className="!bg-slate-800 hover:!bg-slate-900">
+          <Button
+            onClick={() => {
+              setTargetAudience('');
+              setShowForm(true);
+            }}
+            className="!bg-slate-800 hover:!bg-slate-900"
+          >
             <Send className="w-4 h-4 inline mr-2" />
             Send Notification
           </Button>
@@ -274,7 +314,10 @@ const NotificationManagement = () => {
         {/* Send Notification Form Modal */}
         <Modal
           isOpen={showForm}
-          onClose={() => setShowForm(false)}
+          onClose={() => {
+            setShowForm(false);
+            setTargetAudience('');
+          }}
           title="Send Broadcast Notification"
           size="lg"
         >
@@ -292,7 +335,13 @@ const NotificationManagement = () => {
                 <Target className="w-4 h-4 inline mr-1" />
                 Target Audience <span className="text-red-500">*</span>
               </label>
-              <select name="target" className="input-field" required>
+              <select
+                name="target"
+                className="input-field"
+                required
+                value={targetAudience}
+                onChange={(e) => setTargetAudience(e.target.value)}
+              >
                 <option value="">Select target audience</option>
                 <option value="all">All Users</option>
                 <option value="customers">All Customers</option>
@@ -300,6 +349,36 @@ const NotificationManagement = () => {
                 <option value="specific">Specific User</option>
               </select>
             </div>
+
+            {targetAudience === 'specific' && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <User className="w-4 h-4 inline mr-1" />
+                  Select recipient <span className="text-red-500">*</span>
+                </label>
+                {usersLoading ? (
+                  <p className="text-sm text-slate-500 py-2">Loading users…</p>
+                ) : (
+                  <select
+                    name="user_id"
+                    className="input-field"
+                    required={targetAudience === 'specific'}
+                    defaultValue=""
+                  >
+                    <option value="">Choose a user</option>
+                    {usersList.map((u) => (
+                      <option key={u.user_id} value={u.user_id}>
+                        {[u.first_name, u.last_name].filter(Boolean).join(' ') || 'User'} — {u.email}{' '}
+                        ({u.role})
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <p className="text-xs text-slate-500 mt-1">
+                  Only the selected user will receive this notification.
+                </p>
+              </div>
+            )}
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -352,7 +431,10 @@ const NotificationManagement = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => setShowForm(false)}
+                onClick={() => {
+                  setShowForm(false);
+                  setTargetAudience('');
+                }}
               >
                 Cancel
               </Button>

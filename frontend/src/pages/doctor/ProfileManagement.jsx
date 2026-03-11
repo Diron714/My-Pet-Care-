@@ -87,14 +87,14 @@ const ProfileManagement = () => {
 
   return (
     <Layout>
-      <div className="page-shell">
-        <div className="page-header">
+      <div className="page-shell max-w-4xl">
+        <div className="page-header mb-8">
           <div>
-            <h1 className="page-title">Profile Management</h1>
-            <p className="page-subtitle">Manage your professional profile and credentials</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Profile Management</h1>
+            <p className="page-subtitle mt-1">Manage your professional profile and credentials</p>
           </div>
           {!editMode && (
-            <Button onClick={() => setEditMode(true)} className="!bg-slate-800 hover:!bg-slate-900">
+            <Button onClick={() => setEditMode(true)} className="!rounded-xl !font-medium !bg-slate-900 hover:!bg-slate-800">
               <Edit className="w-4 h-4 inline mr-2" />
               Edit Profile
             </Button>
@@ -103,10 +103,10 @@ const ProfileManagement = () => {
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Profile Header */}
-          <div className="card p-8 bg-gradient-to-br from-slate-50 to-slate-100 border-2 border-slate-200">
+          <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-8">
             <div className="flex items-center gap-6">
               {(imageDataUrl || profile.image_url) ? (
-                <div className="h-32 w-32 rounded-2xl overflow-hidden border-4 border-white shadow-xl">
+                <div className="h-32 w-32 rounded-3xl overflow-hidden border-2 border-slate-200/80 shadow-sm">
                   <img
                     src={imageDataUrl || getImageSrc(profile.image_url)}
                     alt="Profile"
@@ -117,12 +117,12 @@ const ProfileManagement = () => {
                   />
                 </div>
               ) : (
-                <div className="h-32 w-32 rounded-2xl bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center shadow-xl">
-                  <User className="w-16 h-16 text-white" />
+                <div className="h-32 w-32 rounded-3xl bg-slate-100 flex items-center justify-center">
+                  <User className="w-16 h-16 text-slate-500" />
                 </div>
               )}
               <div className="flex-1">
-                <h2 className="text-2xl font-black text-slate-900 mb-2">Dr. Profile</h2>
+                <h2 className="text-2xl font-semibold text-slate-900 mb-2">Dr. Profile</h2>
                 {profile.rating != null && (
                   <div className="flex items-center gap-2 mb-3">
                     <div className="flex items-center">
@@ -136,7 +136,7 @@ const ProfileManagement = () => {
                         />
                       ))}
                     </div>
-                    <span className="text-lg font-bold text-slate-700">
+                    <span className="text-lg font-semibold text-slate-700">
                       {Number(profile.rating || 0).toFixed(1)}
                     </span>
                     <span className="text-slate-500">({profile.total_reviews || 0} reviews)</span>
@@ -147,10 +147,12 @@ const ProfileManagement = () => {
           </div>
 
           {/* Profile Information */}
-          <div className="card">
+          <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-6">
             <div className="flex items-center gap-2 mb-6">
-              <Stethoscope className="w-5 h-5 text-slate-600" />
-              <h2 className="text-xl font-bold text-slate-900">Profile Information</h2>
+              <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
+                <Stethoscope className="w-5 h-5 text-slate-600" />
+              </div>
+              <h2 className="text-xl font-semibold text-slate-900">Profile Information</h2>
             </div>
             {editMode ? (
               <div className="space-y-4">
@@ -162,14 +164,14 @@ const ProfileManagement = () => {
                   placeholder="e.g., Veterinary Medicine"
                 />
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     <GraduationCap className="w-4 h-4 inline mr-1" />
                     Qualifications <span className="text-red-500">*</span>
                   </label>
                   <textarea
                     {...register('qualifications', { required: 'Qualifications are required' })}
                     rows={4}
-                    className="input-field !rounded-xl !py-3"
+                    className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10"
                     placeholder="Enter your educational qualifications..."
                   />
                   {errors.qualifications && (
@@ -205,15 +207,15 @@ const ProfileManagement = () => {
                   placeholder="Consultation fee in LKR"
                 />
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-600 mb-2">
                     <Upload className="w-4 h-4 inline mr-1" />
                     Profile Image
                   </label>
-                  <input type="file" accept="image/*" className="input-field !rounded-xl !py-3" onChange={handleImageChange} />
+                  <input type="file" accept="image/*" className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10" onChange={handleImageChange} />
                   <p className="text-xs text-slate-500 mt-1">Upload a professional profile photo (optional)</p>
                 </div>
-                <div className="flex space-x-4 pt-4">
-                  <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900" loading={saving}>
+                <div className="flex gap-4 pt-4">
+                  <Button type="submit" className="flex-1 !rounded-2xl !font-medium !bg-slate-900 hover:!bg-slate-800 !py-3" loading={saving}>
                     <CheckCircle className="w-4 h-4 inline mr-2" />
                     Save Changes
                   </Button>
@@ -224,6 +226,7 @@ const ProfileManagement = () => {
                       setEditMode(false);
                       loadProfile();
                     }}
+                    className="!rounded-2xl !font-medium !border-slate-200 hover:!bg-slate-50"
                   >
                     <X className="w-4 h-4 inline mr-2" />
                     Cancel
@@ -231,45 +234,55 @@ const ProfileManagement = () => {
                 </div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="p-5 bg-blue-50 rounded-xl border border-blue-200">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-center gap-2 mb-2">
-                    <Stethoscope className="w-5 h-5 text-blue-600" />
-                    <p className="text-xs font-semibold text-blue-700 uppercase tracking-wider">Specialization</p>
+                    <div className="h-8 w-8 rounded-xl bg-blue-50 flex items-center justify-center">
+                      <Stethoscope className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Specialization</p>
                   </div>
-                  <p className="font-bold text-blue-900 text-lg">{profile.specialization}</p>
+                  <p className="font-semibold text-slate-900 text-lg">{profile.specialization}</p>
                 </div>
-                <div className="p-5 bg-purple-50 rounded-xl border border-purple-200">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-center gap-2 mb-2">
-                    <Briefcase className="w-5 h-5 text-purple-600" />
-                    <p className="text-xs font-semibold text-purple-700 uppercase tracking-wider">Experience</p>
+                    <div className="h-8 w-8 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <Briefcase className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Experience</p>
                   </div>
-                  <p className="font-bold text-purple-900 text-lg">{profile.experience_years} years</p>
+                  <p className="font-semibold text-slate-900 text-lg">{profile.experience_years} years</p>
                 </div>
-                <div className="p-5 bg-emerald-50 rounded-xl border border-emerald-200">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-center gap-2 mb-2">
-                    <DollarSign className="w-5 h-5 text-emerald-600" />
-                    <p className="text-xs font-semibold text-emerald-700 uppercase tracking-wider">Consultation Fee</p>
+                    <div className="h-8 w-8 rounded-xl bg-emerald-50 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Consultation Fee</p>
                   </div>
-                  <p className="font-bold text-emerald-900 text-lg">
+                  <p className="font-semibold text-slate-900 text-lg">
                     {formatCurrencyLKR(profile.consultation_fee)}
                   </p>
                 </div>
-                <div className="p-5 bg-amber-50 rounded-xl border border-amber-200">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-center gap-2 mb-2">
-                    <Star className="w-5 h-5 text-amber-600" />
-                    <p className="text-xs font-semibold text-amber-700 uppercase tracking-wider">Rating</p>
+                    <div className="h-8 w-8 rounded-xl bg-amber-50 flex items-center justify-center">
+                      <Star className="w-4 h-4 text-amber-600" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Rating</p>
                   </div>
-                  <p className="font-bold text-amber-900 text-lg">
+                  <p className="font-semibold text-slate-900 text-lg">
                     {profile.rating != null ? Number(profile.rating).toFixed(1) : '0.0'} ({profile.total_reviews || 0} reviews)
                   </p>
                 </div>
-                <div className="md:col-span-2 p-5 bg-slate-50 rounded-xl border border-slate-200">
+                <div className="md:col-span-2 p-5 rounded-2xl bg-slate-50 border border-slate-200/80">
                   <div className="flex items-center gap-2 mb-2">
-                    <GraduationCap className="w-5 h-5 text-slate-600" />
-                    <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider">Qualifications</p>
+                    <div className="h-8 w-8 rounded-xl bg-slate-100 flex items-center justify-center">
+                      <GraduationCap className="w-4 h-4 text-slate-600" />
+                    </div>
+                    <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Qualifications</p>
                   </div>
-                  <p className="text-slate-800 leading-relaxed">{profile.qualifications || 'Not provided'}</p>
+                  <p className="text-slate-700 leading-relaxed">{profile.qualifications || 'Not provided'}</p>
                 </div>
               </div>
             )}

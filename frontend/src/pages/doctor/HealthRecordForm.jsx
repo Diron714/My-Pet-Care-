@@ -140,20 +140,20 @@ const HealthRecordForm = () => {
 
   return (
     <Layout>
-      <div className="page-shell">
-        <div className="page-header">
+      <div className="page-shell max-w-4xl">
+        <div className="page-header mb-8">
           <div>
             <button
               onClick={() => navigate('/doctor/health-records')}
-              className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 text-sm font-semibold mb-1"
+              className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-800 text-sm font-medium mb-2 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Back to Health Records
             </button>
-            <h1 className="page-title">
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">
               {isEditMode ? 'Edit Health Record' : 'Create Health Record'}
             </h1>
-            <p className="page-subtitle">
+            <p className="page-subtitle mt-1">
               {isEditMode
                 ? 'Update the clinical record for this pet'
                 : 'Document a new clinical record for a pet'}
@@ -161,7 +161,7 @@ const HealthRecordForm = () => {
           </div>
         </div>
 
-        <div className="card max-w-3xl">
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-8 max-w-3xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -193,7 +193,7 @@ const HealthRecordForm = () => {
                   type="date"
                   value={form.record_date}
                   onChange={(e) => handleChange('record_date', e.target.value)}
-                  className="input-field"
+                  className="input-field !rounded-2xl !border-slate-200 focus:!ring-slate-900/10"
                   required
                 />
               </div>
@@ -222,7 +222,7 @@ const HealthRecordForm = () => {
                 value={form.prescription}
                 onChange={(e) => handleChange('prescription', e.target.value)}
                 rows={4}
-                className="input-field !rounded-xl !py-3"
+                className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10"
                 placeholder="Enter prescription details..."
               />
             </div>
@@ -244,7 +244,7 @@ const HealthRecordForm = () => {
             <div className="pt-2">
               <Button
                 type="submit"
-                className="w-full !bg-slate-800 hover:!bg-slate-900"
+                className="w-full !rounded-2xl !font-medium !bg-slate-900 hover:!bg-slate-800 !py-3"
                 loading={saving}
                 disabled={saving}
               >

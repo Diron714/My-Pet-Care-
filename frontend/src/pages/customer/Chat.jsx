@@ -36,7 +36,7 @@ const Chat = () => {
         navigate('/customer/chat', { replace: true });
       });
     } else {
-    loadRooms();
+      loadRooms();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.search]);
@@ -241,7 +241,7 @@ const Chat = () => {
           <div className="w-80 border-r border-slate-100 bg-slate-50/50 overflow-y-auto shrink-0">
             <div className="p-6 border-b border-slate-100 space-y-3">
               <div>
-              <h3 className="font-bold text-xl text-slate-800 mb-1">Conversations</h3>
+                <h3 className="font-bold text-xl text-slate-800 mb-1">Conversations</h3>
                 <p className="text-xs text-slate-500">Select a chat or start a new one</p>
               </div>
               <div className="space-y-2">
@@ -292,8 +292,8 @@ const Chat = () => {
                     key={room.room_id}
                     onClick={() => setSelectedRoom(room)}
                     className={`w-full text-left p-4 rounded-xl transition-colors flex items-start gap-3 ${selectedRoom?.room_id === room.room_id
-                        ? 'bg-slate-100 text-slate-800 font-semibold'
-                        : 'hover:bg-slate-100 text-slate-700'
+                      ? 'bg-slate-100 text-slate-800 font-semibold'
+                      : 'hover:bg-slate-100 text-slate-700'
                       }`}
                   >
                     <div className={`h-12 w-12 rounded-xl bg-gradient-to-br ${roomStyles.gradient} flex items-center justify-center flex-shrink-0 shadow-lg`}>
@@ -349,48 +349,48 @@ const Chat = () => {
                     messages.map((message) => {
                       const isSentByCurrentUser = message.sender_id === user?.userId;
                       return (
-                      <div
-                        key={message.message_id}
-                          className={`flex ${isSentByCurrentUser ? 'justify-end' : 'justify-start'}`}
-                      >
                         <div
+                          key={message.message_id}
+                          className={`flex ${isSentByCurrentUser ? 'justify-end' : 'justify-start'}`}
+                        >
+                          <div
                             className={`max-w-md p-4 rounded-2xl shadow-sm ${isSentByCurrentUser
                               ? 'bg-slate-800 text-white rounded-br-none'
                               : 'bg-white text-slate-900 rounded-bl-none border border-slate-100'
-                            }`}
-                        >
-                          <p className="text-sm">{message.message_text}</p>
-                          <div
+                              }`}
+                          >
+                            <p className="text-sm">{message.message_text}</p>
+                            <div
                               className={`text-xs mt-1 flex items-center justify-between gap-2 flex-wrap ${isSentByCurrentUser
                                 ? 'text-slate-300'
                                 : 'text-slate-500'
-                              }`}
-                          >
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 flex-shrink-0" />
-                              {formatDateTime(message.created_at)}
-                            </span>
-                            {isSentByCurrentUser && (
+                                }`}
+                            >
                               <span className="flex items-center gap-1">
-                                {message.is_read ? (
-                                  <>
-                                    <CheckCheck className="w-3.5 h-3.5 flex-shrink-0" />
-                                    <span>Read</span>
-                                    {message.read_at && (
-                                      <span className="opacity-80">· {formatRelativeTime(message.read_at)}</span>
-                                    )}
-                                  </>
-                                ) : (
-                                  <>
-                                    <Check className="w-3.5 h-3.5 flex-shrink-0" />
-                                    <span>Sent</span>
-                                  </>
-                                )}
+                                <Clock className="w-3 h-3 flex-shrink-0" />
+                                {formatDateTime(message.created_at)}
                               </span>
-                            )}
+                              {isSentByCurrentUser && (
+                                <span className="flex items-center gap-1">
+                                  {message.is_read ? (
+                                    <>
+                                      <CheckCheck className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <span>Read</span>
+                                      {message.read_at && (
+                                        <span className="opacity-80">· {formatRelativeTime(message.read_at)}</span>
+                                      )}
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Check className="w-3.5 h-3.5 flex-shrink-0" />
+                                      <span>Sent</span>
+                                    </>
+                                  )}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
                       );
                     })
                   )}

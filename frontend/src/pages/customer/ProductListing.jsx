@@ -128,7 +128,7 @@ const ProductListing = () => {
                     <div className="card overflow-hidden p-0 border-none shadow-lg hover:shadow-xl transition-all duration-300 relative">
                       <div className="relative h-56 overflow-hidden rounded-t-2xl">
                         {product.image_url ? (
-                            <img
+                          <img
                             src={getImageSrc(product.image_url)}
                             alt={product.name}
                             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"

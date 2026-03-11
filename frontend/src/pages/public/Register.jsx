@@ -72,54 +72,34 @@ const Register = () => {
   const passwordStrength = getPasswordStrength(password);
 
   return (
-    <div className="min-h-screen flex bg-white font-sans antialiased">
-      {/* Left Side: Cinematic Branding Section - sticky so it doesn't move when scrolling */}
-      <div className="hidden lg:flex lg:w-1/2 lg:sticky lg:top-0 lg:h-screen relative bg-slate-900 flex-col items-center justify-center p-16 overflow-hidden shrink-0">
-        {/* Master Theme Gradients */}
-        <div className="absolute inset-0 z-0">
-          <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-600/20 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-indigo-600/10 rounded-full blur-[120px]" />
-        </div>
-
-        <div className="relative z-10 w-full max-w-lg text-center flex flex-col items-center">
-          <div className="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-white/5 border border-white/10 mb-12 backdrop-blur-md">
-            <Globe className="w-4 h-4 text-blue-400" />
-            <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">International Standard Excellence</span>
-          </div>
-          
-          <h1 className="text-7xl font-black text-white tracking-tighter mb-8 leading-[0.9] uppercase">
-            MY PET <br /><span className="text-blue-500 text-shadow-glow">CARE+</span>
-          </h1>
-          
-          <p className="text-slate-400 text-lg font-medium leading-relaxed mb-12 max-w-sm">
-            Join the world's most sophisticated healthcare ecosystem for specialized pet care.
-          </p>
-
-          <div className="grid grid-cols-2 gap-6 w-full text-left">
-            <div className="p-7 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm transition-all hover:bg-white/10">
-              <ShieldCheck className="w-9 h-9 text-blue-500 mb-4" />
-              <h4 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">Encrypted</h4>
-              <p className="text-slate-500 text-[11px] leading-relaxed">ISO 27001 certified data protection protocols.</p>
-            </div>
-            <div className="p-7 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-sm transition-all hover:bg-white/10">
-              <CheckCircle2 className="w-9 h-9 text-emerald-500 mb-4" />
-              <h4 className="text-white font-bold text-sm mb-1 uppercase tracking-tight">Verified</h4>
-              <p className="text-slate-500 text-[11px] leading-relaxed">Unified health records for global networks.</p>
+    <div className="min-h-screen w-full flex items-center justify-center bg-gradient-to-br from-[#d0c7b3] via-[#d9d1c0] to-[#c6bda8] px-3 py-8 md:px-10">
+      <div className="relative w-full max-w-6xl rounded-[36px] md:rounded-[44px] overflow-hidden bg-white shadow-[0_36px_90px_rgba(15,23,42,0.45)]">
+        <div className="flex flex-col md:flex-row md:h-[680px]">
+          {/* Left: image / illustration panel (reuse login style) */}
+          <div className="md:w-1/2 bg-[#ece9e4] flex items-center px-4 md:px-6 py-4 md:py-6">
+            <div className="w-full h-full rounded-[26px] md:rounded-[30px] overflow-hidden shadow-sm shadow-slate-300">
+              <img
+                src="/c.jpg"
+                alt="Register illustration"
+                className="h-full w-full object-cover"
+                loading="lazy"
+              />
             </div>
           </div>
-        </div>
-      </div>
 
-      {/* Right Side: Pro Form Section */}
-      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 bg-[#F8FAFC]">
-        <div className="w-full max-w-[480px] animate-in fade-in slide-in-from-right-4 duration-700">
-          
-          <div className="mb-10 text-center lg:text-left">
-            <div className="inline-block p-4 bg-slate-900 rounded-3xl mb-8 shadow-2xl shadow-blue-900/20">
-              <UserPlus className="w-8 h-8 text-blue-500" />
-            </div>
-            <h2 className="text-5xl font-black text-slate-900 tracking-tighter mb-3 uppercase">Enroll</h2>
-            <p className="text-blue-700/50 font-black text-[10px] uppercase tracking-[0.25em]">Authorized Registration Portal</p>
+          {/* Right: registration form */}
+          <div className="md:w-[50%] px-7 md:px-10 py-6 md:py-8 bg-white flex items-center">
+            <div className="w-full max-w-sm mx-auto">
+              <div className="mb-6">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400 mb-2">
+                  MY PET CARE+
+                </p>
+                <h1 className="text-[22px] md:text-[24px] font-semibold text-slate-900 mb-1">
+                  Create your account
+                </h1>
+                <p className="text-[11px] text-slate-500">
+                  Join My Pet Care+ to manage your pets, appointments, and health records.
+                </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
@@ -129,7 +109,7 @@ const Register = () => {
                 placeholder="John"
                 {...register('firstName')}
                 error={errors.firstName?.message}
-                className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+                className="!rounded-full !border-slate-200 !bg-slate-50 focus:!border-violet-500 focus:!ring-violet-300/70 !px-5 !py-2.5 font-medium text-slate-900"
                 required
               />
               <Input
@@ -137,39 +117,39 @@ const Register = () => {
                 placeholder="Doe"
                 {...register('lastName')}
                 error={errors.lastName?.message}
-                className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+                className="!rounded-full !border-slate-200 !bg-slate-50 focus:!border-violet-500 focus:!ring-violet-300/70 !px-5 !py-2.5 font-medium text-slate-900"
                 required
               />
             </div>
 
             <Input
-              label="Email Identity"
+              label="Email"
               type="email"
-              placeholder="identity@global-pet.care"
+              placeholder="Enter your email"
               {...register('email')}
               error={errors.email?.message}
-              className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+              className="!rounded-full !border-slate-200 !bg-slate-50 focus:!border-violet-500 focus:!ring-violet-300/70 !px-5 !py-2.5 font-medium text-slate-900"
               required
             />
 
             <Input
-              label="Contact Number"
+              label="Phone"
               type="tel"
               placeholder="+94 7X XXX XXXX"
               {...register('phone')}
               error={errors.phone?.message}
-              className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+              className="!rounded-full !border-slate-200 !bg-slate-50 focus:!border-violet-500 focus:!ring-violet-300/70 !px-5 !py-2.5 font-medium text-slate-900"
               required
             />
 
             <div className="space-y-2">
               <Input
-                label="Security Password"
+                label="Password"
                 type="password"
                 placeholder="••••••••"
                 {...register('password')}
                 error={errors.password?.message}
-                className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+                className="!rounded-full !border-slate-200 !bg-slate-50 focus:!border-violet-500 focus:!ring-violet-300/70 !px-5 !py-2.5 font-medium text-slate-900"
                 required
               />
               {password && (
@@ -192,31 +172,31 @@ const Register = () => {
             </div>
 
             <Input
-              label="Verify Password"
+              label="Confirm Password"
               type="password"
               placeholder="••••••••"
               {...register('confirmPassword')}
               error={errors.confirmPassword?.message}
-              className="!rounded-2xl !border-slate-200 focus:!border-blue-500 !p-4 font-semibold text-slate-900 bg-white shadow-sm"
+              className="!rounded-full !border-slate-200 !bg-slate-50 focus:!border-violet-500 focus:!ring-violet-300/70 !px-5 !py-2.5 font-medium text-slate-900"
               required
             />
 
             <Button 
               type="submit" 
-              className="w-full !py-5 !rounded-2xl !bg-slate-900 hover:!bg-blue-600 !text-white !font-black !text-xs uppercase !tracking-[0.4em] !shadow-2xl !shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group" 
+              className="w-full !rounded-full !bg-violet-600 hover:!bg-violet-700 !text-white !font-semibold !py-3 shadow-md shadow-violet-300 flex items-center justify-center gap-2 !transition-transform active:!scale-[0.98]" 
               loading={loading}
             >
-              Initialize Profile <ArrowRight className="w-4 h-4 text-blue-400 transition-transform group-hover:translate-x-1" />
+              Create Account <ArrowRight className="w-4 h-4" />
             </Button>
           </form>
 
-          <div className="mt-10 text-center">
-            <p className="text-[11px] font-black tracking-[0.2em] text-slate-400 uppercase">
-              Existing identity?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700 transition-colors border-b-2 border-blue-600/10 ml-1 font-bold">
-                Access Gateway
+              <div className="mt-5 text-center text-[11px] text-slate-500">
+                <span>Already have an account? </span>
+                <Link to="/login" className="font-semibold text-violet-700 hover:text-violet-800">
+                  Log in
               </Link>
-            </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -97,8 +97,8 @@ const PetDetails = () => {
               )}
               <div className="absolute top-4 right-4">
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wider flex items-center gap-2 ${pet.is_available
-                    ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
-                    : 'bg-rose-100 text-rose-800 border-2 border-rose-300'
+                  ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
+                  : 'bg-rose-100 text-rose-800 border-2 border-rose-300'
                   }`}>
                   {pet.is_available ? (
                     <>

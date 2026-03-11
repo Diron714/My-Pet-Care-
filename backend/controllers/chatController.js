@@ -10,7 +10,7 @@ export const getChatRooms = async (req, res) => {
     const userRole = req.user.role;
     const userId = req.user.userId;
     const { room_type } = req.query;
-    
+
     let query = `
       SELECT cr.*,
              cu.first_name as customer_first_name, cu.last_name as customer_last_name,

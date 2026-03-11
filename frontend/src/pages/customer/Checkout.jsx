@@ -89,20 +89,20 @@ const Checkout = () => {
 
             if (paymentResponse.data.success) {
               const { payment_data, checkout_url } = paymentResponse.data.data;
-              
+
               // Validate payment data exists
               if (!payment_data || !checkout_url) {
                 toast.error('Invalid payment data received');
                 setLoading(false);
                 return;
               }
-              
+
               // Create and submit form to PayHere
               const form = document.createElement('form');
               form.method = 'POST';
               form.action = checkout_url;
               form.target = '_self'; // Submit in same window
-              
+
               // Add all payment data as hidden fields
               Object.keys(payment_data).forEach(key => {
                 const input = document.createElement('input');
@@ -111,10 +111,10 @@ const Checkout = () => {
                 input.value = String(payment_data[key] || ''); // Ensure value is string
                 form.appendChild(input);
               });
-              
+
               // Append form to body and submit
               document.body.appendChild(form);
-              
+
               // Log form data for debugging (remove in production)
               if (process.env.NODE_ENV === 'development') {
                 console.log('Submitting to PayHere:', {
@@ -122,9 +122,9 @@ const Checkout = () => {
                   fields: Object.keys(payment_data)
                 });
               }
-              
+
               form.submit();
-              
+
               // Form will redirect to PayHere, so we don't need to navigate
               return;
             }
@@ -250,8 +250,8 @@ const Checkout = () => {
                       <label
                         key={method.value}
                         className={`flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all ${paymentMethod === method.value
-                            ? `bg-${method.color}-50 border-${method.color}-300`
-                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                          ? `bg-${method.color}-50 border-${method.color}-300`
+                          : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                           }`}
                       >
                         <input
@@ -284,8 +284,8 @@ const Checkout = () => {
                         <label
                           key={offer.offer_id}
                           className={`flex items-start p-4 border-2 rounded-xl cursor-pointer transition-all ${selectedOffer?.offer_id === offer.offer_id
-                              ? 'bg-amber-50 border-amber-300'
-                              : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                            ? 'bg-amber-50 border-amber-300'
+                            : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                             }`}
                         >
                           <input

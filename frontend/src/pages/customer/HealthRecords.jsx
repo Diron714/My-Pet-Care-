@@ -108,8 +108,8 @@ const HealthRecords = () => {
                 key={pet.customer_pet_id}
                 onClick={() => setSelectedPet(pet.customer_pet_id.toString())}
                 className={`p-4 rounded-xl border-2 transition-all ${selectedPet === pet.customer_pet_id.toString()
-                    ? 'border-slate-600 bg-slate-50'
-                    : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
+                  ? 'border-slate-600 bg-slate-50'
+                  : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
                   }`}
               >
                 <div className="flex items-center gap-3">
