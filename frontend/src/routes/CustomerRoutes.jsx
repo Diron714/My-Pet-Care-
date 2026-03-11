@@ -11,6 +11,7 @@ import OrderDetails from '../pages/customer/OrderDetails';
 import DoctorList from '../pages/customer/DoctorList';
 import DoctorDetails from '../pages/customer/DoctorDetails';
 import Appointments from '../pages/customer/Appointments';
+import AppointmentDetails from '../pages/customer/AppointmentDetails';
 import BookAppointment from '../pages/customer/BookAppointment';
 import PetProfiles from '../pages/customer/PetProfiles';
 import PetProfileForm from '../pages/customer/PetProfileForm';
@@ -38,6 +39,7 @@ const CustomerRoutes = () => {
       <Route path="doctors" element={<DoctorList />} />
       <Route path="doctors/:id" element={<DoctorDetails />} />
       <Route path="appointments" element={<Appointments />} />
+      <Route path="appointments/:id" element={<AppointmentDetails />} />
       <Route path="appointments/book" element={<BookAppointment />} />
       <Route path="pet-profiles" element={<PetProfiles />} />
       <Route path="pet-profiles/new" element={<PetProfileForm />} />
