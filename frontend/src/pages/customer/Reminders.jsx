@@ -4,6 +4,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { reminderSchema } from '../../utils/validators';
@@ -19,6 +20,8 @@ const Reminders = () => {
   const [showForm, setShowForm] = useState(false);
   const [editingReminder, setEditingReminder] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   const {
     register,
@@ -87,14 +90,16 @@ const Reminders = () => {
   };
 
   const handleDelete = async (reminderId) => {
-    if (!window.confirm('Are you sure you want to delete this reminder?')) return;
-
     try {
+      setDeleteLoading(true);
       await api.delete(`/reminders/${reminderId}`);
       toast.success('Reminder deleted');
       loadReminders();
+      setDeleteTarget(null);
     } catch (error) {
       toast.error('Failed to delete reminder');
+    } finally {
+      setDeleteLoading(false);
     }
   };
 
@@ -127,8 +132,6 @@ const Reminders = () => {
       default: return { gradient: 'from-slate-500 to-slate-600', bg: 'bg-slate-50', border: 'border-slate-200' };
     }
   };
-
-  if (loading) return <Layout><Loading /></Layout>;
 
   const upcomingCount = reminders.filter(r => !r.is_completed).length;
   const completedCount = reminders.filter(r => r.is_completed).length;
@@ -221,7 +224,11 @@ const Reminders = () => {
           })}
         </div>
 
-        {filteredReminders.length === 0 ? (
+        {loading && filteredReminders.length === 0 ? (
+          <div className="card">
+            <Loading />
+          </div>
+        ) : filteredReminders.length === 0 ? (
           <div className="card">
             <EmptyState
               icon={Clock}
@@ -297,7 +304,7 @@ const Reminders = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleDelete(reminder.reminder_id)}
+                        onClick={() => setDeleteTarget(reminder)}
                       >
                         <Trash2 className="w-4 h-4 inline mr-1" />
                         Delete
@@ -395,6 +402,25 @@ const Reminders = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Delete confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Delete reminder"
+          message={
+            deleteTarget
+              ? `Are you sure you want to delete the reminder "${deleteTarget.title}"?`
+              : ''
+          }
+          confirmLabel="Delete"
+          confirmVariant="danger"
+          loading={deleteLoading}
+          onCancel={() => {
+            if (deleteLoading) return;
+            setDeleteTarget(null);
+          }}
+          onConfirm={() => deleteTarget && handleDelete(deleteTarget.reminder_id)}
+        />
       </div>
     </Layout>
   );

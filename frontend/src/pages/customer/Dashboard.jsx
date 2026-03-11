@@ -15,6 +15,24 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const heroSlides = [
+  {
+    title: 'with expert vets and delivery to your door',
+    description:
+      "Book appointments, order products, and get advice from trusted veterinarians. Everything your pet needs in one place.",
+  },
+  {
+    title: 'manage every vet visit in one app',
+    description:
+      'Track upcoming appointments, prescriptions, and reminders so you never miss an important pet health task.',
+  },
+  {
+    title: 'fast doorstep delivery for pet essentials',
+    description:
+      'Reorder food, treats, and supplies in seconds and get them delivered right to your home.',
+  },
+];
+
 const Dashboard = () => {
   const [stats, setStats] = useState({
     activeOrders: 0,
@@ -26,6 +44,33 @@ const Dashboard = () => {
   const [recentOrders, setRecentOrders] = useState([]);
   const [recentAppointments, setRecentAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [trackIndex, setTrackIndex] = useState(0);
+  const [instantTransition, setInstantTransition] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTrackIndex((prev) => prev + 1);
+    }, 6000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // Handle seamless loop when moving from the last real slide to the cloned first slide
+  useEffect(() => {
+    if (trackIndex !== heroSlides.length) return;
+
+    const timeout = setTimeout(() => {
+      setInstantTransition(true);
+      setTrackIndex(0);
+
+      // Re-enable smooth transition on the next frame
+      requestAnimationFrame(() => {
+        setInstantTransition(false);
+      });
+    }, 500); // should match the slide transition duration
+
+    return () => clearTimeout(timeout);
+  }, [trackIndex]);
 
   useEffect(() => {
     loadDashboardData();
@@ -68,6 +113,7 @@ const Dashboard = () => {
   if (loading) return <Layout><Loading /></Layout>;
 
   const tierColors = getTierColor(stats.loyaltyTier);
+  const activeDotIndex = trackIndex === heroSlides.length ? 0 : trackIndex;
 
   const quickActions = [
     { path: '/customer/pets', label: 'Browse Pets', icon: Heart },
@@ -89,18 +135,32 @@ const Dashboard = () => {
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
-          <section className="py-12 lg:py-16">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <section className="pt-6 pb-10 lg:pt-8 lg:pb-12">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-start">
               <div className="order-2 lg:order-1">
                 <h1 className="text-4xl lg:text-5xl font-bold tracking-tight text-slate-800 mb-3">
                   Care for your <span className="text-slate-500 font-semibold">pet</span>
                 </h1>
-                <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
-                  with expert vets and delivery to your door
-                </h2>
-                <p className="text-slate-500 text-base lg:text-lg max-w-lg mb-8 leading-relaxed">
-                  Book appointments, order products, and get advice from trusted veterinarians. Everything your pet needs in one place.
-                </p>
+                <div className="relative overflow-hidden mb-8">
+                  <div
+                    className="flex"
+                    style={{
+                      transform: `translateX(-${trackIndex * 100}%)`,
+                      transition: instantTransition ? 'none' : 'transform 500ms ease-out',
+                    }}
+                  >
+                    {[...heroSlides, heroSlides[0]].map((slide, index) => (
+                      <div key={index} className="w-full flex-shrink-0">
+                        <h2 className="text-3xl lg:text-4xl font-bold text-slate-800 mb-4">
+                          {slide.title}
+                        </h2>
+                        <p className="text-slate-500 text-base lg:text-lg max-w-lg leading-relaxed">
+                          {slide.description}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <div className="flex flex-wrap items-center gap-4">
                   <Link
                     to="/customer/appointments/book"
@@ -116,9 +176,17 @@ const Dashboard = () => {
                   </Link>
                 </div>
                 <div className="flex items-center gap-2 mt-8">
-                  <span className="w-2 h-2 rounded-full bg-slate-800" />
-                  <span className="w-2 h-2 rounded-full bg-slate-200" />
-                  <span className="w-2 h-2 rounded-full bg-slate-200" />
+                  {heroSlides.map((_, index) => (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => setTrackIndex(index)}
+                      className={`w-2 h-2 rounded-full transition-colors ${
+                        index === activeDotIndex ? 'bg-slate-800' : 'bg-slate-200'
+                      }`}
+                      aria-label={`Show hero message ${index + 1}`}
+                    />
+                  ))}
                   <ChevronRight className="w-5 h-5 text-slate-400 ml-1" />
                 </div>
               </div>

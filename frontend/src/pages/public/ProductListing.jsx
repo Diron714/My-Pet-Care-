@@ -59,14 +59,24 @@ const ProductListing = () => {
           </aside>
 
           <div className="flex-1">
-            <div className="mb-4">
+            <div className="mb-4 relative">
               <input
                 type="text"
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="input-field"
+                className="input-field pr-8"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
 
             {products.length === 0 ? (

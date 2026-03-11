@@ -3,6 +3,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { Plus, Edit, Trash2, Package, Search, Filter, RefreshCw, CheckCircle, XCircle, DollarSign, ShoppingBag, Utensils, Gamepad2, Sparkles, Scissors, Heart, CheckCircle2 } from 'lucide-react';
@@ -30,6 +31,8 @@ const ProductManagement = () => {
     available: '',
     search: '',
   });
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
     loadProducts();
@@ -102,14 +105,16 @@ const ProductManagement = () => {
   };
 
   const handleDelete = async (productId) => {
-    if (!window.confirm('Are you sure you want to delete this product?')) return;
-
     try {
+      setDeleteLoading(true);
       await api.delete(`/products/${productId}`);
       toast.success('Product deleted');
       loadProducts();
     } catch (error) {
       toast.error('Failed to delete product');
+    } finally {
+      setDeleteLoading(false);
+      setDeleteTarget(null);
     }
   };
 
@@ -265,8 +270,18 @@ const ProductManagement = () => {
                   placeholder="Search products..."
                   value={filters.search}
                   onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-                  className="input-field pl-10"
+                  className="input-field pl-10 pr-8"
                 />
+                {filters.search && (
+                  <button
+                    type="button"
+                    onClick={() => setFilters({ ...filters, search: '' })}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    aria-label="Clear search"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
               </div>
             </div>
             <div>
@@ -417,7 +432,7 @@ const ProductManagement = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleDelete(product.product_id)}
+                        onClick={() => setDeleteTarget(product)}
                       >
                         <Trash2 className="w-4 h-4" />
                       </Button>
@@ -569,6 +584,25 @@ const ProductManagement = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Delete confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!deleteTarget}
+          title="Delete product"
+          message={
+            deleteTarget
+              ? `Are you sure you want to delete product "${deleteTarget.name}"?`
+              : ''
+          }
+          confirmLabel="Delete"
+          confirmVariant="danger"
+          loading={deleteLoading}
+          onCancel={() => {
+            if (deleteLoading) return;
+            setDeleteTarget(null);
+          }}
+          onConfirm={() => deleteTarget && handleDelete(deleteTarget.product_id)}
+        />
       </div>
   );
 };

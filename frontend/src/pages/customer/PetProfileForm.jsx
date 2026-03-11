@@ -24,6 +24,20 @@ const PetProfileForm = () => {
   const [showFeedingForm, setShowFeedingForm] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
+  const [vaccinationForm, setVaccinationForm] = useState({
+    vaccine_name: '',
+    vaccination_date: '',
+    next_due_date: '',
+    notes: '',
+  });
+  const [feedingForm, setFeedingForm] = useState({
+    food_type: '',
+    feeding_time: '',
+    quantity: '',
+    notes: '',
+  });
+  const [savingVaccination, setSavingVaccination] = useState(false);
+  const [savingFeeding, setSavingFeeding] = useState(false);
 
   const {
     register,
@@ -111,25 +125,51 @@ const PetProfileForm = () => {
     reader.readAsDataURL(file);
   };
 
-  const handleAddVaccination = async (vaccinationData) => {
+  const handleAddVaccination = async () => {
+    if (!isEdit || !id) {
+      toast.error('Save the pet profile before adding vaccinations.');
+      return;
+    }
+    setSavingVaccination(true);
     try {
-      const response = await api.post(`/customer-pets/${id || 'new'}/vaccinations`, vaccinationData);
-      setVaccinations([...vaccinations, response.data.data]);
-      setShowVaccinationForm(false);
+      await api.post(`/customer-pets/${id}/vaccinations`, vaccinationForm);
       toast.success('Vaccination added');
+      setShowVaccinationForm(false);
+      setVaccinationForm({
+        vaccine_name: '',
+        vaccination_date: '',
+        next_due_date: '',
+        notes: '',
+      });
+      await loadPetData();
     } catch (error) {
-      toast.error('Failed to add vaccination');
+      toast.error(error.response?.data?.message || 'Failed to add vaccination');
+    } finally {
+      setSavingVaccination(false);
     }
   };
 
-  const handleAddFeedingSchedule = async (scheduleData) => {
+  const handleAddFeedingSchedule = async () => {
+    if (!isEdit || !id) {
+      toast.error('Save the pet profile before adding feeding schedules.');
+      return;
+    }
+    setSavingFeeding(true);
     try {
-      const response = await api.post(`/customer-pets/${id || 'new'}/feeding-schedules`, scheduleData);
-      setFeedingSchedules([...feedingSchedules, response.data.data]);
-      setShowFeedingForm(false);
+      await api.post(`/customer-pets/${id}/feeding-schedules`, feedingForm);
       toast.success('Feeding schedule added');
+      setShowFeedingForm(false);
+      setFeedingForm({
+        food_type: '',
+        feeding_time: '',
+        quantity: '',
+        notes: '',
+      });
+      await loadPetData();
     } catch (error) {
-      toast.error('Failed to add feeding schedule');
+      toast.error(error.response?.data?.message || 'Failed to add feeding schedule');
+    } finally {
+      setSavingFeeding(false);
     }
   };
 
@@ -365,6 +405,134 @@ const PetProfileForm = () => {
             </Button>
           </div>
         </form>
+
+        {/* Add Vaccination Modal */}
+        {showVaccinationForm && (
+          <Modal
+            isOpen={showVaccinationForm}
+            onClose={() => setShowVaccinationForm(false)}
+            title="Add Vaccination"
+            size="md"
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddVaccination();
+              }}
+              className="space-y-4"
+            >
+              <Input
+                label="Vaccine Name"
+                value={vaccinationForm.vaccine_name}
+                onChange={(e) => setVaccinationForm({ ...vaccinationForm, vaccine_name: e.target.value })}
+                required
+                placeholder="e.g., Rabies, DHLPP"
+              />
+              <Input
+                label="Vaccination Date"
+                type="date"
+                value={vaccinationForm.vaccination_date}
+                onChange={(e) => setVaccinationForm({ ...vaccinationForm, vaccination_date: e.target.value })}
+                required
+              />
+              <Input
+                label="Next Due Date (optional)"
+                type="date"
+                value={vaccinationForm.next_due_date}
+                onChange={(e) => setVaccinationForm({ ...vaccinationForm, next_due_date: e.target.value })}
+              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Notes
+                </label>
+                <textarea
+                  rows={3}
+                  className="input-field"
+                  value={vaccinationForm.notes}
+                  onChange={(e) => setVaccinationForm({ ...vaccinationForm, notes: e.target.value })}
+                  placeholder="Additional details about this vaccination"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900" loading={savingVaccination}>
+                  <CheckCircle className="w-4 h-4 inline mr-2" />
+                  Save Vaccination
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowVaccinationForm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Modal>
+        )}
+
+        {/* Add Feeding Schedule Modal */}
+        {showFeedingForm && (
+          <Modal
+            isOpen={showFeedingForm}
+            onClose={() => setShowFeedingForm(false)}
+            title="Add Feeding Schedule"
+            size="md"
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAddFeedingSchedule();
+              }}
+              className="space-y-4"
+            >
+              <Input
+                label="Food Type"
+                value={feedingForm.food_type}
+                onChange={(e) => setFeedingForm({ ...feedingForm, food_type: e.target.value })}
+                required
+                placeholder="e.g., Dry food, Wet food"
+              />
+              <Input
+                label="Feeding Time"
+                type="time"
+                value={feedingForm.feeding_time}
+                onChange={(e) => setFeedingForm({ ...feedingForm, feeding_time: e.target.value })}
+                required
+              />
+              <Input
+                label="Quantity (optional)"
+                value={feedingForm.quantity}
+                onChange={(e) => setFeedingForm({ ...feedingForm, quantity: e.target.value })}
+                placeholder="e.g., 1 cup"
+              />
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                  Notes
+                </label>
+                <textarea
+                  rows={3}
+                  className="input-field"
+                  value={feedingForm.notes}
+                  onChange={(e) => setFeedingForm({ ...feedingForm, notes: e.target.value })}
+                  placeholder="Additional details about this feeding schedule"
+                />
+              </div>
+              <div className="flex gap-2 pt-2">
+                <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900" loading={savingFeeding}>
+                  <CheckCircle className="w-4 h-4 inline mr-2" />
+                  Save Schedule
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowFeedingForm(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Modal>
+        )}
       </div>
     </Layout>
   );

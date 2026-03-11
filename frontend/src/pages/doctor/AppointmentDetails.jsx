@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate, formatTime } from '../../utils/formatters';
 import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
@@ -43,11 +44,14 @@ const AppointmentDetails = () => {
   const [healthHistory, setHealthHistory] = useState([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [notes, setNotes] = useState({
     diagnosis: '',
     prescription: '',
     treatmentNotes: '',
   });
+  const [rejectConfirmOpen, setRejectConfirmOpen] = useState(false);
+  const [rejectLoading, setRejectLoading] = useState(false);
 
   useEffect(() => {
     loadAppointmentDetails();
@@ -62,13 +66,18 @@ const AppointmentDetails = () => {
 
       const historyRes = await api.get(`/health-records/pet/${appointmentData.customer_pet_id}`);
       setHealthHistory(historyRes.data.data || []);
-      if (appointmentData.doctor_notes) {
-        setNotes({
-          diagnosis: appointmentData.diagnosis ?? '',
-          prescription: appointmentData.prescription ?? '',
-          treatmentNotes: appointmentData.doctor_notes ?? '',
-        });
-      }
+      const initialNotes = {
+        diagnosis: appointmentData.diagnosis ?? '',
+        prescription: appointmentData.prescription ?? '',
+        treatmentNotes: appointmentData.doctor_notes ?? '',
+      };
+      setNotes(initialNotes);
+
+      const hasExistingNotes =
+        (initialNotes.diagnosis && initialNotes.diagnosis.trim() !== '') ||
+        (initialNotes.prescription && initialNotes.prescription.trim() !== '') ||
+        (initialNotes.treatmentNotes && initialNotes.treatmentNotes.trim() !== '');
+      setIsEditing(!hasExistingNotes);
     } catch (error) {
       console.error('Error loading appointment details:', error);
       setAppointment(null);
@@ -84,8 +93,22 @@ const AppointmentDetails = () => {
         status: appointment.status,
         doctor_notes: notes.treatmentNotes || notes.diagnosis || notes.prescription || '',
       });
+
+      // Also persist diagnosis & prescription into health records so they
+      // reliably show up for both doctor and customer views on reload.
+      if (notes.diagnosis || notes.prescription || notes.treatmentNotes) {
+        await api.post('/health-records', {
+          appointment_id: id,
+          customer_pet_id: appointment.customer_pet_id,
+          diagnosis: notes.diagnosis,
+          prescription: notes.prescription,
+          treatment_notes: notes.treatmentNotes,
+        });
+      }
+
       toast.success('Consultation notes synchronized');
       loadAppointmentDetails();
+      setIsEditing(false);
     } catch (error) {
       toast.error('Synchronization failure');
     } finally {
@@ -106,8 +129,8 @@ const AppointmentDetails = () => {
   };
 
   const handleReject = async () => {
-    if (!window.confirm('Confirm rejection of this session?')) return;
     try {
+      setRejectLoading(true);
       await api.put(`/appointments/${id}/status`, {
         status: 'rejected',
       });
@@ -115,6 +138,9 @@ const AppointmentDetails = () => {
       navigate('/doctor/appointments');
     } catch (error) {
       toast.error('Failed to reject session');
+    } finally {
+      setRejectLoading(false);
+      setRejectConfirmOpen(false);
     }
   };
 
@@ -307,10 +333,11 @@ const AppointmentDetails = () => {
                     Diagnosis Details
                   </label>
                   <textarea
+                    disabled={!isEditing}
                     value={notes.diagnosis}
                     onChange={(e) => setNotes({ ...notes, diagnosis: e.target.value })}
                     rows={4}
-                    className="input-field !rounded-2xl !py-4 !border-slate-200 focus:!ring-2 focus:!ring-slate-900/10 focus:!border-slate-300"
+                    className="input-field !rounded-xl !py-4 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     placeholder="Enter professional clinical observations..."
                   />
                 </div>
@@ -321,10 +348,11 @@ const AppointmentDetails = () => {
                     Prescription Specifications
                   </label>
                   <textarea
+                    disabled={!isEditing}
                     value={notes.prescription}
                     onChange={(e) => setNotes({ ...notes, prescription: e.target.value })}
                     rows={4}
-                    className="input-field !rounded-2xl !py-4 !border-slate-200 focus:!ring-2 focus:!ring-slate-900/10 focus:!border-slate-300"
+                    className="input-field !rounded-xl !py-4 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     placeholder="Document necessary medications and dosages..."
                   />
                 </div>
@@ -335,24 +363,35 @@ const AppointmentDetails = () => {
                     Observation Notes
                   </label>
                   <textarea
+                    disabled={!isEditing}
                     value={notes.treatmentNotes}
                     onChange={(e) => setNotes({ ...notes, treatmentNotes: e.target.value })}
                     rows={4}
-                    className="input-field !rounded-2xl !py-4 !border-slate-200 focus:!ring-2 focus:!ring-slate-900/10 focus:!border-slate-300"
+                    className="input-field !rounded-xl !py-4 disabled:bg-slate-50 disabled:text-slate-500 disabled:cursor-not-allowed"
                     placeholder="Internal treatment and follow-up guidance..."
                   />
                 </div>
 
                 <div className="pt-4">
-                  <Button
-                    onClick={handleSaveNotes}
-                    disabled={saving}
-                    className="w-full !bg-slate-900 hover:!bg-slate-800 !py-4 !rounded-2xl !font-medium"
-                    loading={saving}
-                  >
-                    <ShieldCheck className="w-5 h-5 inline mr-2" />
-                    Save Clinical Progress
-                  </Button>
+                  {isEditing ? (
+                    <Button
+                      onClick={handleSaveNotes}
+                      disabled={saving}
+                      className="w-full !bg-slate-800 hover:!bg-slate-900 !py-4"
+                      loading={saving}
+                    >
+                      <ShieldCheck className="w-5 h-5 inline mr-2" />
+                      Save Clinical Progress
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => setIsEditing(true)}
+                      className="w-full !bg-slate-700 hover:!bg-slate-800 !py-4"
+                    >
+                      <ShieldCheck className="w-5 h-5 inline mr-2" />
+                      Edit Clinical Progress
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -365,7 +404,7 @@ const AppointmentDetails = () => {
                     <CheckCircle2 className="w-5 h-5 inline mr-2" />
                     Accept Session
                   </Button>
-                  <Button onClick={handleReject} variant="danger" className="!py-4 !rounded-2xl !font-medium">
+                  <Button onClick={() => setRejectConfirmOpen(true)} variant="danger" className="!py-4">
                     <XCircle className="w-5 h-5 inline mr-2" />
                     Reject Session
                   </Button>
@@ -392,6 +431,20 @@ const AppointmentDetails = () => {
             </div>
           </div>
         </div>
+        {/* Reject confirmation dialog */}
+        <ConfirmDialog
+          isOpen={rejectConfirmOpen}
+          title="Reject session"
+          message="Are you sure you want to reject this appointment?"
+          confirmLabel="Yes, reject"
+          confirmVariant="danger"
+          loading={rejectLoading}
+          onCancel={() => {
+            if (rejectLoading) return;
+            setRejectConfirmOpen(false);
+          }}
+          onConfirm={handleReject}
+        />
       </div>
     </Layout>
   );

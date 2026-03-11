@@ -4,6 +4,7 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate, formatCurrency } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
@@ -26,6 +27,8 @@ const PreBookings = () => {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [itemType, setItemType] = useState('pet');
+  const [cancelTarget, setCancelTarget] = useState(null);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     loadPreBookings();
@@ -88,14 +91,16 @@ const PreBookings = () => {
   };
 
   const handleCancel = async (preBookingId) => {
-    if (!window.confirm('Are you sure you want to cancel this pre-booking?')) return;
-
     try {
+      setCancelLoading(true);
       await api.delete(`/pre-bookings/${preBookingId}`);
       toast.success('Pre-booking cancelled');
       loadPreBookings();
     } catch (error) {
       toast.error('Failed to cancel pre-booking');
+    } finally {
+      setCancelLoading(false);
+      setCancelTarget(null);
     }
   };
 
@@ -193,7 +198,7 @@ const PreBookings = () => {
                       <Button
                         variant="danger"
                         size="sm"
-                        onClick={() => handleCancel(preBooking.pre_booking_id)}
+                        onClick={() => setCancelTarget(preBooking)}
                         className="w-full"
                       >
                         <XCircle className="w-4 h-4 inline mr-1" />
@@ -280,6 +285,25 @@ const PreBookings = () => {
             </div>
           </form>
         </Modal>
+
+        {/* Cancel confirmation dialog */}
+        <ConfirmDialog
+          isOpen={!!cancelTarget}
+          title="Cancel pre-booking"
+          message={
+            cancelTarget
+              ? `Are you sure you want to cancel pre-booking #${cancelTarget.pre_booking_id}?`
+              : ''
+          }
+          confirmLabel="Yes, cancel"
+          confirmVariant="danger"
+          loading={cancelLoading}
+          onCancel={() => {
+            if (cancelLoading) return;
+            setCancelTarget(null);
+          }}
+          onConfirm={() => cancelTarget && handleCancel(cancelTarget.pre_booking_id)}
+        />
       </div>
     </Layout>
   );

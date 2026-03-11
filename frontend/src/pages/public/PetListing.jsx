@@ -129,28 +129,26 @@ const PetListing = () => {
             </div>
           </aside>
 
-            {/* Main content */}
-            <div className="flex-1 flex flex-col md:flex-row">
-              {/* Center: hero + grids */}
-              <main className="flex-1 p-5 md:p-7 space-y-6">
-                {/* Top bar with search */}
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                  <div>
-                    <h1 className="text-2xl md:text-3xl font-semibold text-slate-50 tracking-tight">
-                      Browse Pets
-                    </h1>
-                    <p className="text-xs md:text-sm text-slate-400 mt-1">
-                      Trending companions and new arrivals curated just for you.
-                    </p>
-                  </div>
-                  <div className="w-full md:w-72">
+          {/* Main Content */}
+          <div className="flex-1">
+            <div className="mb-4 relative">
               <input
                 type="text"
                       placeholder="Search by name, breed, or species..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                      className="w-full rounded-full bg-slate-900/80 border border-slate-700/70 text-sm text-slate-100 placeholder:text-slate-500 px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-emerald-400/70 focus:border-transparent"
+                className="input-field pr-8"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  aria-label="Clear search"
+                >
+                  ×
+                </button>
+              )}
             </div>
                 </div>
 

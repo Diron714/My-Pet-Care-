@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
+import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatCurrency, formatDate } from '../../utils/formatters';
 import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
@@ -22,6 +23,8 @@ const OrderDetails = () => {
   const navigate = useNavigate();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
 
   useEffect(() => {
     loadOrderDetails();
@@ -40,14 +43,16 @@ const OrderDetails = () => {
   };
 
   const handleCancel = async () => {
-    if (!window.confirm('Are you sure you want to cancel this order?')) return;
-
     try {
+      setCancelLoading(true);
       await api.put(`/orders/${id}/cancel`);
       toast.success('Order cancelled successfully');
       loadOrderDetails();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to cancel order');
+    } finally {
+      setCancelLoading(false);
+      setCancelConfirmOpen(false);
     }
   };
 
@@ -256,7 +261,7 @@ const OrderDetails = () => {
             Download Invoice
           </Button>
           {order.order_status === 'pending' && (
-            <Button onClick={handleCancel} variant="danger">
+            <Button onClick={() => setCancelConfirmOpen(true)} variant="danger">
               <XCircle className="w-4 h-4 inline mr-2" />
               Cancel Order
             </Button>
@@ -274,6 +279,20 @@ const OrderDetails = () => {
             </>
           )}
         </div>
+        {/* Cancel confirmation dialog */}
+        <ConfirmDialog
+          isOpen={cancelConfirmOpen}
+          title="Cancel order"
+          message={`Are you sure you want to cancel order #${order.order_number}?`}
+          confirmLabel="Yes, cancel"
+          confirmVariant="danger"
+          loading={cancelLoading}
+          onCancel={() => {
+            if (cancelLoading) return;
+            setCancelConfirmOpen(false);
+          }}
+          onConfirm={handleCancel}
+        />
       </div>
     </Layout>
   );

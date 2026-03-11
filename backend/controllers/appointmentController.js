@@ -56,11 +56,28 @@ export const getAppointments = async (req, res) => {
         query += ` ORDER BY a.appointment_date DESC, a.appointment_time ASC LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), parseInt(offset));
 
-        const [appointments] = await pool.query(query, params);
+        const [rows] = await pool.query(query, params);
+
+        // Shape rows so frontend gets doctor, customer, customer_pet
+        const data = rows.map((a) => ({
+            ...a,
+            doctor: {
+                user: { first_name: a.dr_first_name, last_name: a.dr_last_name },
+                specialization: a.specialization,
+            },
+            customer: {
+                user: { first_name: a.cu_first_name, last_name: a.cu_last_name },
+            },
+            customer_pet: {
+                name: a.pet_name,
+                species: a.species,
+                breed: a.breed,
+            },
+        }));
 
         res.json({
             success: true,
-            data: appointments
+            data,
         });
     } catch (error) {
         console.error('Get appointments error:', error);
@@ -117,6 +134,19 @@ export const getAppointmentById = async (req, res) => {
         }
 
         const a = appointments[0];
+
+        // Get latest health record (if any) linked to this appointment
+        const [healthRecords] = await pool.query(
+            `SELECT diagnosis, prescription, treatment_notes 
+             FROM health_records 
+             WHERE appointment_id = ? 
+             ORDER BY record_date DESC, created_at DESC 
+             LIMIT 1`,
+            [id]
+        );
+
+        const latestRecord = healthRecords[0] || {};
+
         const data = {
             ...a,
             doctor: {
@@ -126,6 +156,17 @@ export const getAppointmentById = async (req, res) => {
             customer: {
                 user: { first_name: a.cu_first_name, last_name: a.cu_last_name },
             },
+            customer_pet: {
+                name: a.pet_name,
+                species: a.species,
+                breed: a.breed,
+            },
+            // Surface clinical summary fields for customer/doctor views
+            // Prefer values stored directly on the appointment (latest edit),
+            // fall back to latest health record only if appointment fields are empty.
+            diagnosis: a.diagnosis || latestRecord.diagnosis || null,
+            prescription: a.prescription || latestRecord.prescription || null,
+            doctor_notes: a.doctor_notes || latestRecord.treatment_notes || null,
         };
 
         res.json({

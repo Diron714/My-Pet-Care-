@@ -1,3 +1,4 @@
+import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useLocation, Navigate } from 'react-router-dom';
 import RequireAuth from '../components/common/RequireAuth';
 import Layout from '../components/layout/Layout';
@@ -18,9 +19,22 @@ const DashboardShell = () => {
   );
 };
 
+// Scroll to top on route change so new pages start from the top,
+// even if the user clicked a button at the bottom of the previous page.
+const ScrollToTop = () => {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  return null;
+};
+
 const AppRoutes = () => {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route
           path="/customer/*"
