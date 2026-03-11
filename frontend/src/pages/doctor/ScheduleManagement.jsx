@@ -79,52 +79,48 @@ const ScheduleManagement = () => {
   };
 
   const daysOfWeek = [
-    { value: 'monday', label: 'Monday', color: 'blue' },
-    { value: 'tuesday', label: 'Tuesday', color: 'purple' },
-    { value: 'wednesday', label: 'Wednesday', color: 'emerald' },
-    { value: 'thursday', label: 'Thursday', color: 'amber' },
-    { value: 'friday', label: 'Friday', color: 'rose' },
-    { value: 'saturday', label: 'Saturday', color: 'violet' },
-    { value: 'sunday', label: 'Sunday', color: 'slate' },
+    { value: 'monday', label: 'Monday', cardClass: 'bg-blue-50/80 border-blue-100', slotClass: 'bg-blue-100 border-blue-200' },
+    { value: 'tuesday', label: 'Tuesday', cardClass: 'bg-purple-50/80 border-purple-100', slotClass: 'bg-purple-100 border-purple-200' },
+    { value: 'wednesday', label: 'Wednesday', cardClass: 'bg-emerald-50/80 border-emerald-100', slotClass: 'bg-emerald-100 border-emerald-200' },
+    { value: 'thursday', label: 'Thursday', cardClass: 'bg-amber-50/80 border-amber-100', slotClass: 'bg-amber-100 border-amber-200' },
+    { value: 'friday', label: 'Friday', cardClass: 'bg-rose-50/80 border-rose-100', slotClass: 'bg-rose-100 border-rose-200' },
+    { value: 'saturday', label: 'Saturday', cardClass: 'bg-violet-50/80 border-violet-100', slotClass: 'bg-violet-100 border-violet-200' },
+    { value: 'sunday', label: 'Sunday', cardClass: 'bg-slate-50 border-slate-200', slotClass: 'bg-slate-100 border-slate-200' },
   ];
-
-  const getDayColor = (day) => {
-    const dayConfig = daysOfWeek.find(d => d.value === day);
-    return dayConfig?.color || 'slate';
-  };
 
   if (loading) return <Layout><Loading /></Layout>;
 
   return (
     <Layout>
-      <div className="page-shell">
-        <div className="page-header">
+      <div className="page-shell max-w-6xl">
+        <div className="page-header mb-8">
           <div>
-            <h1 className="page-title">Schedule Management</h1>
-            <p className="page-subtitle">Manage your weekly availability and appointment slots</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Schedule Management</h1>
+            <p className="page-subtitle mt-1">Manage your weekly availability and appointment slots</p>
           </div>
           <Button onClick={() => {
             setEditingSchedule(null);
             setShowForm(true);
-          }} className="!bg-slate-800 hover:!bg-slate-900">
+          }} className="!rounded-xl !font-medium !bg-slate-900 hover:!bg-slate-800">
             <Plus className="w-4 h-4 inline mr-2" />
             Add Schedule Slot
           </Button>
         </div>
 
         {/* Weekly Schedule View */}
-        <div className="card mb-6">
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-2 mb-6">
-            <Calendar className="w-5 h-5 text-slate-600" />
-            <h2 className="text-xl font-bold text-slate-900">Weekly Schedule</h2>
+            <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
+              <Calendar className="w-5 h-5 text-slate-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-slate-900">Weekly Schedule</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-7 gap-4">
             {daysOfWeek.map((day) => {
               const daySchedules = schedules.filter((s) => s.day_of_week === day.value && s.is_active);
-              const color = day.color;
               return (
-                <div key={day.value} className={`border-2 rounded-xl p-4 bg-gradient-to-br from-${color}-50 to-${color}-100 border-${color}-200`}>
-                  <h3 className="font-bold text-slate-900 capitalize mb-3 text-center">{day.label}</h3>
+                <div key={day.value} className={`rounded-2xl border p-4 ${day.cardClass}`}>
+                  <h3 className="font-semibold text-slate-900 capitalize mb-3 text-center text-sm">{day.label}</h3>
                   {daySchedules.length === 0 ? (
                     <div className="text-center py-4">
                       <Clock className="w-8 h-8 text-slate-300 mx-auto mb-2" />
@@ -133,8 +129,8 @@ const ScheduleManagement = () => {
                   ) : (
                     <div className="space-y-2">
                       {daySchedules.map((schedule) => (
-                        <div key={schedule.schedule_id} className={`p-2 rounded-lg bg-${color}-200 border border-${color}-300`}>
-                          <p className="text-xs font-bold text-slate-900">{schedule.start_time} - {schedule.end_time}</p>
+                        <div key={schedule.schedule_id} className={`p-2.5 rounded-xl border text-center ${day.slotClass}`}>
+                          <p className="text-xs font-semibold text-slate-900">{schedule.start_time} - {schedule.end_time}</p>
                           <p className="text-[10px] text-slate-600">{schedule.slot_duration} min slots</p>
                         </div>
                       ))}
@@ -147,13 +143,15 @@ const ScheduleManagement = () => {
         </div>
 
         {/* Schedule List */}
-        <div className="card">
-          <div className="flex items-center gap-2 mb-6">
-            <Filter className="w-5 h-5 text-slate-600" />
-            <h2 className="text-xl font-bold text-slate-900">All Schedule Slots</h2>
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm overflow-hidden">
+          <div className="flex items-center gap-2 p-6 border-b border-slate-200/80">
+            <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
+              <Filter className="w-5 h-5 text-slate-600" />
+            </div>
+            <h2 className="text-xl font-semibold text-slate-900">All Schedule Slots</h2>
           </div>
           {schedules.length === 0 ? (
-            <div className="card">
+            <div className="p-8">
               <EmptyState
                 icon={Clock}
                 title="No schedule slots"
@@ -161,7 +159,7 @@ const ScheduleManagement = () => {
               />
             </div>
           ) : (
-            <div className="table-shell">
+            <div className="overflow-x-auto">
               <table className="table">
                 <thead>
                   <tr>
@@ -210,12 +208,12 @@ const ScheduleManagement = () => {
                         </span>
                       </td>
                       <td className="text-right">
-                        <div className="flex justify-end space-x-2">
+                        <div className="flex justify-end gap-2">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleEdit(schedule)}
-                            className="!rounded-lg !px-3 !py-1.5"
+                            className="!rounded-xl !px-3 !py-1.5 !border-slate-200 hover:!bg-slate-50"
                           >
                             <Edit className="w-4 h-4" />
                           </Button>
@@ -249,14 +247,14 @@ const ScheduleManagement = () => {
         >
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-sm font-medium text-slate-600 mb-2">
                 <Calendar className="w-4 h-4 inline mr-1" />
                 Day of Week <span className="text-red-500">*</span>
               </label>
               <select
                 name="day_of_week"
                 defaultValue={editingSchedule?.day_of_week || ''}
-                className="input-field !rounded-xl !py-3"
+                className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10"
                 required
               >
                 <option value="">Select day</option>
@@ -294,18 +292,18 @@ const ScheduleManagement = () => {
               step={15}
             />
 
-            <div className="flex items-center p-4 bg-slate-50 rounded-xl border border-slate-200">
+            <div className="flex items-center p-4 rounded-2xl bg-slate-50 border border-slate-200/80">
               <input
                 type="checkbox"
                 name="is_active"
                 defaultChecked={editingSchedule?.is_active !== false}
-                className="mr-3 w-4 h-4"
+                className="mr-3 w-4 h-4 rounded border-slate-300"
               />
-              <label className="text-sm font-semibold text-slate-700">Active Schedule</label>
+              <label className="text-sm font-medium text-slate-700">Active Schedule</label>
             </div>
 
-            <div className="flex space-x-4">
-              <Button type="submit" className="flex-1 !bg-slate-800 hover:!bg-slate-900">
+            <div className="flex gap-4">
+              <Button type="submit" className="flex-1 !rounded-2xl !font-medium !bg-slate-900 hover:!bg-slate-800 !py-3">
                 <CheckCircle className="w-4 h-4 inline mr-2" />
                 {editingSchedule ? 'Update' : 'Add'} Schedule
               </Button>
@@ -316,6 +314,7 @@ const ScheduleManagement = () => {
                   setShowForm(false);
                   setEditingSchedule(null);
                 }}
+                className="!rounded-2xl !font-medium !border-slate-200 hover:!bg-slate-50"
               >
                 Cancel
               </Button>

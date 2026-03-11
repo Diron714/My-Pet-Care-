@@ -60,14 +60,14 @@ const HealthRecords = () => {
 
   return (
     <Layout>
-      <div className="page-shell">
-        <div className="page-header">
+      <div className="page-shell max-w-6xl">
+        <div className="page-header mb-8">
           <div>
-            <h1 className="page-title">Health Records</h1>
-            <p className="page-subtitle">Manage and review comprehensive health records for all pets</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-slate-900">Health Records</h1>
+            <p className="page-subtitle mt-1">Manage and review comprehensive health records for all pets</p>
           </div>
           <Link to="/doctor/health-records/new">
-            <Button className="!bg-slate-800 hover:!bg-slate-900">
+            <Button className="!rounded-xl !font-medium !bg-slate-900 hover:!bg-slate-800">
               <Plus className="w-4 h-4 inline mr-2" />
               Create New Record
             </Button>
@@ -75,10 +75,12 @@ const HealthRecords = () => {
         </div>
 
         {/* Filters */}
-        <div className="card mb-6 p-6">
+        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-6 mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-500" />
-            <h2 className="text-lg font-semibold text-slate-800">Filter Records</h2>
+            <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
+              <Filter className="w-5 h-5 text-slate-600" />
+            </div>
+            <h2 className="text-lg font-semibold text-slate-900">Filter Records</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
@@ -128,7 +130,7 @@ const HealthRecords = () => {
                 placeholder="From date"
                 value={filters.dateFrom}
                 onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="input-field !rounded-xl !py-2.5 !pl-10"
+                className="input-field !rounded-2xl !py-2.5 !pl-10 !border-slate-200 focus:!ring-slate-900/10"
               />
             </div>
             <div className="relative">
@@ -138,14 +140,14 @@ const HealthRecords = () => {
                 placeholder="To date"
                 value={filters.dateTo}
                 onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="input-field !rounded-xl !py-2.5 !pl-10"
+                className="input-field !rounded-2xl !py-2.5 !pl-10 !border-slate-200 focus:!ring-slate-900/10"
               />
             </div>
           </div>
         </div>
 
         {records.length === 0 ? (
-          <div className="card">
+          <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-8">
             <EmptyState
               icon={FileText}
               title="No health records found"
@@ -209,13 +211,13 @@ const HealthRecords = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewDetails(record.record_id)}
-                          className="!rounded-lg !px-3 !py-1.5 text-xs"
+                          className="!rounded-xl !px-3 !py-1.5 text-xs !border-slate-200 hover:!bg-slate-50"
                         >
                           <Eye className="w-4 h-4 inline mr-1" />
                           View
                         </Button>
                         <Link to={`/doctor/health-records/${record.record_id}/edit`}>
-                          <Button variant="outline" size="sm" className="!rounded-lg !px-3 !py-1.5 text-xs">
+                          <Button variant="outline" size="sm" className="!rounded-xl !px-3 !py-1.5 text-xs !border-slate-200 hover:!bg-slate-50">
                             <Edit className="w-4 h-4 inline mr-1" />
                             Edit
                           </Button>
@@ -239,50 +241,60 @@ const HealthRecords = () => {
           >
             <div className="space-y-5 text-slate-700">
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <PawPrint className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-bold text-blue-900">Pet Information</h3>
+                <div className="p-5 bg-blue-50/80 rounded-2xl border border-blue-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-9 w-9 rounded-2xl bg-blue-100 flex items-center justify-center">
+                      <PawPrint className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900">Pet Information</h3>
                   </div>
-                  <p className="text-blue-800"><span className="font-semibold">Name:</span> {selectedRecord.customer_pet?.name}</p>
-                  <p className="text-blue-800"><span className="font-semibold">Species:</span> {selectedRecord.customer_pet?.species}</p>
-                  <p className="text-blue-800"><span className="font-semibold">Breed:</span> {selectedRecord.customer_pet?.breed || 'N/A'}</p>
+                  <p className="text-slate-700 text-sm"><span className="font-medium text-slate-500">Name:</span> {selectedRecord.customer_pet?.name}</p>
+                  <p className="text-slate-700 text-sm"><span className="font-medium text-slate-500">Species:</span> {selectedRecord.customer_pet?.species}</p>
+                  <p className="text-slate-700 text-sm"><span className="font-medium text-slate-500">Breed:</span> {selectedRecord.customer_pet?.breed || 'N/A'}</p>
                 </div>
-                <div className="p-4 bg-purple-50 rounded-xl border border-purple-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <User className="w-5 h-5 text-purple-600" />
-                    <h3 className="font-bold text-purple-900">Customer</h3>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
+                      <User className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900">Customer</h3>
                   </div>
-                  <p className="text-purple-800">
+                  <p className="text-slate-700 text-sm">
                     {selectedRecord.customer?.user?.first_name} {selectedRecord.customer?.user?.last_name}
                   </p>
                 </div>
               </div>
               {selectedRecord.diagnosis && (
-                <div className="p-4 bg-slate-50 rounded-xl border border-slate-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Stethoscope className="w-5 h-5 text-slate-600" />
-                    <h3 className="font-bold text-slate-900">Diagnosis</h3>
+                <div className="p-5 bg-slate-50 rounded-2xl border border-slate-200/80">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
+                      <Stethoscope className="w-5 h-5 text-slate-600" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900">Diagnosis</h3>
                   </div>
-                  <p className="text-slate-700 leading-relaxed">{selectedRecord.diagnosis}</p>
+                  <p className="text-slate-700 leading-relaxed text-sm">{selectedRecord.diagnosis}</p>
                 </div>
               )}
               {selectedRecord.prescription && (
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Pill className="w-5 h-5 text-emerald-600" />
-                    <h3 className="font-bold text-emerald-900">Prescription</h3>
+                <div className="p-5 bg-emerald-50/80 rounded-2xl border border-emerald-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-9 w-9 rounded-2xl bg-emerald-100 flex items-center justify-center">
+                      <Pill className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900">Prescription</h3>
                   </div>
-                  <p className="text-emerald-800 leading-relaxed">{selectedRecord.prescription}</p>
+                  <p className="text-slate-700 leading-relaxed text-sm">{selectedRecord.prescription}</p>
                 </div>
               )}
               {selectedRecord.treatment_notes && (
-                <div className="p-4 bg-amber-50 rounded-xl border border-amber-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    <AlertCircle className="w-5 h-5 text-amber-600" />
-                    <h3 className="font-bold text-amber-900">Treatment Notes</h3>
+                <div className="p-5 bg-amber-50/80 rounded-2xl border border-amber-100">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="h-9 w-9 rounded-2xl bg-amber-100 flex items-center justify-center">
+                      <AlertCircle className="w-5 h-5 text-amber-600" />
+                    </div>
+                    <h3 className="font-semibold text-slate-900">Treatment Notes</h3>
                   </div>
-                  <p className="text-amber-800 leading-relaxed">{selectedRecord.treatment_notes}</p>
+                  <p className="text-slate-700 leading-relaxed text-sm">{selectedRecord.treatment_notes}</p>
                 </div>
               )}
             </div>

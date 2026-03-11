@@ -92,8 +92,8 @@ const ProductDetails = () => {
               )}
               <div className="absolute top-4 right-4">
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold uppercase tracking-wider flex items-center gap-2 ${product.stock_quantity > 0
-                    ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
-                    : 'bg-rose-100 text-rose-800 border-2 border-rose-300'
+                  ? 'bg-emerald-100 text-emerald-800 border-2 border-emerald-300'
+                  : 'bg-rose-100 text-rose-800 border-2 border-rose-300'
                   }`}>
                   {product.stock_quantity > 0 ? (
                     <>
@@ -127,8 +127,8 @@ const ProductDetails = () => {
                     <Star
                       key={i}
                       className={`w-5 h-5 ${i < Math.floor(product.rating || 0)
-                          ? 'text-amber-400 fill-amber-400'
-                          : 'text-slate-300'
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-slate-300'
                         }`}
                     />
                   ))}

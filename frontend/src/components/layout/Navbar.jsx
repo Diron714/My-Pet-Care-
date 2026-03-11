@@ -49,29 +49,29 @@ const Navbar = () => {
               </span>
             </Link>
             {(!isAuthenticated || user?.role !== 'customer') && (
-            <div className="hidden md:flex items-center gap-1">
-              <Link
-                to="/pets"
+              <div className="hidden md:flex items-center gap-1">
+                <Link
+                  to="/pets"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
-              >
-                <PawPrint className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                Pets
-              </Link>
-              <Link
-                to="/products"
+                >
+                  <PawPrint className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  Pets
+                </Link>
+                <Link
+                  to="/products"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
-              >
-                <Package className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                Products
-              </Link>
-              <Link
-                to="/doctors"
+                >
+                  <Package className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  Products
+                </Link>
+                <Link
+                  to="/doctors"
                   className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:text-slate-800 transition-all duration-200 group"
-              >
-                <Stethoscope className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                Doctors
-              </Link>
-            </div>
+                >
+                  <Stethoscope className="w-4 h-4 group-hover:scale-110 transition-transform" />
+                  Doctors
+                </Link>
+              </div>
             )}
           </div>
 
@@ -79,8 +79,8 @@ const Navbar = () => {
             {isAuthenticated ? (
               <>
                 {user?.role === 'customer' && (
-                  <Link 
-                    to="/customer/cart" 
+                  <Link
+                    to="/customer/cart"
                     className="relative p-2.5 rounded-xl hover:bg-slate-100 transition-all duration-200 group"
                   >
                     <ShoppingCart className="w-5 h-5 text-slate-700 group-hover:text-slate-800 transition-colors" />
@@ -91,8 +91,8 @@ const Navbar = () => {
                     )}
                   </Link>
                 )}
-                <Link 
-                  to={user?.role === 'customer' ? '/customer/notifications' : '/notifications'} 
+                <Link
+                  to={user?.role === 'customer' ? '/customer/notifications' : '/notifications'}
                   className="relative p-2.5 rounded-xl hover:bg-slate-100 transition-all duration-200 group"
                 >
                   <Bell className="w-5 h-5 text-slate-700 group-hover:text-slate-800 transition-colors" />
@@ -115,12 +115,11 @@ const Navbar = () => {
                     </span>
                   </button>
                   <div
-                    className={`absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl py-2 border border-slate-100 z-50 ${
-                      profileOpen ? '' : 'hidden'
-                    }`}
+                    className={`absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl py-2 border border-slate-100 z-50 ${profileOpen ? '' : 'hidden'
+                      }`}
                   >
-                    <Link 
-                      to={getDashboardPath()} 
+                    <Link
+                      to={getDashboardPath()}
                       className="flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 hover:text-slate-800 transition-colors group"
                     >
                       <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 flex items-center justify-center">
@@ -152,8 +151,8 @@ const Navbar = () => {
                 >
                   Login
                 </Link>
-                <Link 
-                  to="/register" 
+                <Link
+                  to="/register"
                   className="px-5 py-2.5 text-sm font-semibold text-white bg-gradient-to-br from-slate-800 to-slate-900 hover:from-slate-900 hover:to-slate-950 rounded-xl shadow-md hover:shadow-lg transition-all duration-200 active:scale-95"
                 >
                   Register

@@ -162,7 +162,7 @@ export const deleteNotification = async (req, res) => {
 // POST /api/notifications/broadcast - Send broadcast notification (Admin)
 export const broadcastNotification = async (req, res) => {
   try {
-    const { target, notificationType, title, message, relatedId } = req.body;
+    const { target, notificationType, title, message, relatedId, userId: targetUserId } = req.body;
 
     if (!target || !notificationType || !title || !message) {
       return res.status(400).json({
@@ -188,7 +188,30 @@ export const broadcastNotification = async (req, res) => {
       });
     }
 
-    // Get target users
+    let users;
+
+    // Specific user: require userId and send only to that user
+    if (target === 'specific') {
+      const uid = targetUserId != null ? parseInt(targetUserId, 10) : NaN;
+      if (!uid || Number.isNaN(uid)) {
+        return res.status(400).json({
+          success: false,
+          message: 'When targeting a specific user, userId is required'
+        });
+      }
+      const [specificUsers] = await pool.query(
+        `SELECT user_id FROM users WHERE user_id = ? AND is_active = TRUE`,
+        [uid]
+      );
+      if (specificUsers.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'User not found or inactive'
+        });
+      }
+      users = specificUsers;
+    } else {
+      // Get target users (all / customers / doctors)
     let userQuery = `SELECT user_id FROM users WHERE is_active = TRUE`;
     
     if (target === 'customers') {
@@ -198,7 +221,9 @@ export const broadcastNotification = async (req, res) => {
     }
     // 'all' gets all users
 
-    const [users] = await pool.query(userQuery);
+      const [rows] = await pool.query(userQuery);
+      users = rows;
+    }
 
     if (users.length === 0) {
       return res.status(400).json({
@@ -219,10 +244,14 @@ export const broadcastNotification = async (req, res) => {
     await Promise.all(insertPromises);
 
     // Log action
+    const logDesc =
+      target === 'specific'
+        ? `Sent notification to specific user (${users[0].user_id}): ${title}`
+        : `Sent broadcast to ${users.length} ${target} users: ${title}`;
     await pool.query(
       `INSERT INTO audit_logs (user_id, action_type, entity_type, description)
        VALUES (?, 'BROADCAST', 'notification', ?)`,
-      [req.user.userId, `Sent broadcast to ${users.length} ${target} users: ${title}`]
+      [req.user.userId, logDesc]
     );
 
     res.status(201).json({

@@ -12,15 +12,15 @@
   .btn-primary {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-2xl bg-slate-800 text-white font-semibold shadow-sm hover:bg-slate-900 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
   }
-  
+
   .btn-secondary {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-2xl bg-white text-slate-700 border-2 border-slate-200 shadow-sm hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-500 focus-visible:ring-offset-2 disabled:opacity-60 disabled:cursor-not-allowed;
   }
-  
+
   .input-field {
     @apply w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:border-slate-400 transition-all duration-150 disabled:bg-slate-100 disabled:cursor-not-allowed;
   }
-  
+
   .card {
     @apply bg-white rounded-2xl border border-slate-100 shadow-sm p-6 transition-shadow duration-150;
   }
@@ -33,6 +33,7 @@
 }
 
 @layer components {
+
   /* Page chrome */
   .page-shell {
     @apply max-w-7xl mx-auto;
@@ -138,8 +139,8 @@
   from {
     opacity: 0;
   }
+
   to {
     opacity: 1;
   }
 }
-

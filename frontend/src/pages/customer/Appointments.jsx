@@ -160,8 +160,8 @@ const Appointments = () => {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                    ? styles.active
-                    : `bg-white border-2 ${styles.inactive}`
+                  ? styles.active
+                  : `bg-white border-2 ${styles.inactive}`
                   }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />

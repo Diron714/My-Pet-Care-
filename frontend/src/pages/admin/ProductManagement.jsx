@@ -70,9 +70,18 @@ const ProductManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
+    const rawCategory = formData.get('category');
+    const customCategory = formData.get('custom_category')?.toString().trim();
+    const category = rawCategory === '__custom__' ? customCategory : rawCategory;
+
+    if (!category) {
+      toast.error('Category is required');
+      return;
+    }
+
     const data = {
       name: formData.get('name'),
-      category: formData.get('category'),
+      category,
       description: formData.get('description'),
       price: parseFloat(formData.get('price')),
       stock_quantity: parseInt(formData.get('stock_quantity')),
@@ -468,14 +477,34 @@ const ProductManagement = () => {
               <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Category <span className="text-red-500">*</span>
               </label>
-              <select name="category" className="input-field" required defaultValue={editingProduct?.category || ''}>
+              <select
+                name="category"
+                className="input-field mb-2"
+                required
+                defaultValue={
+                  editingProduct && !['Food', 'Toys', 'Accessories', 'Grooming', 'Health'].includes(editingProduct.category)
+                    ? '__custom__'
+                    : editingProduct?.category || ''
+                }
+              >
                 <option value="">Select category</option>
                 <option value="Food">Food</option>
                 <option value="Toys">Toys</option>
                 <option value="Accessories">Accessories</option>
                 <option value="Grooming">Grooming</option>
                 <option value="Health">Health</option>
+                <option value="__custom__">Other (type below)</option>
               </select>
+              <Input
+                label="Custom category (if Other)"
+                name="custom_category"
+                defaultValue={
+                  editingProduct && !['Food', 'Toys', 'Accessories', 'Grooming', 'Health'].includes(editingProduct.category)
+                    ? editingProduct.category
+                    : ''
+                }
+                placeholder="e.g., Supplements, Bedding"
+              />
             </div>
 
             <div>

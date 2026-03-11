@@ -265,9 +265,9 @@ const BookAppointment = () => {
                         src={getImageSrc(selectedPet.image_url)}
                         alt={selectedPet.name}
                         className="w-16 h-16 rounded-lg object-cover border-2 border-blue-300"
-onError={(e) => {
-                        e.target.src = PLACEHOLDER_IMAGE;
-                      }}
+                        onError={(e) => {
+                          e.target.src = PLACEHOLDER_IMAGE;
+                        }}
                       />
                     ) : (
                       <div className="w-16 h-16 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center border-2 border-blue-300">

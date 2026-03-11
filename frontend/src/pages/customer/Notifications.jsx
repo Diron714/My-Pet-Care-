@@ -142,8 +142,8 @@ const Notifications = () => {
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                    ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
-                    : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
+                  ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
+                  : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >
                 <Icon className={`w-4 h-4 ${isActive ? 'text-white' : ''}`} />

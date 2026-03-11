@@ -184,11 +184,10 @@ const DoctorList = () => {
                             {[...Array(5)].map((_, i) => (
                               <Star
                                 key={i}
-                                className={`w-4 h-4 ${
-                                  i < Math.floor(Number(doctor.rating || 0))
-                                    ? 'text-amber-400 fill-amber-400'
-                                    : 'text-slate-300'
-                                }`}
+                                className={`w-4 h-4 ${i < Math.floor(Number(doctor.rating || 0))
+                                  ? 'text-amber-400 fill-amber-400'
+                                  : 'text-slate-300'
+                                  }`}
                               />
                             ))}
                           </div>

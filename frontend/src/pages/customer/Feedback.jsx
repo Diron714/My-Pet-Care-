@@ -166,8 +166,8 @@ const Feedback = () => {
                           <Star
                             key={i}
                             className={`w-4 h-4 ${i < feedback.rating
-                                ? 'text-amber-400 fill-amber-400'
-                                : 'text-slate-300'
+                              ? 'text-amber-400 fill-amber-400'
+                              : 'text-slate-300'
                               }`}
                           />
                         ))}

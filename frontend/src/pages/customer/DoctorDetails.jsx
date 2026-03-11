@@ -109,8 +109,8 @@ const DoctorDetails = () => {
                     <Star
                       key={i}
                       className={`w-5 h-5 ${i < Math.floor(doctor.rating || 0)
-                          ? 'text-amber-400 fill-amber-400'
-                          : 'text-slate-300'
+                        ? 'text-amber-400 fill-amber-400'
+                        : 'text-slate-300'
                         }`}
                     />
                   ))}
@@ -233,8 +233,8 @@ const DoctorDetails = () => {
                             <Star
                               key={i}
                               className={`w-4 h-4 ${i < review.rating
-                                  ? 'text-amber-400 fill-amber-400'
-                                  : 'text-slate-300'
+                                ? 'text-amber-400 fill-amber-400'
+                                : 'text-slate-300'
                                 }`}
                             />
                           ))}
