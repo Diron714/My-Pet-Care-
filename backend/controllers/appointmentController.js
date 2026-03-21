@@ -21,8 +21,8 @@ export const getAppointments = async (req, res) => {
         let query = `
       SELECT a.*, 
              u_dr.first_name as dr_first_name, u_dr.last_name as dr_last_name, d.specialization,
-             u_cu.first_name as cu_first_name, u_cu.last_name as cu_last_name, u_cu.phone as cu_phone, u_cu.email as cu_email,
-             p.name as pet_name, p.species, p.breed, p.age as pet_age, p.image_url as pet_image_url, p.gender as pet_gender
+             u_cu.first_name as cu_first_name, u_cu.last_name as cu_last_name,
+             p.name as pet_name, p.species, p.breed
       FROM appointments a
       JOIN doctors d ON a.doctor_id = d.doctor_id
       JOIN users u_dr ON d.user_id = u_dr.user_id
@@ -66,15 +66,12 @@ export const getAppointments = async (req, res) => {
                 specialization: a.specialization,
             },
             customer: {
-                user: { first_name: a.cu_first_name, last_name: a.cu_last_name, phone: a.cu_phone, email: a.cu_email },
+                user: { first_name: a.cu_first_name, last_name: a.cu_last_name },
             },
             customer_pet: {
                 name: a.pet_name,
                 species: a.species,
                 breed: a.breed,
-                age: a.pet_age,
-                image_url: a.pet_image_url,
-                gender: a.pet_gender,
             },
         }));
 
@@ -101,9 +98,8 @@ export const getAppointmentById = async (req, res) => {
         let query = `
       SELECT a.*,
              u_dr.first_name as dr_first_name, u_dr.last_name as dr_last_name, d.specialization,
-             u_cu.first_name as cu_first_name, u_cu.last_name as cu_last_name, u_cu.phone as cu_phone, u_cu.email as cu_email,
-             c.loyalty_tier as customer_loyalty_tier,
-             p.name as pet_name, p.species, p.breed, p.age as pet_age, p.image_url as pet_image_url, p.gender as pet_gender
+             u_cu.first_name as cu_first_name, u_cu.last_name as cu_last_name,
+             p.name as pet_name, p.species, p.breed
       FROM appointments a
       JOIN doctors d ON a.doctor_id = d.doctor_id
       JOIN users u_dr ON d.user_id = u_dr.user_id
@@ -158,16 +154,12 @@ export const getAppointmentById = async (req, res) => {
                 specialization: a.specialization,
             },
             customer: {
-                user: { first_name: a.cu_first_name, last_name: a.cu_last_name, phone: a.cu_phone, email: a.cu_email },
-                loyalty_tier: a.customer_loyalty_tier || null,
+                user: { first_name: a.cu_first_name, last_name: a.cu_last_name },
             },
             customer_pet: {
                 name: a.pet_name,
                 species: a.species,
                 breed: a.breed,
-                age: a.pet_age,
-                image_url: a.pet_image_url,
-                gender: a.pet_gender,
             },
             // Surface clinical summary fields for customer/doctor views
             // Prefer values stored directly on the appointment (latest edit),

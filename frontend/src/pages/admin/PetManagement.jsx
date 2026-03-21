@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
@@ -33,22 +33,8 @@ const PetManagement = () => {
     available: '',
     search: '',
   });
-  const [searchInput, setSearchInput] = useState('');
-  const [initialLoad, setInitialLoad] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const searchDebounceRef = useRef(null);
-
-  // Debounce search: update filters.search after user stops typing
-  useEffect(() => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: searchInput }));
-    }, 400);
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
 
   useEffect(() => {
     loadPets();
@@ -70,7 +56,6 @@ const PetManagement = () => {
       setPets([]);
     } finally {
       setLoading(false);
-      setInitialLoad(false);
     }
   };
 
@@ -92,34 +77,8 @@ const PetManagement = () => {
     const customSpecies = formData.get('custom_species')?.toString().trim();
     const species = rawSpecies === '__custom__' ? customSpecies : rawSpecies;
 
-    // Validation
     if (!species) {
-      toast.error(rawSpecies === '__custom__' ? 'Please enter a custom species' : 'Species is required');
-      return;
-    }
-    const breed = formData.get('breed')?.toString().trim();
-    if (!breed) {
-      toast.error('Breed is required');
-      return;
-    }
-    const age = parseInt(formData.get('age'), 10);
-    if (isNaN(age) || age < 0) {
-      toast.error('Please enter a valid age (months)');
-      return;
-    }
-    const gender = formData.get('gender');
-    if (!gender) {
-      toast.error('Gender is required');
-      return;
-    }
-    const price = parseFloat(formData.get('price'));
-    if (isNaN(price) || price < 0) {
-      toast.error('Please enter a valid price');
-      return;
-    }
-    const stockQty = parseInt(formData.get('stock_quantity'), 10);
-    if (formData.get('stock_quantity') === '' || isNaN(stockQty) || stockQty < 0) {
-      toast.error('Please enter a valid stock quantity (0 or more)');
+      toast.error('Species is required');
       return;
     }
 
@@ -128,10 +87,10 @@ const PetManagement = () => {
       species,
       breed: formData.get('breed'),
       age: parseInt(formData.get('age')),
-      gender,
+      gender: formData.get('gender'),
       description: formData.get('description'),
-      price,
-      stock_quantity: stockQty,
+      price: parseFloat(formData.get('price')),
+      stock_quantity: parseInt(formData.get('stock_quantity')),
       is_available: formData.get('is_available') === 'on',
       ...(imageDataUrl && { image_url: imageDataUrl }),
     };
@@ -232,7 +191,7 @@ const PetManagement = () => {
     }
   };
 
-  if (initialLoad && loading) return <Loading />;
+  if (loading) return <Loading />;
 
   const availablePets = pets.filter(p => p.is_available).length;
   const totalStock = pets.reduce((sum, p) => sum + (p.stock_quantity || 0), 0);
@@ -294,17 +253,9 @@ const PetManagement = () => {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <Filter className="w-5 h-5 text-slate-500" />
-              <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
-            </div>
-            {loading && (
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
-                Updating
-              </div>
-            )}
+          <div className="flex items-center gap-2 mb-4">
+            <Filter className="w-5 h-5 text-slate-500" />
+            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -314,14 +265,14 @@ const PetManagement = () => {
                 <input
                   type="text"
                   placeholder="Search pets..."
-                  value={searchInput}
-                  onChange={(e) => setSearchInput(e.target.value)}
+                  value={filters.search}
+                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                   className="input-field pl-10 pr-8"
                 />
-                {searchInput && (
+                {filters.search && (
                   <button
                     type="button"
-                    onClick={() => setSearchInput('')}
+                    onClick={() => setFilters({ ...filters, search: '' })}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
@@ -359,10 +310,7 @@ const PetManagement = () => {
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => {
-                  setSearchInput('');
-                  setFilters({ species: '', breed: '', available: '', search: '' });
-                }}
+                onClick={() => setFilters({ species: '', breed: '', available: '', search: '' })}
                 className="w-full"
               >
                 <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -373,8 +321,8 @@ const PetManagement = () => {
         </div>
 
         {/* Pets Grid */}
-        {pets.length === 0 && !loading ? (
-          <div className="card empty-state-enter">
+        {pets.length === 0 ? (
+          <div className="card">
             <EmptyState
               icon={PawPrint}
               title="No pets found"
@@ -382,21 +330,15 @@ const PetManagement = () => {
             />
           </div>
         ) : (
-          <div>
-            <div
-              className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-200 ${
-                loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
-              }`}
-            >
-            {pets.map((pet, index) => {
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {pets.map((pet) => {
               const SpeciesIcon = getSpeciesIcon(pet.species);
               const speciesColors = getSpeciesColor(pet.species);
 
               return (
                 <div
                   key={pet.pet_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${speciesColors.border} overflow-hidden grid-item-enter`}
-                  style={{ animationDelay: `${index * 50}ms` }}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${speciesColors.border} overflow-hidden`}
                 >
                   {/* Pet Image */}
                   <div className="relative h-48 overflow-hidden rounded-t-2xl -mx-6 -mt-6 mb-4">
@@ -517,7 +459,6 @@ const PetManagement = () => {
                 </div>
               );
             })}
-            </div>
           </div>
         )}
 
@@ -637,10 +578,9 @@ const PetManagement = () => {
                 label="Stock Quantity"
                 type="number"
                 name="stock_quantity"
-                min={0}
-                defaultValue={editingPet != null ? editingPet.stock_quantity : ''}
+                defaultValue={editingPet?.stock_quantity || 0}
                 required
-                placeholder="0"
+                placeholder="e.g., 2"
               />
             </div>
 
@@ -697,12 +637,7 @@ const PetManagement = () => {
           title="Delete pet"
           message={
             deleteTarget
-              ? (() => {
-                  const name = deleteTarget.name?.trim();
-                  const fallback = [deleteTarget.species, deleteTarget.breed].filter(Boolean).join(' ') || 'this pet';
-                  const displayName = name || fallback;
-                  return `Are you sure you want to delete ${displayName === 'this pet' ? displayName : `pet "${displayName}"`}?`;
-                })()
+              ? `Are you sure you want to delete pet "${deleteTarget.name}"?`
               : ''
           }
           confirmLabel="Delete"
