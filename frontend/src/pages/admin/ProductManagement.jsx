@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -31,8 +31,22 @@ const ProductManagement = () => {
     available: '',
     search: '',
   });
+  const [searchInput, setSearchInput] = useState('');
+  const [initialLoad, setInitialLoad] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const searchDebounceRef = useRef(null);
+
+  // Debounce search: update filters.search after user stops typing
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchInput }));
+    }, 400);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchInput]);
 
   useEffect(() => {
     loadProducts();
@@ -53,6 +67,7 @@ const ProductManagement = () => {
       setProducts([]);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -74,17 +89,33 @@ const ProductManagement = () => {
     const customCategory = formData.get('custom_category')?.toString().trim();
     const category = rawCategory === '__custom__' ? customCategory : rawCategory;
 
+    // Validation
     if (!category) {
-      toast.error('Category is required');
+      toast.error(rawCategory === '__custom__' ? 'Please enter a custom category' : 'Category is required');
+      return;
+    }
+    const name = formData.get('name')?.toString().trim();
+    if (!name) {
+      toast.error('Product name is required');
+      return;
+    }
+    const price = parseFloat(formData.get('price'));
+    if (isNaN(price) || price < 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+    const stockQty = parseInt(formData.get('stock_quantity'), 10);
+    if (formData.get('stock_quantity') === '' || isNaN(stockQty) || stockQty < 0) {
+      toast.error('Please enter a valid stock quantity (0 or more)');
       return;
     }
 
     const data = {
-      name: formData.get('name'),
+      name,
       category,
       description: formData.get('description'),
-      price: parseFloat(formData.get('price')),
-      stock_quantity: parseInt(formData.get('stock_quantity')),
+      price,
+      stock_quantity: stockQty,
       is_available: formData.get('is_available') === 'on',
       ...(imageDataUrl && { image_url: imageDataUrl }),
     };
@@ -182,7 +213,7 @@ const ProductManagement = () => {
     }
   };
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   const availableProducts = products.filter(p => p.is_available).length;
   const totalStock = products.reduce((sum, p) => sum + (p.stock_quantity || 0), 0);
@@ -256,9 +287,17 @@ const ProductManagement = () => {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-500" />
-            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-slate-500" />
+              <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+            </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                Updating
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -268,14 +307,14 @@ const ProductManagement = () => {
                 <input
                   type="text"
                   placeholder="Search products..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="input-field pl-10 pr-8"
                 />
-                {filters.search && (
+                {searchInput && (
                   <button
                     type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
+                    onClick={() => setSearchInput('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
@@ -314,7 +353,10 @@ const ProductManagement = () => {
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => setFilters({ category: '', available: '', search: '' })}
+                onClick={() => {
+                  setSearchInput('');
+                  setFilters({ category: '', available: '', search: '' });
+                }}
                 className="w-full"
               >
                 <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -325,8 +367,8 @@ const ProductManagement = () => {
         </div>
 
         {/* Products Grid */}
-        {products.length === 0 ? (
-          <div className="card">
+        {products.length === 0 && !loading ? (
+          <div className="card empty-state-enter">
             <EmptyState
               icon={Package}
               title="No products found"
@@ -334,15 +376,20 @@ const ProductManagement = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {products.map((product) => {
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-200 ${
+              loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {products.map((product, index) => {
               const CategoryIcon = getCategoryIcon(product.category);
               const categoryStyles = getCategoryStyles(product.category);
 
               return (
                 <div
                   key={product.product_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${categoryStyles.border} overflow-hidden`}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${categoryStyles.border} overflow-hidden grid-item-enter`}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   {/* Product Image */}
                   <div className="relative h-48 overflow-hidden rounded-t-2xl -mx-6 -mt-6 mb-4">
@@ -532,9 +579,10 @@ const ProductManagement = () => {
                 label="Stock Quantity"
                 type="number"
                 name="stock_quantity"
-                defaultValue={editingProduct?.stock_quantity || 0}
+                min={0}
+                defaultValue={editingProduct != null ? editingProduct.stock_quantity : ''}
                 required
-                placeholder="e.g., 25"
+                placeholder="0"
               />
             </div>
 
@@ -591,7 +639,12 @@ const ProductManagement = () => {
           title="Delete product"
           message={
             deleteTarget
-              ? `Are you sure you want to delete product "${deleteTarget.name}"?`
+              ? (() => {
+                  const name = deleteTarget.name?.trim();
+                  const fallback = deleteTarget.category || 'this product';
+                  const displayName = name || fallback;
+                  return `Are you sure you want to delete ${displayName === 'this product' ? displayName : `product "${displayName}"`}?`;
+                })()
               : ''
           }
           confirmLabel="Delete"
