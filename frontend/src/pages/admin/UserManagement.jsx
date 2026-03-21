@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -31,8 +31,21 @@ const UserManagement = () => {
     verified: '',
     search: '',
   });
+  const [searchInput, setSearchInput] = useState('');
+  const [initialLoad, setInitialLoad] = useState(true);
   const { user: currentUser } = useAuth();
   const canEditRoles = currentUser?.role === 'admin';
+  const searchDebounceRef = useRef(null);
+
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchInput }));
+    }, 400);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchInput]);
 
   useEffect(() => {
     loadUsers();
@@ -54,6 +67,7 @@ const UserManagement = () => {
       setUsers([]);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -182,7 +196,7 @@ const UserManagement = () => {
     return `${firstName?.charAt(0) || ''}${lastName?.charAt(0) || ''}`.toUpperCase();
   };
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   const totalUsers = users.length;
   const activeUsers = users.filter(u => u.is_active).length;
@@ -336,9 +350,17 @@ const UserManagement = () => {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-500" />
-            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-slate-500" />
+              <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+            </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                Updating
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -348,14 +370,14 @@ const UserManagement = () => {
                 <input
                   type="text"
                   placeholder="Search users..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="input-field pl-10 pr-8"
                 />
-                {filters.search && (
+                {searchInput && (
                   <button
                     type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
+                    onClick={() => setSearchInput('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
@@ -393,7 +415,10 @@ const UserManagement = () => {
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => setFilters({ role: '', status: '', verified: '', search: '' })}
+                onClick={() => {
+                  setSearchInput('');
+                  setFilters({ role: '', status: '', verified: '', search: '' });
+                }}
                 className="w-full"
               >
                 <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -404,8 +429,8 @@ const UserManagement = () => {
         </div>
 
         {/* Users Grid */}
-        {users.length === 0 ? (
-          <div className="card">
+        {users.length === 0 && !loading ? (
+          <div className="card empty-state-enter">
             <EmptyState
               icon={Users}
               title="No users found"
@@ -413,15 +438,20 @@ const UserManagement = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {users.map((user) => {
+          <div
+            className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 transition-opacity duration-200 ${
+              loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {users.map((user, index) => {
               const RoleIcon = getRoleIcon(user.role);
               const roleStyles = getRoleStyles(user.role);
 
               return (
                 <div
                   key={user.user_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${roleStyles.border}`}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${roleStyles.border} grid-item-enter`}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-start gap-4 mb-4">
                     {/* Avatar */}

@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 const PreBookingManagement = () => {
   const [preBookings, setPreBookings] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [filter, setFilter] = useState('all');
 
   useEffect(() => {
@@ -27,6 +28,7 @@ const PreBookingManagement = () => {
       console.error('Error loading pre-bookings:', error);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -102,7 +104,7 @@ const PreBookingManagement = () => {
     { value: 'cancelled', label: 'Cancelled', icon: XCircle, color: 'rose' },
   ];
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   const pendingCount = preBookings.filter(pb => pb.status === 'pending').length;
   const fulfilledCount = preBookings.filter(pb => pb.status === 'fulfilled').length;
@@ -154,7 +156,7 @@ const PreBookingManagement = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           {filters.map((f) => {
             const Icon = f.icon;
             const isActive = filter === f.value;
@@ -200,10 +202,16 @@ const PreBookingManagement = () => {
               </button>
             );
           })}
+          {loading && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium ml-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+              Updating
+            </div>
+          )}
         </div>
 
-        {preBookings.length === 0 ? (
-          <div className="card">
+        {preBookings.length === 0 && !loading ? (
+          <div className="card empty-state-enter">
             <EmptyState
               icon={Clock}
               title="No pre-booking requests"
@@ -211,15 +219,20 @@ const PreBookingManagement = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {preBookings.map((preBooking) => {
+          <div
+            className={`grid grid-cols-1 gap-4 transition-opacity duration-200 ${
+              loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {preBookings.map((preBooking, index) => {
               const ItemIcon = getItemIcon(preBooking.item_type);
               const itemStyles = getItemStyles(preBooking.item_type);
 
               return (
                 <div
                   key={preBooking.pre_booking_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${itemStyles.border}`}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${itemStyles.border} grid-item-enter`}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

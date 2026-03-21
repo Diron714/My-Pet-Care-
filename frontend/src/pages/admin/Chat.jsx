@@ -4,7 +4,7 @@ import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatDateTime, formatRelativeTime } from '../../utils/formatters';
-import { MessageSquare, Send, Users, User, Stethoscope, Shield, Search, Filter, Crown, Check, CheckCheck } from 'lucide-react';
+import { MessageSquare, Send, Users, User, Stethoscope, Shield, Search, Filter, Crown, Check, CheckCheck, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
 
@@ -14,6 +14,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [sending, setSending] = useState(false);
   const [filter, setFilter] = useState('all');
   const messagesEndRef = useRef(null);
@@ -61,6 +62,7 @@ const Chat = () => {
       console.error('Error loading chat rooms:', error);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -141,13 +143,13 @@ const Chat = () => {
     }
   };
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   const customerDoctorRooms = rooms.filter(r => r.room_type === 'customer_doctor').length;
   const customerStaffRooms = rooms.filter(r => r.room_type === 'customer_staff').length;
 
   return (
-    <div className="page-shell h-[calc(100vh-200px)]">
+    <div className="page-shell">
         <div className="page-header">
           <div>
             <h1 className="page-title">Chat Management</h1>
@@ -193,7 +195,7 @@ const Chat = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           <button
             onClick={() => setFilter('all')}
             className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${filter === 'all'
@@ -224,9 +226,19 @@ const Chat = () => {
             <Shield className="w-4 h-4" />
             Support Chats
           </button>
+          {loading && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium ml-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+              Updating
+            </div>
+          )}
         </div>
 
-        <div className="flex h-full rounded-3xl border border-slate-100 bg-white/80 backdrop-blur overflow-hidden shadow-sm">
+        <div
+          className={`flex min-h-[500px] rounded-3xl border border-slate-100 bg-white/80 backdrop-blur overflow-hidden shadow-sm transition-opacity duration-200 ${
+            loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+          }`}
+        >
           {/* Chat Rooms Sidebar */}
           <div className="w-80 border-r border-slate-100 bg-slate-50/50 overflow-y-auto shrink-0">
             <div className="p-6 border-b border-slate-100">
