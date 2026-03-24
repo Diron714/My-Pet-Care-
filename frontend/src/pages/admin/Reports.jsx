@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
-import { FileText, Download, Calendar, DollarSign, ShoppingCart, Users, Sparkles, TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ArrowUpRight, ArrowDownRight, Filter } from 'lucide-react';
+import { FileText, Download, Calendar, DollarSign, ShoppingCart, Users, Sparkles, TrendingUp, BarChart3, PieChart as PieChartIcon, Activity, ArrowUpRight, ArrowDownRight, Filter, RefreshCw } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 import toast from 'react-hot-toast';
 
@@ -110,8 +109,6 @@ const Reports = () => {
     return colors[tab.color] || colors.emerald;
   };
 
-  if (loading) return <Loading />;
-
   return (
     <div className="page-shell">
         <div className="page-header">
@@ -123,9 +120,17 @@ const Reports = () => {
 
         {/* Date Range Selector */}
         <div className="card mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-500" />
-            <h2 className="text-lg font-semibold text-slate-900">Select Date Range</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-slate-500" />
+              <h2 className="text-lg font-semibold text-slate-900">Select Date Range</h2>
+            </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                Loading report
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
@@ -185,7 +190,9 @@ const Reports = () => {
 
         {/* Report Content */}
         {reportData ? (
-          <div className="space-y-6">
+          <div
+            className={`space-y-6 transition-opacity duration-200 ${loading ? 'opacity-60 pointer-events-none' : 'opacity-100'}`}
+          >
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               {activeTab === 'sales' && (
@@ -479,7 +486,7 @@ const Reports = () => {
             </div>
           </div>
         ) : (
-          <div className="card">
+          <div className={`card transition-opacity duration-200 ${loading ? 'opacity-60' : 'opacity-100'}`}>
             <div className="text-center py-12">
               <FileText className="w-16 h-16 text-slate-400 mx-auto mb-4" />
               <p className="text-slate-600 font-semibold mb-2">No Report Generated</p>

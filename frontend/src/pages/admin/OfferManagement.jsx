@@ -395,16 +395,18 @@ const OfferManagement = () => {
                 label="Min Purchase (LKR)"
                 type="number"
                 step="0.01"
+                min={0}
                 name="min_purchase"
-                defaultValue={editingOffer?.min_purchase || 0}
+                defaultValue={editingOffer != null ? editingOffer.min_purchase : ''}
                 placeholder="0"
               />
               <Input
                 label="Max Discount (LKR) - Optional"
                 type="number"
                 step="0.01"
+                min={0}
                 name="max_discount"
-                defaultValue={editingOffer?.max_discount || ''}
+                defaultValue={editingOffer != null ? editingOffer.max_discount ?? '' : ''}
                 placeholder="Leave empty for no limit"
               />
             </div>
