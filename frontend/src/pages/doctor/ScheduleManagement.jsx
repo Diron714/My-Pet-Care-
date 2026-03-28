@@ -17,6 +17,19 @@ const ScheduleManagement = () => {
   const [editingSchedule, setEditingSchedule] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  /** When adding (not editing): apply same hours to one day, weekdays, weekend, or whole week */
+  const [addDayScope, setAddDayScope] = useState('single');
+
+  const weekdayValues = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday'];
+  const weekendValues = ['saturday', 'sunday'];
+  const allDayValues = [...weekdayValues, ...weekendValues];
+
+  const daysForAddScope = (scope) => {
+    if (scope === 'weekdays') return weekdayValues;
+    if (scope === 'weekend') return weekendValues;
+    if (scope === 'all_week') return allDayValues;
+    return null;
+  };
 
   useEffect(() => {
     loadSchedules();
@@ -38,21 +51,69 @@ const ScheduleManagement = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
-    const data = {
-      day_of_week: formData.get('day_of_week'),
-      start_time: formData.get('start_time'),
-      end_time: formData.get('end_time'),
-      slot_duration: parseInt(formData.get('slot_duration')) || 30,
-      is_active: formData.get('is_active') === 'on',
-    };
+    const start_time = formData.get('start_time');
+    const end_time = formData.get('end_time');
+    const durationRaw = formData.get('slot_duration');
+    const durationParsed = parseInt(durationRaw, 10);
+    const slot_duration =
+      Number.isFinite(durationParsed) && durationParsed >= 15 ? durationParsed : 30;
+    const is_active = formData.get('is_active') === 'on';
 
     try {
-      const url = editingSchedule ? `/doctors/schedule/${editingSchedule.schedule_id}` : '/doctors/schedule';
-      const method = editingSchedule ? 'put' : 'post';
-      await api[method](url, data);
-      toast.success(editingSchedule ? 'Schedule updated' : 'Schedule added');
+      if (editingSchedule) {
+        const data = {
+          day_of_week: formData.get('day_of_week'),
+          start_time,
+          end_time,
+          slot_duration,
+          is_active,
+        };
+        await api.put(`/doctors/schedule/${editingSchedule.schedule_id}`, data);
+        toast.success('Schedule updated');
+      } else {
+        const bulkDays = daysForAddScope(addDayScope);
+        if (bulkDays) {
+          const results = await Promise.allSettled(
+            bulkDays.map((day_of_week) =>
+              api.post('/doctors/schedule', {
+                day_of_week,
+                start_time,
+                end_time,
+                slot_duration,
+                is_active,
+              })
+            )
+          );
+          const ok = results.filter((r) => r.status === 'fulfilled').length;
+          const fail = results.length - ok;
+          if (ok > 0 && fail === 0) {
+            toast.success(`Added ${ok} schedule slot${ok === 1 ? '' : 's'}`);
+          } else if (ok > 0) {
+            toast.success(`Added ${ok} slot(s); ${fail} failed`);
+          } else {
+            const err = results.find((r) => r.status === 'rejected')?.reason;
+            toast.error(err?.response?.data?.message || 'Failed to save schedule');
+            return;
+          }
+        } else {
+          const day_of_week = formData.get('day_of_week');
+          if (!day_of_week) {
+            toast.error('Select a day');
+            return;
+          }
+          await api.post('/doctors/schedule', {
+            day_of_week,
+            start_time,
+            end_time,
+            slot_duration,
+            is_active,
+          });
+          toast.success('Schedule added');
+        }
+      }
       setShowForm(false);
       setEditingSchedule(null);
+      setAddDayScope('single');
       loadSchedules();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save schedule');
@@ -100,6 +161,7 @@ const ScheduleManagement = () => {
           </div>
           <Button onClick={() => {
             setEditingSchedule(null);
+            setAddDayScope('single');
             setShowForm(true);
           }} className="!rounded-xl !font-medium !bg-slate-900 hover:!bg-slate-800">
             <Plus className="w-4 h-4 inline mr-2" />
@@ -241,30 +303,70 @@ const ScheduleManagement = () => {
           onClose={() => {
             setShowForm(false);
             setEditingSchedule(null);
+            setAddDayScope('single');
           }}
           title={editingSchedule ? 'Edit Schedule Slot' : 'Add Schedule Slot'}
           size="lg"
         >
           <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-2">
-                <Calendar className="w-4 h-4 inline mr-1" />
-                Day of Week <span className="text-red-500">*</span>
-              </label>
-              <select
-                name="day_of_week"
-                defaultValue={editingSchedule?.day_of_week || ''}
-                className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10"
-                required
-              >
-                <option value="">Select day</option>
-                {daysOfWeek.map((day) => (
-                  <option key={day.value} value={day.value}>
-                    {day.label}
-                  </option>
-                ))}
-              </select>
-            </div>
+            {!editingSchedule && (
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  <Calendar className="w-4 h-4 inline mr-1" />
+                  Apply to <span className="text-red-500">*</span>
+                </label>
+                <select
+                  value={addDayScope}
+                  onChange={(ev) => setAddDayScope(ev.target.value)}
+                  className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10"
+                >
+                  <option value="single">Single day</option>
+                  <option value="weekdays">Weekdays (Mon–Fri)</option>
+                  <option value="weekend">Weekend (Sat–Sun)</option>
+                  <option value="all_week">Every day (Mon–Sun)</option>
+                </select>
+                {addDayScope === 'single' && (
+                  <p className="mt-2 text-xs text-slate-500">Choose the day below, then set your hours.</p>
+                )}
+                {addDayScope === 'weekdays' && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Same hours for Monday–Friday. Add a separate slot if Saturday or Sunday differ.
+                  </p>
+                )}
+                {addDayScope === 'weekend' && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Same hours for Saturday and Sunday.
+                  </p>
+                )}
+                {addDayScope === 'all_week' && (
+                  <p className="mt-2 text-xs text-slate-500">
+                    Same hours every day of the week.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {(editingSchedule || addDayScope === 'single') && (
+              <div>
+                <label className="block text-sm font-medium text-slate-600 mb-2">
+                  <Calendar className="w-4 h-4 inline mr-1" />
+                  Day of Week <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name="day_of_week"
+                  defaultValue={editingSchedule?.day_of_week || ''}
+                  className="input-field !rounded-2xl !py-3 !border-slate-200 focus:!ring-slate-900/10"
+                  required
+                >
+                  <option value="">Select day</option>
+                  {daysOfWeek.map((day) => (
+                    <option key={day.value} value={day.value}>
+                      {day.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
 
             <div className="grid grid-cols-2 gap-4">
               <Input
@@ -287,8 +389,13 @@ const ScheduleManagement = () => {
               label="Slot Duration (minutes)"
               type="number"
               name="slot_duration"
-              defaultValue={editingSchedule?.slot_duration || 30}
-              min={15}
+              defaultValue={
+                editingSchedule != null && editingSchedule.slot_duration != null
+                  ? editingSchedule.slot_duration
+                  : ''
+              }
+              placeholder="0"
+              min={0}
               step={15}
             />
 
@@ -313,6 +420,7 @@ const ScheduleManagement = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingSchedule(null);
+                  setAddDayScope('single');
                 }}
                 className="!rounded-2xl !font-medium !border-slate-200 hover:!bg-slate-50"
               >

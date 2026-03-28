@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -21,9 +21,15 @@ const formatCurrencyLKR = (amount) => {
   }).format(parseMoney(amount));
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
+  const [searchInput, setSearchInput] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [filters, setFilters] = useState({
@@ -35,12 +41,21 @@ const OrderManagement = () => {
   });
 
   useEffect(() => {
-    loadOrders();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
       if (filters.paymentStatus) params.append('paymentStatus', filters.paymentStatus);
@@ -54,8 +69,14 @@ const OrderManagement = () => {
       console.error('Error loading orders:', error);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.status, filters.paymentStatus, filters.dateFrom, filters.dateTo, filters.search]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
@@ -167,15 +188,15 @@ const OrderManagement = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search orders..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  placeholder={`Type at least ${SEARCH_MIN_CHARS} characters...`}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="input-field pl-10 pr-8"
                 />
-                {filters.search && (
+                {searchInput && (
                   <button
                     type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
+                    onClick={() => setSearchInput('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
@@ -183,12 +204,15 @@ const OrderManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Order Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -204,7 +228,7 @@ const OrderManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Payment Status</label>
               <select
                 value={filters.paymentStatus}
-                onChange={(e) => setFilters({ ...filters, paymentStatus: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, paymentStatus: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Payment</option>
@@ -219,14 +243,17 @@ const OrderManagement = () => {
               <input
                 type="date"
                 value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
                 className="input-field"
               />
             </div>
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => setFilters({ status: '', paymentStatus: '', dateFrom: '', dateTo: '', search: '' })}
+                onClick={() => {
+                  setSearchInput('');
+                  setFilters({ status: '', paymentStatus: '', dateFrom: '', dateTo: '', search: '' });
+                }}
                 className="w-full"
               >
                 <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -237,6 +264,16 @@ const OrderManagement = () => {
         </div>
 
         {/* Orders List */}
+        <div className="relative min-h-[12rem]">
+          {listRefreshing && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
+              aria-busy="true"
+              aria-live="polite"
+            >
+              <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+            </div>
+          )}
         {orders.length === 0 ? (
           <div className="card">
             <EmptyState
@@ -347,6 +384,7 @@ const OrderManagement = () => {
             })}
           </div>
         )}
+        </div>
 
         {/* Status Update Modal */}
         {showStatusModal && selectedOrder && (

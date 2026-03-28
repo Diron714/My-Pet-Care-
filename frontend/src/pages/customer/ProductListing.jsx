@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
@@ -18,6 +18,7 @@ import {
   Sparkles,
   Scissors,
   Heart,
+  XCircle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -29,23 +30,38 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const ProductListing = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
   const [filters, setFilters] = useState({ category: '' });
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const { addToCart } = useCart();
 
   useEffect(() => {
-    loadProducts();
-  }, [filters, search]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setAppliedSearch((prev) => (prev === applied ? prev : applied));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.category) params.append('category', filters.category);
-      if (search) params.append('search', search);
+      if (appliedSearch) params.append('search', appliedSearch);
 
       const response = await api.get(`/products?${params.toString()}`);
       setProducts(response.data.data || []);
@@ -54,8 +70,14 @@ const ProductListing = () => {
       setProducts([]);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.category, appliedSearch]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const handleAddToCart = async (productId) => {
     const result = await addToCart('product', productId, 1);
@@ -124,6 +146,16 @@ const ProductListing = () => {
     }
   };
 
+  if (loading && firstFetchRef.current) {
+    return (
+      <Layout>
+        <div className="page-shell flex min-h-[40vh] items-center justify-center">
+          <Loading />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="page-shell">
@@ -145,7 +177,7 @@ const ProductListing = () => {
               <div className="space-y-5">
                 <select
                   value={filters.category}
-                  onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, category: e.target.value }))}
                   className="input-field !rounded-xl !py-3"
                 >
                   <option value="">All Categories</option>
@@ -157,7 +189,11 @@ const ProductListing = () => {
                 </select>
                 <Button
                   variant="outline"
-                  onClick={() => setFilters({ category: '' })}
+                  onClick={() => {
+                    setSearchInput('');
+                    setAppliedSearch('');
+                    setFilters({ category: '' });
+                  }}
                   className="w-full !rounded-xl !py-3 text-slate-600 hover:text-slate-800"
                 >
                   <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -173,15 +209,15 @@ const ProductListing = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Type at least ${SEARCH_MIN_CHARS} characters...`}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="input-field !rounded-xl !py-3 !pl-10 bg-slate-50"
               />
-              {search && (
+              {searchInput && (
                 <button
                   type="button"
-                  onClick={() => setSearch('')}
+                  onClick={() => setSearchInput('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   aria-label="Clear search"
                 >
@@ -189,12 +225,21 @@ const ProductListing = () => {
                 </button>
               )}
             </div>
+            {searchInput.trim().length === 1 && (
+              <p className="mb-4 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+            )}
 
-            {loading && products.length === 0 ? (
-              <div className="card">
-                <Loading />
-              </div>
-            ) : products.length === 0 ? (
+            <div className="relative min-h-[12rem]">
+              {listRefreshing && (
+                <div
+                  className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
+                  aria-busy="true"
+                  aria-live="polite"
+                >
+                  <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+                </div>
+              )}
+            {!listRefreshing && products.length === 0 ? (
               <div className="card">
                 <EmptyState
                   icon={Package}
@@ -202,7 +247,7 @@ const ProductListing = () => {
                   message="Try adjusting your filters or search terms"
                 />
               </div>
-            ) : (
+            ) : products.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {products.map((product) => {
                   const CategoryIcon = getCategoryIcon(product.category);
@@ -283,7 +328,12 @@ const ProductListing = () => {
                   );
                 })}
               </div>
+            ) : (
+              <div className="card flex min-h-[12rem] items-center justify-center">
+                <Loading />
+              </div>
             )}
+            </div>
           </div>
         </div>
       </div>

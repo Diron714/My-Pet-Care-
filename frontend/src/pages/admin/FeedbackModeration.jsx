@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -6,13 +6,15 @@ import Modal from '../../components/common/Modal';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
-import { Star, Check, X, MessageSquare, Package, Stethoscope, ShoppingBag, Filter, User, Calendar, ThumbsUp, ThumbsDown, Clock } from 'lucide-react';
+import { Star, Check, X, MessageSquare, Package, Stethoscope, ShoppingBag, Filter, User, Calendar, ThumbsUp, ThumbsDown, Clock, RefreshCw } from 'lucide-react';
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
 const FeedbackModeration = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [adminResponse, setAdminResponse] = useState('');
@@ -24,13 +26,13 @@ const FeedbackModeration = () => {
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectLoading, setRejectLoading] = useState(false);
 
-  useEffect(() => {
-    loadFeedbacks();
-  }, [filters]);
-
-  const loadFeedbacks = async () => {
+  const loadFeedbacks = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.type) params.append('type', filters.type);
       if (filters.status) params.append('status', filters.status);
@@ -42,8 +44,14 @@ const FeedbackModeration = () => {
       console.error('Error loading feedbacks:', error);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.type, filters.status, filters.rating]);
+
+  useEffect(() => {
+    loadFeedbacks();
+  }, [loadFeedbacks]);
 
   const handleApprove = async (feedbackId) => {
     try {
@@ -149,7 +157,7 @@ const FeedbackModeration = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Type</label>
               <select
                 value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, type: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Types</option>
@@ -162,7 +170,7 @@ const FeedbackModeration = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -175,7 +183,7 @@ const FeedbackModeration = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Rating</label>
               <select
                 value={filters.rating}
-                onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, rating: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Ratings</option>
@@ -198,6 +206,16 @@ const FeedbackModeration = () => {
           </div>
         </div>
 
+        <div className="relative min-h-[12rem]">
+          {listRefreshing && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
+              aria-busy="true"
+              aria-live="polite"
+            >
+              <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+            </div>
+          )}
         {feedbacks.length === 0 ? (
           <div className="card">
             <EmptyState
@@ -316,6 +334,7 @@ const FeedbackModeration = () => {
             })}
           </div>
         )}
+        </div>
 
         {/* Response Modal */}
         {showResponseModal && selectedFeedback && (

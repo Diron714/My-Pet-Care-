@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
@@ -20,9 +20,15 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const PetManagement = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
+  const [searchInput, setSearchInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
@@ -38,12 +44,21 @@ const PetManagement = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   useEffect(() => {
-    loadPets();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadPets = async () => {
+  const loadPets = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.species) params.append('species', filters.species);
       if (filters.breed) params.append('breed', filters.breed);
@@ -57,8 +72,14 @@ const PetManagement = () => {
       setPets([]);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.species, filters.breed, filters.available, filters.search]);
+
+  useEffect(() => {
+    loadPets();
+  }, [loadPets]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
@@ -269,15 +290,15 @@ const PetManagement = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search pets..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  placeholder={`Type at least ${SEARCH_MIN_CHARS} characters...`}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="input-field pl-10 pr-8"
                 />
-                {filters.search && (
+                {searchInput && (
                   <button
                     type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
+                    onClick={() => setSearchInput('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
@@ -285,12 +306,15 @@ const PetManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Species</label>
               <select
                 value={filters.species}
-                onChange={(e) => setFilters({ ...filters, species: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, species: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Species</option>
@@ -304,7 +328,7 @@ const PetManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Availability</label>
               <select
                 value={filters.available}
-                onChange={(e) => setFilters({ ...filters, available: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, available: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -315,7 +339,10 @@ const PetManagement = () => {
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => setFilters({ species: '', breed: '', available: '', search: '' })}
+                onClick={() => {
+                  setSearchInput('');
+                  setFilters({ species: '', breed: '', available: '', search: '' });
+                }}
                 className="w-full"
               >
                 <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -326,6 +353,16 @@ const PetManagement = () => {
         </div>
 
         {/* Pets Grid */}
+        <div className="relative min-h-[12rem]">
+          {listRefreshing && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
+              aria-busy="true"
+              aria-live="polite"
+            >
+              <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+            </div>
+          )}
         {pets.length === 0 ? (
           <div className="card">
             <EmptyState
@@ -467,6 +504,7 @@ const PetManagement = () => {
             })}
           </div>
         )}
+        </div>
 
         {/* Pet Form Modal */}
         <Modal

@@ -61,6 +61,13 @@ export const formatDateTime = (date, formatStr = 'MMM dd, yyyy hh:mm a') => {
   }
 };
 
+/** Pet age stored as months (number) → e.g. "3 months" */
+export const formatPetAgeMonths = (age) => {
+  if (age == null || age === '' || Number.isNaN(Number(age))) return '—';
+  const n = Math.floor(Number(age));
+  return `${n} month${n === 1 ? '' : 's'}`;
+};
+
 /** API snake_case payment_method → readable label */
 export const formatPaymentMethod = (method) => {
   if (method == null || method === '') return '—';

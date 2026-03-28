@@ -24,11 +24,31 @@ const HealthRecords = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedPet) {
-      loadRecords();
-    } else {
+    if (!selectedPet) {
       setRecords([]);
+      return;
     }
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setRecordsLoading(true);
+        const response = await api.get(`/health-records/pet/${selectedPet}`, {
+          signal: controller.signal,
+        });
+        setRecords(response.data.data || []);
+      } catch (error) {
+        if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError' || error?.name === 'AbortError') {
+          return;
+        }
+        console.error('Error loading health records:', error);
+        setRecords([]);
+      } finally {
+        if (!controller.signal.aborted) {
+          setRecordsLoading(false);
+        }
+      }
+    })();
+    return () => controller.abort();
   }, [selectedPet]);
 
   const loadPets = async () => {
@@ -46,18 +66,6 @@ const HealthRecords = () => {
       console.error('Error loading pets:', error);
     } finally {
       setPetsLoading(false);
-    }
-  };
-
-  const loadRecords = async () => {
-    try {
-      setRecordsLoading(true);
-      const response = await api.get(`/health-records/pet/${selectedPet}`);
-      setRecords(response.data.data || []);
-    } catch (error) {
-      console.error('Error loading health records:', error);
-    } finally {
-      setRecordsLoading(false);
     }
   };
 

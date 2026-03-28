@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
@@ -18,9 +18,14 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const PetListing = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
   const [filters, setFilters] = useState({
     species: '',
     breed: '',
@@ -28,23 +33,33 @@ const PetListing = () => {
     maxPrice: '',
     available: true,
   });
-  const [search, setSearch] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
   const { addToCart } = useCart();
 
   useEffect(() => {
-    loadPets();
-  }, [filters, search]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setAppliedSearch((prev) => (prev === applied ? prev : applied));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadPets = async () => {
+  const loadPets = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.species) params.append('species', filters.species);
       if (filters.breed) params.append('breed', filters.breed);
       if (filters.minPrice) params.append('minPrice', filters.minPrice);
       if (filters.maxPrice) params.append('maxPrice', filters.maxPrice);
       if (filters.available) params.append('available', 'true');
-      if (search) params.append('search', search);
+      if (appliedSearch) params.append('search', appliedSearch);
 
       const response = await api.get(`/pets?${params.toString()}`);
       setPets(response.data.data || []);
@@ -53,8 +68,14 @@ const PetListing = () => {
       setPets([]);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.species, filters.breed, filters.minPrice, filters.maxPrice, filters.available, appliedSearch]);
+
+  useEffect(() => {
+    loadPets();
+  }, [loadPets]);
 
   const handleAddToCart = async (petId) => {
     const result = await addToCart('pet', petId, 1);
@@ -110,6 +131,16 @@ const PetListing = () => {
     }
   };
 
+  if (loading && firstFetchRef.current) {
+    return (
+      <Layout>
+        <div className="page-shell flex min-h-[40vh] items-center justify-center">
+          <Loading />
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="page-shell">
@@ -133,7 +164,7 @@ const PetListing = () => {
                   <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Species</label>
                   <select
                     value={filters.species}
-                    onChange={(e) => setFilters({ ...filters, species: e.target.value })}
+                    onChange={(e) => setFilters((prev) => ({ ...prev, species: e.target.value }))}
                     className="input-field !rounded-xl !py-3"
                   >
                     <option value="">All Species</option>
@@ -151,7 +182,7 @@ const PetListing = () => {
                       type="number"
                       placeholder="Min"
                       value={filters.minPrice}
-                      onChange={(e) => setFilters({ ...filters, minPrice: e.target.value })}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, minPrice: e.target.value }))}
                       className="input-field !rounded-xl !py-3"
                     />
                     <span className="text-slate-400">-</span>
@@ -159,14 +190,18 @@ const PetListing = () => {
                       type="number"
                       placeholder="Max"
                       value={filters.maxPrice}
-                      onChange={(e) => setFilters({ ...filters, maxPrice: e.target.value })}
+                      onChange={(e) => setFilters((prev) => ({ ...prev, maxPrice: e.target.value }))}
                       className="input-field !rounded-xl !py-3"
                     />
                   </div>
                 </div>
                 <Button
                   variant="outline"
-                  onClick={() => setFilters({ species: '', breed: '', minPrice: '', maxPrice: '', available: true })}
+                  onClick={() => {
+                    setSearchInput('');
+                    setAppliedSearch('');
+                    setFilters({ species: '', breed: '', minPrice: '', maxPrice: '', available: true });
+                  }}
                   className="w-full !rounded-xl !py-3 text-slate-600 hover:text-slate-800"
                 >
                   <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -182,15 +217,15 @@ const PetListing = () => {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-slate-400" />
               <input
                 type="text"
-                placeholder="Search pets by name or breed..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                placeholder={`Type at least ${SEARCH_MIN_CHARS} characters...`}
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="input-field !rounded-xl !py-3 !pl-10 bg-slate-50"
               />
-              {search && (
+              {searchInput && (
                 <button
                   type="button"
-                  onClick={() => setSearch('')}
+                  onClick={() => setSearchInput('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   aria-label="Clear search"
                 >
@@ -198,12 +233,21 @@ const PetListing = () => {
                 </button>
               )}
             </div>
+            {searchInput.trim().length === 1 && (
+              <p className="mb-4 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+            )}
 
-            {loading && pets.length === 0 ? (
-              <div className="card">
-                <Loading />
-              </div>
-            ) : pets.length === 0 ? (
+            <div className="relative min-h-[12rem]">
+              {listRefreshing && (
+                <div
+                  className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
+                  aria-busy="true"
+                  aria-live="polite"
+                >
+                  <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+                </div>
+              )}
+            {!listRefreshing && pets.length === 0 ? (
               <div className="card">
                 <EmptyState
                   icon={PawPrint}
@@ -211,7 +255,7 @@ const PetListing = () => {
                   message="Try adjusting your filters or search terms."
                 />
               </div>
-            ) : (
+            ) : pets.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pets.map((pet) => {
                   const SpeciesIcon = getSpeciesIcon(pet.species);
@@ -286,7 +330,12 @@ const PetListing = () => {
                   );
                 })}
               </div>
+            ) : (
+              <div className="card flex min-h-[12rem] items-center justify-center">
+                <Loading />
+              </div>
             )}
+            </div>
           </div>
         </div>
       </div>

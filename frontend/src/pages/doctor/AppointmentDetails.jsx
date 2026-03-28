@@ -5,7 +5,7 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
-import { formatDate, formatTime } from '../../utils/formatters';
+import { formatDate, formatTime, formatPetAgeMonths } from '../../utils/formatters';
 import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 import {
@@ -144,18 +144,6 @@ const AppointmentDetails = () => {
     }
   };
 
-  const handleComplete = async () => {
-    try {
-      await api.put(`/appointments/${id}/status`, {
-        status: 'completed',
-      });
-      toast.success('Consultation officially completed');
-      loadAppointmentDetails();
-    } catch (error) {
-      toast.error('Failed to finalize session');
-    }
-  };
-
   const handleAddToHealthRecords = async () => {
     if (!notes.diagnosis && !notes.prescription) {
       toast.error('Diagnosis or Prescription data required');
@@ -257,14 +245,16 @@ const AppointmentDetails = () => {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="p-4 bg-white/10 rounded-2xl border border-white/10">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Age</p>
-                    <p className="text-lg font-semibold text-white">{appointment.customer_pet?.age} MO</p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="p-3 bg-white/10 rounded-xl border border-white/10">
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Age</p>
+                    <p className="text-sm font-semibold text-white leading-snug">
+                      {formatPetAgeMonths(appointment.customer_pet?.age)}
+                    </p>
                   </div>
-                  <div className="p-4 bg-white/10 rounded-2xl border border-white/10">
-                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                    <p className="text-lg font-semibold text-emerald-400">Active</p>
+                  <div className="p-3 bg-white/10 rounded-xl border border-white/10">
+                    <p className="text-[10px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Status</p>
+                    <p className="text-sm font-semibold text-emerald-400 leading-snug">Active</p>
                   </div>
                 </div>
 
@@ -409,13 +399,6 @@ const AppointmentDetails = () => {
                     Reject Session
                   </Button>
                 </>
-              )}
-
-              {appointment.status === 'accepted' && (
-                <Button onClick={handleComplete} className="col-span-full !bg-slate-900 hover:!bg-slate-800 !py-4 !rounded-2xl !font-medium">
-                  <CheckCircle2 className="w-5 h-5 inline mr-2" />
-                  Finalize Medical Process
-                </Button>
               )}
 
               {(notes.diagnosis || notes.prescription) && (

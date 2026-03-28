@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -18,13 +18,19 @@ const defaultCreateForm = {
   role: 'customer',
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createForm, setCreateForm] = useState(defaultCreateForm);
   const [createLoading, setCreateLoading] = useState(false);
   const [createErrors, setCreateErrors] = useState({});
+  const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({
     role: '',
     status: '',
@@ -35,12 +41,21 @@ const UserManagement = () => {
   const canEditRoles = currentUser?.role === 'admin';
 
   useEffect(() => {
-    loadUsers();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.role) params.append('role', filters.role);
       if (filters.status) params.append('status', filters.status);
@@ -54,8 +69,14 @@ const UserManagement = () => {
       setUsers([]);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.role, filters.status, filters.verified, filters.search]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleToggleStatus = async (user) => {
     try {
@@ -347,15 +368,15 @@ const UserManagement = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Search users..."
-                  value={filters.search}
-                  onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                  placeholder={`Type at least ${SEARCH_MIN_CHARS} characters...`}
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
                   className="input-field pl-10 pr-8"
                 />
-                {filters.search && (
+                {searchInput && (
                   <button
                     type="button"
-                    onClick={() => setFilters({ ...filters, search: '' })}
+                    onClick={() => setSearchInput('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     aria-label="Clear search"
                   >
@@ -363,12 +384,15 @@ const UserManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Role</label>
               <select
                 value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Roles</option>
@@ -382,7 +406,7 @@ const UserManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -393,7 +417,10 @@ const UserManagement = () => {
             <div className="flex items-end">
               <Button
                 variant="outline"
-                onClick={() => setFilters({ role: '', status: '', verified: '', search: '' })}
+                onClick={() => {
+                  setSearchInput('');
+                  setFilters({ role: '', status: '', verified: '', search: '' });
+                }}
                 className="w-full"
               >
                 <RefreshCw className="w-4 h-4 inline mr-1" />
@@ -404,6 +431,16 @@ const UserManagement = () => {
         </div>
 
         {/* Users Grid */}
+        <div className="relative min-h-[12rem]">
+          {listRefreshing && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
+              aria-busy="true"
+              aria-live="polite"
+            >
+              <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+            </div>
+          )}
         {users.length === 0 ? (
           <div className="card">
             <EmptyState
@@ -525,6 +562,7 @@ const UserManagement = () => {
             })}
           </div>
         )}
+        </div>
       </div>
   );
 };
