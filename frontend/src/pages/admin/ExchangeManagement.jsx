@@ -20,6 +20,7 @@ const formatCurrencyLKR = (amount) => {
 const ExchangeManagement = () => {
   const [exchanges, setExchanges] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [filter, setFilter] = useState('all');
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectLoading, setRejectLoading] = useState(false);
@@ -38,6 +39,7 @@ const ExchangeManagement = () => {
       console.error('Error loading exchanges:', error);
     } finally {
       setLoading(false);
+      setInitialLoad(false);
     }
   };
 
@@ -83,7 +85,7 @@ const ExchangeManagement = () => {
     { value: 'completed', label: 'Completed', icon: RefreshCw, color: 'blue' },
   ];
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   return (
     <div className="page-shell">
@@ -95,7 +97,7 @@ const ExchangeManagement = () => {
         </div>
 
         {/* Filter Tabs */}
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-6">
           {filters.map((f) => {
             const Icon = f.icon;
             const isActive = filter === f.value;
@@ -113,10 +115,16 @@ const ExchangeManagement = () => {
               </button>
             );
           })}
+          {loading && (
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium ml-2">
+              <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+              Updating
+            </div>
+          )}
         </div>
 
-        {exchanges.length === 0 ? (
-          <div className="card">
+        {exchanges.length === 0 && !loading ? (
+          <div className="card empty-state-enter">
             <EmptyState
               icon={Package}
               title="No exchange requests"
@@ -124,9 +132,17 @@ const ExchangeManagement = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {exchanges.map((exchange) => (
-              <div key={exchange.exchange_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600">
+          <div
+            className={`grid grid-cols-1 gap-4 transition-opacity duration-200 ${
+              loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {exchanges.map((exchange, index) => (
+              <div
+                key={exchange.exchange_id}
+                className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600 grid-item-enter"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
                 <div className="flex justify-between items-start">
                   <div className="flex-1">
                     <div className="flex items-center gap-4 mb-4">

@@ -1,5 +1,5 @@
 import express from 'express';
-import { authenticate } from '../middleware/auth.js';
+import { authenticate, optionalAuthenticate } from '../middleware/auth.js';
 import { requireRole } from '../middleware/rbac.js';
 import {
   getAllOffers,
@@ -12,8 +12,8 @@ import {
 
 const router = express.Router();
 
-// Public routes
-router.get('/', getAllOffers);
+// GET /offers - uses optional auth: admins see all, public/customers see only active+valid
+router.get('/', optionalAuthenticate, getAllOffers);
 router.get('/:id', getOfferById);
 
 // Protected routes

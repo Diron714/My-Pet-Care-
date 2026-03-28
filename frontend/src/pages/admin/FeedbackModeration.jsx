@@ -13,8 +13,7 @@ import Input from '../../components/common/Input';
 const FeedbackModeration = () => {
   const [feedbacks, setFeedbacks] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [listRefreshing, setListRefreshing] = useState(false);
-  const firstFetchRef = useRef(true);
+  const [initialLoad, setInitialLoad] = useState(true);
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [showResponseModal, setShowResponseModal] = useState(false);
   const [adminResponse, setAdminResponse] = useState('');
@@ -44,8 +43,7 @@ const FeedbackModeration = () => {
       console.error('Error loading feedbacks:', error);
     } finally {
       setLoading(false);
-      setListRefreshing(false);
-      firstFetchRef.current = false;
+      setInitialLoad(false);
     }
   }, [filters.type, filters.status, filters.rating]);
 
@@ -135,7 +133,7 @@ const FeedbackModeration = () => {
     }
   };
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   return (
     <div className="page-shell">
@@ -148,9 +146,17 @@ const FeedbackModeration = () => {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-500" />
-            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-slate-500" />
+              <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+            </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                Updating
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
@@ -200,24 +206,15 @@ const FeedbackModeration = () => {
                 onClick={() => setFilters({ type: '', status: '', rating: '' })}
                 className="w-full"
               >
+                <RefreshCw className="w-4 h-4 inline mr-1" />
                 Reset Filters
               </Button>
             </div>
           </div>
         </div>
 
-        <div className="relative min-h-[12rem]">
-          {listRefreshing && (
-            <div
-              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
-              aria-busy="true"
-              aria-live="polite"
-            >
-              <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
-            </div>
-          )}
-        {feedbacks.length === 0 ? (
-          <div className="card">
+        {feedbacks.length === 0 && !loading ? (
+          <div className="card empty-state-enter">
             <EmptyState
               icon={MessageSquare}
               title="No feedback found"
@@ -225,14 +222,19 @@ const FeedbackModeration = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {feedbacks.map((feedback) => {
+          <div
+            className={`grid grid-cols-1 gap-4 transition-opacity duration-200 ${
+              loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {feedbacks.map((feedback, index) => {
               const TypeIcon = getTypeIcon(feedback.feedback_type);
               const typeStyles = getTypeStyles(feedback.feedback_type);
               return (
                 <div
                   key={feedback.feedback_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${typeStyles.border}`}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${typeStyles.border} grid-item-enter`}
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

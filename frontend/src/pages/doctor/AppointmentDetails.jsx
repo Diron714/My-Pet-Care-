@@ -14,7 +14,6 @@ import {
   Calendar,
   ClipboardList,
   Stethoscope,
-  FilePlus,
   History,
   CheckCircle2,
   XCircle,
@@ -144,22 +143,15 @@ const AppointmentDetails = () => {
     }
   };
 
-  const handleAddToHealthRecords = async () => {
-    if (!notes.diagnosis && !notes.prescription) {
-      toast.error('Diagnosis or Prescription data required');
-      return;
-    }
+  const handleComplete = async () => {
     try {
-      await api.post('/health-records', {
-        appointment_id: id,
-        customer_pet_id: appointment.customer_pet_id,
-        diagnosis: notes.diagnosis,
-        prescription: notes.prescription,
-        treatment_notes: notes.treatmentNotes,
+      await api.put(`/appointments/${id}/status`, {
+        status: 'completed',
       });
-      toast.success('Added to clinical ledger');
+      toast.success('Consultation officially completed');
+      loadAppointmentDetails();
     } catch (error) {
-      toast.error('Record update failed');
+      toast.error('Failed to finalize session');
     }
   };
 
@@ -268,8 +260,8 @@ const AppointmentDetails = () => {
                       {appointment.customer?.user?.first_name} {appointment.customer?.user?.last_name}
                     </p>
                     <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <Phone className="w-3 h-3" />
-                      <span>{appointment.customer?.user?.phone}</span>
+                      <Phone className="w-3 h-3 flex-shrink-0" />
+                      <span>{appointment.customer?.user?.phone || 'Not provided'}</span>
                     </div>
                     <div className="p-4 bg-emerald-500/20 rounded-2xl border border-emerald-400/20 mt-4">
                       <div className="flex items-center justify-between">
@@ -401,14 +393,10 @@ const AppointmentDetails = () => {
                 </>
               )}
 
-              {(notes.diagnosis || notes.prescription) && (
-                <Button
-                  onClick={handleAddToHealthRecords}
-                  variant="outline"
-                  className="col-span-full !py-4 !rounded-2xl !font-medium !border-slate-200 hover:!bg-slate-50"
-                >
-                  <FilePlus className="w-4 h-4 inline mr-2" />
-                  Push to Global Ledger
+              {appointment.status === 'accepted' && (
+                <Button onClick={handleComplete} className="col-span-full !bg-slate-900 hover:!bg-slate-800 !py-4 !rounded-2xl !font-medium">
+                  <CheckCircle2 className="w-5 h-5 inline mr-2" />
+                  Finalize Medical Process
                 </Button>
               )}
             </div>

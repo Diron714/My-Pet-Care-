@@ -144,3 +144,23 @@
     opacity: 1;
   }
 }
+
+/* Staggered fade-in for grid items (filter results) */
+@keyframes gridItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.grid-item-enter {
+  animation: gridItemFadeIn 0.35s ease-out forwards;
+}
+
+.empty-state-enter {
+  animation: contentFadeIn 0.35s ease-out forwards;
+}

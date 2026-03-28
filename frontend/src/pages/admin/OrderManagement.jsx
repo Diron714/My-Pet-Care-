@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -39,6 +39,19 @@ const OrderManagement = () => {
     dateTo: '',
     search: '',
   });
+  const [searchInput, setSearchInput] = useState('');
+  const [initialLoad, setInitialLoad] = useState(true);
+  const searchDebounceRef = useRef(null);
+
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setFilters((prev) => ({ ...prev, search: searchInput }));
+    }, 400);
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [searchInput]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -69,8 +82,7 @@ const OrderManagement = () => {
       console.error('Error loading orders:', error);
     } finally {
       setLoading(false);
-      setListRefreshing(false);
-      firstFetchRef.current = false;
+      setInitialLoad(false);
     }
   }, [filters.status, filters.paymentStatus, filters.dateFrom, filters.dateTo, filters.search]);
 
@@ -123,7 +135,7 @@ const OrderManagement = () => {
     }
   };
 
-  if (loading) return <Loading />;
+  if (initialLoad && loading) return <Loading />;
 
   const totalRevenue = orders.reduce((sum, o) => sum + parseMoney(o.final_amount ?? o.total_amount), 0);
   const pendingOrders = orders.filter(o => o.order_status === 'pending').length;
@@ -177,9 +189,17 @@ const OrderManagement = () => {
 
         {/* Filters */}
         <div className="card mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Filter className="w-5 h-5 text-slate-500" />
-            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-slate-500" />
+              <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+            </div>
+            {loading && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin flex-shrink-0" />
+                Updating
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
             <div>
@@ -188,7 +208,7 @@ const OrderManagement = () => {
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="text"
-                  placeholder={`Type at least ${SEARCH_MIN_CHARS} characters...`}
+                  placeholder="Search orders..."
                   value={searchInput}
                   onChange={(e) => setSearchInput(e.target.value)}
                   className="input-field pl-10 pr-8"
@@ -264,18 +284,8 @@ const OrderManagement = () => {
         </div>
 
         {/* Orders List */}
-        <div className="relative min-h-[12rem]">
-          {listRefreshing && (
-            <div
-              className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/70 backdrop-blur-[1px]"
-              aria-busy="true"
-              aria-live="polite"
-            >
-              <RefreshCw className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
-            </div>
-          )}
-        {orders.length === 0 ? (
-          <div className="card">
+        {orders.length === 0 && !loading ? (
+          <div className="card empty-state-enter">
             <EmptyState
               icon={ShoppingCart}
               title="No orders found"
@@ -283,15 +293,20 @@ const OrderManagement = () => {
             />
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {orders.map((order) => {
+          <div
+            className={`grid grid-cols-1 gap-4 transition-opacity duration-200 ${
+              loading ? 'opacity-60 pointer-events-none' : 'opacity-100'
+            }`}
+          >
+            {orders.map((order, index) => {
               const StatusIcon = getStatusIcon(order.order_status);
               const PaymentIcon = getPaymentIcon(order.payment_status);
 
               return (
                 <div
                   key={order.order_id}
-                  className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600"
+                  className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600 grid-item-enter"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex justify-between items-start">
                     <div className="flex-1">

@@ -35,6 +35,7 @@ const Input = React.forwardRef(({
           {...(value !== undefined ? { value, onChange } : { onChange })}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           className={`input-field ${error ? 'border-red-500 focus:ring-red-500' : ''} ${className} ${isPassword ? '!pr-12' : ''}`}
           {...props}
         />
