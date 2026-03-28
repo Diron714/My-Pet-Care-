@@ -75,19 +75,18 @@ export const exchangeRequestSchema = z.object({
   reason: z.string().min(10, 'Reason must be at least 10 characters'),
 });
 
-// Feedback schema
+// Feedback schema (coerce select strings; empty rating → 0 then fails refine)
 export const feedbackSchema = z
   .object({
-  feedbackType: z.enum(['product', 'service', 'doctor']),
-    itemId: z
-      .number({
-        invalid_type_error: 'Item selection is required',
-        required_error: 'Item selection is required',
-      })
-      .int()
-      .nonnegative(),
-  rating: z.number().min(1).max(5),
-  comment: z.string().optional(),
+    feedbackType: z
+      .string()
+      .min(1, 'Please select a feedback type')
+      .pipe(z.enum(['product', 'service', 'doctor'])),
+    itemId: z.coerce.number().int().nonnegative(),
+    rating: z.coerce
+      .number()
+      .refine((n) => n >= 1 && n <= 5, { message: 'Please select a rating' }),
+    comment: z.string().optional(),
   })
   .refine(
     (data) => data.feedbackType === 'service' || data.itemId >= 1,
