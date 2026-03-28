@@ -23,16 +23,17 @@ export const CartProvider = ({ children }) => {
     }
   }, []);
 
-  const loadCart = async () => {
+  const loadCart = async (options = {}) => {
+    const silent = options.silent === true;
     try {
-      setLoading(true);
+      if (!silent) setLoading(true);
       const response = await api.get('/cart');
       setCartItems(response.data.data || []);
     } catch (error) {
       console.error('Error loading cart:', error);
       setCartItems([]);
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
@@ -43,7 +44,7 @@ export const CartProvider = ({ children }) => {
         itemId,
         quantity,
       });
-      await loadCart();
+      await loadCart({ silent: true });
       return { success: true, data: response.data.data };
     } catch (error) {
       return {
@@ -56,7 +57,7 @@ export const CartProvider = ({ children }) => {
   const updateCartItem = async (cartId, quantity) => {
     try {
       await api.put(`/cart/${cartId}`, { quantity });
-      await loadCart();
+      await loadCart({ silent: true });
       return { success: true };
     } catch (error) {
       return {
@@ -69,7 +70,7 @@ export const CartProvider = ({ children }) => {
   const removeFromCart = async (cartId) => {
     try {
       await api.delete(`/cart/${cartId}`);
-      await loadCart();
+      await loadCart({ silent: true });
       return { success: true };
     } catch (error) {
       return {

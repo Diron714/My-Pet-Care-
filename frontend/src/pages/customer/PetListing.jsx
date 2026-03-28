@@ -5,10 +5,9 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
-import { formatCurrency } from '../../utils/formatters';
 import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import Button from '../../components/common/Button';
-import { PawPrint, Search, Filter, RefreshCw, ShoppingCart, CheckCircle, XCircle } from 'lucide-react';
+import { PawPrint, Search, Filter, RefreshCw, ShoppingCart, XCircle, Dog, Cat, Bird, Rabbit } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Format currency as LKR
@@ -63,6 +62,51 @@ const PetListing = () => {
       toast.success('Added to cart!');
     } else {
       toast.error(result.message);
+    }
+  };
+
+  const getSpeciesIcon = (species) => {
+    switch (species) {
+      case 'Dog':
+        return Dog;
+      case 'Cat':
+        return Cat;
+      case 'Bird':
+        return Bird;
+      case 'Rabbit':
+        return Rabbit;
+      default:
+        return PawPrint;
+    }
+  };
+
+  const getSpeciesColor = (species) => {
+    switch (species) {
+      case 'Dog':
+        return {
+          gradient: 'from-amber-500 to-amber-600',
+          border: 'border-amber-200',
+        };
+      case 'Cat':
+        return {
+          gradient: 'from-purple-500 to-purple-600',
+          border: 'border-purple-200',
+        };
+      case 'Bird':
+        return {
+          gradient: 'from-blue-500 to-blue-600',
+          border: 'border-blue-200',
+        };
+      case 'Rabbit':
+        return {
+          gradient: 'from-pink-500 to-pink-600',
+          border: 'border-pink-200',
+        };
+      default:
+        return {
+          gradient: 'from-slate-500 to-slate-600',
+          border: 'border-slate-200',
+        };
     }
   };
 
@@ -169,63 +213,78 @@ const PetListing = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pets.map((pet) => (
-                  <div key={pet.pet_id} className="group">
-                    <div className="card overflow-hidden p-0 border-none shadow-lg hover:shadow-xl transition-all duration-300 relative">
-                      <div className="relative h-56 overflow-hidden rounded-t-2xl">
-                        {pet.image_url ? (
-                          <img
-                            src={getImageSrc(pet.image_url)}
-                            alt={pet.name}
-                            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                            onError={(e) => {
-                              e.target.src = PLACEHOLDER_IMAGE;
-                            }}
-                          />
-                        ) : (
-                          <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                            <PawPrint className="w-16 h-16 text-slate-400 opacity-50" />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent rounded-t-2xl" />
-                        <span className={`absolute top-4 right-4 badge ${pet.is_available ? 'badge-success' : 'badge-danger'
-                          } flex items-center gap-1`}>
-                          {pet.is_available ? (
-                            <>
-                              <CheckCircle className="w-3 h-3" />
-                              Available
-                            </>
+                {pets.map((pet) => {
+                  const SpeciesIcon = getSpeciesIcon(pet.species);
+                  const speciesColors = getSpeciesColor(pet.species);
+
+                  return (
+                    <div key={pet.pet_id} className="group">
+                      <div
+                        className={`card overflow-hidden p-0 hover:shadow-xl transition-all duration-300 border-l-4 ${speciesColors.border}`}
+                      >
+                        <div className="relative h-48 overflow-hidden rounded-t-2xl">
+                          {pet.image_url ? (
+                            <img
+                              src={getImageSrc(pet.image_url)}
+                              alt={pet.name}
+                              className="h-full w-full object-cover"
+                              onError={(e) => {
+                                e.target.src = PLACEHOLDER_IMAGE;
+                              }}
+                            />
                           ) : (
-                            <>
-                              <XCircle className="w-3 h-3" />
-                              Unavailable
-                            </>
+                            <div
+                              className={`h-full w-full bg-gradient-to-br ${speciesColors.gradient} flex items-center justify-center`}
+                            >
+                              <SpeciesIcon className="w-16 h-16 text-white opacity-50" />
+                            </div>
                           )}
-                        </span>
-                      </div>
-                      <div className="p-5">
-                        <Link to={`/customer/pets/${pet.pet_id}`}>
-                          <h3 className="font-bold text-xl text-slate-900 mb-1 group-hover:text-slate-800 transition-colors">{pet.name}</h3>
-                        </Link>
-                        <p className="text-slate-500 text-sm mb-3">{pet.species} - <span className="font-semibold">{pet.breed}</span></p>
-                        <div className="flex items-center justify-between mb-4">
-                          <p className="text-2xl font-black text-slate-700">{formatCurrencyLKR(pet.price)}</p>
-                          <span className="text-xs font-semibold text-slate-400">{pet.age} months old</span>
+                          <div className="absolute top-4 right-4">
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider ${
+                                pet.is_available
+                                  ? 'bg-emerald-100 text-emerald-700'
+                                  : 'bg-rose-100 text-rose-700'
+                              }`}
+                            >
+                              {pet.is_available ? 'Available' : 'Unavailable'}
+                            </span>
+                          </div>
                         </div>
-                        {pet.is_available && (
-                          <Button
-                            onClick={() => handleAddToCart(pet.pet_id)}
-                            className="w-full !bg-slate-800 hover:!bg-slate-900"
-                            size="sm"
-                          >
-                            <ShoppingCart className="w-4 h-4 inline mr-2" />
-                            Add to Cart
-                          </Button>
-                        )}
+                        <div className="p-5">
+                          <Link to={`/customer/pets/${pet.pet_id}`}>
+                            <h3 className="font-bold text-xl text-slate-900 mb-2 group-hover:text-slate-800 transition-colors">
+                              {pet.name}
+                            </h3>
+                          </Link>
+                          <div className="flex items-center gap-2 mb-3">
+                            <div
+                              className={`h-8 w-8 rounded-lg bg-gradient-to-br ${speciesColors.gradient} flex items-center justify-center shrink-0`}
+                            >
+                              <SpeciesIcon className="w-4 h-4 text-white" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-semibold text-slate-700">{pet.species}</p>
+                              <p className="text-xs text-slate-500">{pet.breed}</p>
+                              <p className="text-xs font-semibold text-slate-400 mt-1">{pet.age} months old</p>
+                            </div>
+                          </div>
+                          <p className="text-2xl font-black text-slate-700 mb-4">{formatCurrencyLKR(pet.price)}</p>
+                          {pet.is_available && (
+                            <Button
+                              onClick={() => handleAddToCart(pet.pet_id)}
+                              className="w-full !bg-slate-800 hover:!bg-slate-900"
+                              size="sm"
+                            >
+                              <ShoppingCart className="w-4 h-4 inline mr-2" />
+                              Add to Cart
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

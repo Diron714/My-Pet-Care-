@@ -27,6 +27,7 @@ const PetManagement = () => {
   const [editingPet, setEditingPet] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [filters, setFilters] = useState({
     species: '',
     breed: '',
@@ -62,6 +63,7 @@ const PetManagement = () => {
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setRemoveImage(false);
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
@@ -93,6 +95,7 @@ const PetManagement = () => {
       stock_quantity: parseInt(formData.get('stock_quantity')),
       is_available: formData.get('is_available') === 'on',
       ...(imageDataUrl && { image_url: imageDataUrl }),
+      ...(editingPet && removeImage && !imageDataUrl && { remove_image: true }),
     };
 
     try {
@@ -104,6 +107,7 @@ const PetManagement = () => {
       setEditingPet(null);
       setImageDataUrl(null);
       setImagePreview(null);
+      setRemoveImage(false);
       loadPets();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save pet');
@@ -207,6 +211,7 @@ const PetManagement = () => {
             setEditingPet(null);
             setImageDataUrl(null);
             setImagePreview(null);
+            setRemoveImage(false);
             setShowForm(true);
           }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
@@ -442,6 +447,7 @@ const PetManagement = () => {
                           setEditingPet(pet);
                           setImageDataUrl(null);
                           setImagePreview(null);
+                          setRemoveImage(false);
                           setShowForm(true);
                         }}
                       >
@@ -468,6 +474,9 @@ const PetManagement = () => {
           onClose={() => {
             setShowForm(false);
             setEditingPet(null);
+            setImageDataUrl(null);
+            setImagePreview(null);
+            setRemoveImage(false);
           }}
           title={editingPet ? 'Edit Pet' : 'Add New Pet'}
           size="lg"
@@ -586,7 +595,7 @@ const PetManagement = () => {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Pet Image</label>
-              {(imagePreview || editingPet?.image_url) && (
+              {(imagePreview || (editingPet?.image_url && !removeImage)) && (
                 <div className="mb-2 w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                   <img
                     src={imagePreview || getImageSrc(editingPet?.image_url)}
@@ -595,7 +604,26 @@ const PetManagement = () => {
                   />
                 </div>
               )}
-              <input type="file" accept="image/*" className="input-field" onChange={handleImageChange} />
+              {editingPet && removeImage && !imagePreview && (
+                <p className="text-xs text-amber-700 mb-2 font-medium">Saved image will be removed when you update.</p>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <input type="file" accept="image/*" className="input-field flex-1 min-w-[200px]" onChange={handleImageChange} />
+                {(imagePreview || (editingPet?.image_url && !removeImage)) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setImageDataUrl(null);
+                      setImagePreview(null);
+                      if (editingPet) setRemoveImage(true);
+                    }}
+                  >
+                    Remove image
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-slate-500 mt-1">Upload a high-quality image of the pet</p>
             </div>
 
@@ -623,6 +651,9 @@ const PetManagement = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingPet(null);
+                  setImageDataUrl(null);
+                  setImagePreview(null);
+                  setRemoveImage(false);
                 }}
               >
                 Cancel

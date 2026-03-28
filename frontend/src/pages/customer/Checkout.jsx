@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
@@ -9,7 +9,29 @@ import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
-import { MapPin, CreditCard, Gift, Truck, Shield, CheckCircle, ArrowRight, Percent, DollarSign, Sparkles } from 'lucide-react';
+import {
+  MapPin,
+  CreditCard,
+  Gift,
+  Truck,
+  Shield,
+  CheckCircle,
+  ArrowRight,
+  ArrowLeft,
+  Percent,
+  DollarSign,
+  Sparkles,
+  Package,
+  PawPrint,
+  Dog,
+  Cat,
+  Bird,
+  Rabbit,
+  Utensils,
+  Gamepad2,
+  Scissors,
+  Heart,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Format currency as LKR
@@ -20,9 +42,110 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const getCartItemTitle = (item) => item.name || item.item_name || 'Item';
+
+const getCartItemDetailLine = (item) => {
+  if (item.item_type === 'pet') {
+    const parts = [item.species, item.breed].filter(Boolean);
+    if (item.pet_age != null && item.pet_age !== '') {
+      parts.push(`${item.pet_age} mo`);
+    }
+    return parts.length ? parts.join(' · ') : null;
+  }
+  if (item.item_type === 'product' && item.category) {
+    return item.category;
+  }
+  return null;
+};
+
+const getSpeciesIcon = (species) => {
+  switch (species) {
+    case 'Dog':
+      return Dog;
+    case 'Cat':
+      return Cat;
+    case 'Bird':
+      return Bird;
+    case 'Rabbit':
+      return Rabbit;
+    default:
+      return PawPrint;
+  }
+};
+
+const getSpeciesColor = (species) => {
+  switch (species) {
+    case 'Dog':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Cat':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Bird':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Rabbit':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
+};
+
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case 'Food':
+      return Utensils;
+    case 'Toys':
+      return Gamepad2;
+    case 'Accessories':
+      return Sparkles;
+    case 'Grooming':
+      return Scissors;
+    case 'Health':
+      return Heart;
+    default:
+      return Package;
+  }
+};
+
+const getCategoryStyles = (category) => {
+  switch (category) {
+    case 'Food':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Toys':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Accessories':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Grooming':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    case 'Health':
+      return { gradient: 'from-emerald-500 to-emerald-600', border: 'border-emerald-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
+};
+
+const getCartItemVisuals = (item) => {
+  if (item.item_type === 'pet') {
+    return {
+      PlaceholderIcon: getSpeciesIcon(item.species),
+      ...getSpeciesColor(item.species),
+    };
+  }
+  if (item.item_type === 'product') {
+    return {
+      PlaceholderIcon: getCategoryIcon(item.category),
+      ...getCategoryStyles(item.category),
+    };
+  }
+  return {
+    PlaceholderIcon: Package,
+    gradient: 'from-slate-500 to-slate-600',
+    border: 'border-slate-200',
+  };
+};
+
 const Checkout = () => {
   const { cartItems, cartTotal, clearCart } = useCart();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [loading, setLoading] = useState(false);
   const [offers, setOffers] = useState([]);
   const [selectedOffer, setSelectedOffer] = useState(null);
@@ -38,6 +161,12 @@ const Checkout = () => {
   useEffect(() => {
     loadOffers();
   }, []);
+
+  useEffect(() => {
+    if (searchParams.get('payment') !== 'cancelled') return;
+    toast('Payment was cancelled on PayHere. You can change options below and try again, or go back to your cart.');
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams]);
 
   const loadOffers = async () => {
     try {
@@ -172,6 +301,14 @@ const Checkout = () => {
   return (
     <Layout>
       <div className="page-shell">
+        <Link
+          to="/customer/cart"
+          className="inline-flex items-center gap-2 text-slate-600 hover:text-slate-800 mb-6 font-semibold"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Back to shopping cart
+        </Link>
+
         <div className="page-header">
           <div>
             <h1 className="page-title">Checkout</h1>
@@ -268,6 +405,13 @@ const Checkout = () => {
                     );
                   })}
                 </div>
+                {paymentMethod === 'card' && (
+                  <p className="mt-4 text-sm text-slate-600 leading-relaxed p-3 bg-slate-50 rounded-xl border border-slate-200">
+                    You’ll be taken to PayHere to complete payment. To go back without paying, use{' '}
+                    <span className="font-semibold text-slate-800">Cancel</span> on PayHere’s page—you’ll return here.
+                    After a successful payment you’ll be sent to your orders.
+                  </p>
+                )}
               </div>
 
               {/* Available Offers */}
@@ -326,24 +470,37 @@ const Checkout = () => {
 
                 {/* Cart Items Preview */}
                 <div className="space-y-3 mb-6 max-h-64 overflow-y-auto">
-                  {displayItems.map((item) => (
+                  {displayItems.map((item) => {
+                    const { PlaceholderIcon, gradient, border } = getCartItemVisuals(item);
+                    const detail = getCartItemDetailLine(item);
+                    return (
                     <div key={item.cart_id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                      {item.image_url && (
-                        <img
-                          src={getImageSrc(item.image_url)}
-                          alt={item.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                          onError={(e) => {
-                            e.target.src = PLACEHOLDER_IMAGE;
-                          }}
-                        />
-                      )}
+                      <div
+                        className={`w-12 h-12 rounded-lg overflow-hidden border flex-shrink-0 flex items-center justify-center ${item.image_url ? border : `${border} bg-gradient-to-br ${gradient}`}`}
+                      >
+                        {item.image_url ? (
+                          <img
+                            src={getImageSrc(item.image_url)}
+                            alt={getCartItemTitle(item)}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              e.target.src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
+                        ) : (
+                          <PlaceholderIcon className="w-6 h-6 text-white opacity-50" />
+                        )}
+                      </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-slate-900 truncate">{item.name}</p>
+                        <p className="text-sm font-semibold text-slate-900 truncate">{getCartItemTitle(item)}</p>
+                        {detail && (
+                          <p className="text-xs text-slate-600 truncate">{detail}</p>
+                        )}
                         <p className="text-xs text-slate-500">Qty: {item.quantity} × {formatCurrencyLKR(item.unitPrice)}</p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 <div className="space-y-3 mb-6">

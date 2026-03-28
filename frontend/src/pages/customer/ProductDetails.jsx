@@ -7,7 +7,23 @@ import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
-import { Package, ShoppingCart, Plus, Minus, ArrowLeft, CheckCircle, XCircle, Star, Tag, Truck } from 'lucide-react';
+import {
+  Package,
+  ShoppingCart,
+  Plus,
+  Minus,
+  ArrowLeft,
+  CheckCircle,
+  XCircle,
+  Star,
+  Tag,
+  Truck,
+  Utensils,
+  Gamepad2,
+  Sparkles,
+  Scissors,
+  Heart,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Format currency as LKR
@@ -16,6 +32,40 @@ const formatCurrencyLKR = (amount) => {
     style: 'currency',
     currency: 'LKR',
   }).format(amount || 0);
+};
+
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case 'Food':
+      return Utensils;
+    case 'Toys':
+      return Gamepad2;
+    case 'Accessories':
+      return Sparkles;
+    case 'Grooming':
+      return Scissors;
+    case 'Health':
+      return Heart;
+    default:
+      return Package;
+  }
+};
+
+const getCategoryStyles = (category) => {
+  switch (category) {
+    case 'Food':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Toys':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Accessories':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Grooming':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    case 'Health':
+      return { gradient: 'from-emerald-500 to-emerald-600', border: 'border-emerald-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
 };
 
 const ProductDetails = () => {
@@ -64,6 +114,9 @@ const ProductDetails = () => {
   if (loading) return <Layout><Loading /></Layout>;
   if (!product) return <Layout><div className="text-center py-12">Product not found</div></Layout>;
 
+  const CategoryIcon = getCategoryIcon(product.category);
+  const categoryStyles = getCategoryStyles(product.category);
+
   return (
     <Layout>
       <div className="page-shell">
@@ -75,7 +128,7 @@ const ProductDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Product Image */}
           <div>
-            <div className="relative h-96 rounded-2xl overflow-hidden border-4 border-slate-200 shadow-xl">
+            <div className={`relative h-96 rounded-2xl overflow-hidden border-4 shadow-xl ${categoryStyles.border}`}>
               {product.image_url ? (
                 <img
                   src={getImageSrc(product.image_url)}
@@ -86,8 +139,10 @@ const ProductDetails = () => {
                   }}
                 />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                  <Package className="w-24 h-24 text-slate-600 opacity-50" />
+                <div
+                  className={`h-full w-full bg-gradient-to-br ${categoryStyles.gradient} flex items-center justify-center`}
+                >
+                  <CategoryIcon className="w-24 h-24 text-white opacity-50" />
                 </div>
               )}
               <div className="absolute top-4 right-4">
@@ -213,33 +268,41 @@ const ProductDetails = () => {
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Related Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((relatedProduct) => (
-                <Link key={relatedProduct.product_id} to={`/customer/products/${relatedProduct.product_id}`}>
-                  <div className="card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-l-slate-600">
-                    <div className="relative h-48 overflow-hidden rounded-t-2xl">
-                      {relatedProduct.image_url ? (
-                        <img
-                          src={getImageSrc(relatedProduct.image_url)}
-                          alt={relatedProduct.name}
-                          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                          onError={(e) => {
-                            e.target.src = PLACEHOLDER_IMAGE;
-                          }}
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                          <Package className="w-16 h-16 text-slate-600 opacity-50" />
-                        </div>
-                      )}
+              {relatedProducts.map((relatedProduct) => {
+                const RelCatIcon = getCategoryIcon(relatedProduct.category);
+                const relStyles = getCategoryStyles(relatedProduct.category);
+                return (
+                  <Link key={relatedProduct.product_id} to={`/customer/products/${relatedProduct.product_id}`}>
+                    <div
+                      className={`card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 ${relStyles.border}`}
+                    >
+                      <div className="relative h-48 overflow-hidden rounded-t-2xl">
+                        {relatedProduct.image_url ? (
+                          <img
+                            src={getImageSrc(relatedProduct.image_url)}
+                            alt={relatedProduct.name}
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.target.src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className={`h-full w-full bg-gradient-to-br ${relStyles.gradient} flex items-center justify-center`}
+                          >
+                            <RelCatIcon className="w-16 h-16 text-white opacity-50" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-slate-900 mb-1">{relatedProduct.name}</h3>
+                        <p className="text-sm text-slate-600 mb-2">{relatedProduct.category}</p>
+                        <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(relatedProduct.price)}</p>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-slate-900 mb-1">{relatedProduct.name}</h3>
-                      <p className="text-sm text-slate-600 mb-2">{relatedProduct.category}</p>
-                      <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(relatedProduct.price)}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

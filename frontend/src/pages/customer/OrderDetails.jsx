@@ -5,17 +5,152 @@ import Loading from '../../components/common/Loading';
 import Button from '../../components/common/Button';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import api from '../../services/api';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatDate, formatPaymentMethod } from '../../utils/formatters';
 import { getStatusColor, getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
 import toast from 'react-hot-toast';
-import { Download, ArrowLeft, ShoppingCart, MapPin, CreditCard, Package, Truck, CheckCircle, XCircle, DollarSign, Percent, Sparkles, Calendar } from 'lucide-react';
+import {
+  Download,
+  ArrowLeft,
+  ShoppingCart,
+  MapPin,
+  CreditCard,
+  Package,
+  Truck,
+  CheckCircle,
+  XCircle,
+  DollarSign,
+  Percent,
+  Sparkles,
+  Calendar,
+  PawPrint,
+  Dog,
+  Cat,
+  Bird,
+  Rabbit,
+  Utensils,
+  Gamepad2,
+  Scissors,
+  Heart,
+} from 'lucide-react';
 
-// Format currency as LKR
+// Format currency as LKR (handles null, Decimal strings, invalid values)
 const formatCurrencyLKR = (amount) => {
+  const n = typeof amount === 'number' ? amount : parseFloat(amount);
+  const safe = Number.isFinite(n) ? n : 0;
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency: 'LKR',
-  }).format(amount || 0);
+  }).format(safe);
+};
+
+const getSpeciesIcon = (species) => {
+  switch (species) {
+    case 'Dog':
+      return Dog;
+    case 'Cat':
+      return Cat;
+    case 'Bird':
+      return Bird;
+    case 'Rabbit':
+      return Rabbit;
+    default:
+      return PawPrint;
+  }
+};
+
+const getSpeciesColor = (species) => {
+  switch (species) {
+    case 'Dog':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Cat':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Bird':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Rabbit':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
+};
+
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case 'Food':
+      return Utensils;
+    case 'Toys':
+      return Gamepad2;
+    case 'Accessories':
+      return Sparkles;
+    case 'Grooming':
+      return Scissors;
+    case 'Health':
+      return Heart;
+    default:
+      return Package;
+  }
+};
+
+const getCategoryStyles = (category) => {
+  switch (category) {
+    case 'Food':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Toys':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Accessories':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Grooming':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    case 'Health':
+      return { gradient: 'from-emerald-500 to-emerald-600', border: 'border-emerald-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
+};
+
+const lineItemType = (item) => String(item.item_type ?? '').toLowerCase().trim();
+
+const getLineItemVisuals = (item) => {
+  const t = lineItemType(item);
+  if (t === 'pet') {
+    return {
+      PlaceholderIcon: getSpeciesIcon(item.species),
+      ...getSpeciesColor(item.species),
+    };
+  }
+  if (t === 'product') {
+    return {
+      PlaceholderIcon: getCategoryIcon(item.category),
+      ...getCategoryStyles(item.category),
+    };
+  }
+  return {
+    PlaceholderIcon: Package,
+    gradient: 'from-slate-500 to-slate-600',
+    border: 'border-slate-200',
+  };
+};
+
+const getLineItemTitle = (item) => {
+  const name = item.item_name?.toString().trim();
+  if (name) return name;
+  const fromPet = [item.species, item.breed].filter(Boolean).join(' · ');
+  if (fromPet) return fromPet;
+  if (item.category) return item.category;
+  const t = lineItemType(item);
+  const type = t === 'pet' ? 'Pet' : t === 'product' ? 'Product' : 'Item';
+  return item.item_id != null ? `${type} #${item.item_id}` : type;
+};
+
+const getLineItemSubtitle = (item) => {
+  const t = lineItemType(item);
+  if (t === 'pet') {
+    const parts = [item.species, item.breed].filter(Boolean);
+    return parts.length > 1 || (parts.length === 1 && item.item_name?.toString().trim()) ? parts.join(' · ') : null;
+  }
+  if (t === 'product' && item.category) {
+    return item.item_name?.toString().trim() ? item.category : null;
+  }
+  return null;
 };
 
 const OrderDetails = () => {
@@ -165,7 +300,7 @@ const OrderDetails = () => {
                 <CreditCard className="w-5 h-5 text-purple-600" />
                 <h3 className="font-bold text-purple-900">Payment Method</h3>
               </div>
-              <p className="text-purple-700 capitalize">{order.payment_method?.replace('_', ' ')}</p>
+              <p className="text-purple-700">{formatPaymentMethod(order.payment_method)}</p>
             </div>
           </div>
 
@@ -183,36 +318,53 @@ const OrderDetails = () => {
             <h2 className="text-xl font-bold text-slate-900">Order Items</h2>
           </div>
           <div className="space-y-4">
-            {order.items?.map((item) => (
-              <div key={item.order_item_id} className="flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200">
-                <div className="relative w-20 h-20 rounded-lg overflow-hidden border-2 border-slate-200 flex-shrink-0">
-                  {item.image_url ? (
-                    <img
-                      src={getImageSrc(item.image_url)}
-                      alt={item.item_name}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.src = PLACEHOLDER_IMAGE;
-                      }}
-                    />
-                  ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-slate-300 to-slate-400 flex items-center justify-center">
-                      <Package className="w-8 h-8 text-white" />
+            {order.items?.map((item) => {
+              const title = getLineItemTitle(item);
+              const subtitle = getLineItemSubtitle(item);
+              const { PlaceholderIcon, gradient, border } = getLineItemVisuals(item);
+              return (
+                <div
+                  key={item.order_item_id}
+                  className={`flex items-start gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 border-l-4 ${border}`}
+                >
+                  <div
+                    className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 flex-shrink-0 ${border}`}
+                  >
+                    {item.image_url ? (
+                      <img
+                        src={getImageSrc(item.image_url)}
+                        alt={title}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.target.src = PLACEHOLDER_IMAGE;
+                        }}
+                      />
+                    ) : (
+                      <div
+                        className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                      >
+                        <PlaceholderIcon className="w-8 h-8 text-white opacity-50" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-slate-900 mb-1">{title}</h3>
+                    {subtitle && <p className="text-sm text-slate-600 mb-1">{subtitle}</p>}
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-slate-600">
+                      <span>
+                        Quantity: <span className="font-semibold">{item.quantity}</span>
+                      </span>
+                      <span>
+                        Unit Price: <span className="font-semibold">{formatCurrencyLKR(item.unit_price)}</span>
+                      </span>
                     </div>
-                  )}
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-slate-900 mb-1">{item.item_name}</h3>
-                  <div className="flex items-center gap-4 text-sm text-slate-600">
-                    <span>Quantity: <span className="font-semibold">{item.quantity}</span></span>
-                    <span>Unit Price: <span className="font-semibold">{formatCurrencyLKR(item.unit_price)}</span></span>
+                  </div>
+                  <div className="text-right shrink-0">
+                    <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(item.subtotal)}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(item.subtotal)}</p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
@@ -248,7 +400,13 @@ const OrderDetails = () => {
             <div className="pt-4 border-t-2 border-slate-200">
               <div className="flex justify-between items-center">
                 <span className="text-lg font-bold text-slate-900">Total</span>
-                <span className="text-2xl font-black text-slate-600">{formatCurrencyLKR(order.final_amount)}</span>
+                <span className="text-2xl font-black text-slate-600">
+                  {formatCurrencyLKR(
+                    order.final_amount != null && order.final_amount !== ''
+                      ? order.final_amount
+                      : order.total_amount
+                  )}
+                </span>
               </div>
             </div>
           </div>

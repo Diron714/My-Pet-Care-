@@ -174,7 +174,8 @@ export const createPet = async (req, res) => {
 export const updatePet = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, species, breed, age, gender, description, price, stock_quantity, is_available, image_url } = req.body;
+    const { name, species, breed, age, gender, description, price, stock_quantity, is_available, image_url, remove_image } = req.body;
+    const shouldRemoveImage = remove_image === true || remove_image === 'true';
 
     // Check if pet exists
     const [existing] = await pool.query(`SELECT pet_id FROM pets WHERE pet_id = ?`, [id]);
@@ -185,7 +186,7 @@ export const updatePet = async (req, res) => {
       });
     }
 
-    let dbImageUrl = undefined; // keep existing when no new image
+    let dbImageUrl = undefined; // keep existing when no new image and not removing
     if (image_url && typeof image_url === 'string' && image_url.startsWith('data:image')) {
       try {
         const savedPath = await saveBase64Image(image_url, 'pets');
@@ -195,22 +196,30 @@ export const updatePet = async (req, res) => {
       }
     }
 
-    await pool.query(
-      `UPDATE pets SET 
-        name = COALESCE(?, name),
-        species = COALESCE(?, species),
-        breed = COALESCE(?, breed),
-        age = COALESCE(?, age),
-        gender = COALESCE(?, gender),
-        description = COALESCE(?, description),
-        price = COALESCE(?, price),
-        stock_quantity = COALESCE(?, stock_quantity),
-        is_available = COALESCE(?, is_available),
-        image_url = COALESCE(?, image_url),
-        updated_at = NOW()
-       WHERE pet_id = ?`,
-      [name, species, breed, age, gender, description, price, stock_quantity, is_available, dbImageUrl, id]
-    );
+    const setParts = [
+      'name = COALESCE(?, name)',
+      'species = COALESCE(?, species)',
+      'breed = COALESCE(?, breed)',
+      'age = COALESCE(?, age)',
+      'gender = COALESCE(?, gender)',
+      'description = COALESCE(?, description)',
+      'price = COALESCE(?, price)',
+      'stock_quantity = COALESCE(?, stock_quantity)',
+      'is_available = COALESCE(?, is_available)',
+    ];
+    const params = [name, species, breed, age, gender, description, price, stock_quantity, is_available];
+
+    if (dbImageUrl !== undefined) {
+      setParts.push('image_url = ?');
+      params.push(dbImageUrl);
+    } else if (shouldRemoveImage) {
+      setParts.push('image_url = NULL');
+    }
+
+    setParts.push('updated_at = NOW()');
+    params.push(id);
+
+    await pool.query(`UPDATE pets SET ${setParts.join(', ')} WHERE pet_id = ?`, params);
 
     // Log action
     await pool.query(

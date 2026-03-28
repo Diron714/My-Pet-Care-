@@ -9,12 +9,16 @@ import { getStatusColor } from '../../utils/helpers';
 import { Eye, Edit, ShoppingCart, User, Package, DollarSign, Calendar, Filter, Search, RefreshCw, CheckCircle, XCircle, Clock, Truck, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Format currency as LKR
+const parseMoney = (value) => {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
 const formatCurrencyLKR = (amount) => {
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency: 'LKR',
-  }).format(amount || 0);
+  }).format(parseMoney(amount));
 };
 
 const OrderManagement = () => {
@@ -100,7 +104,7 @@ const OrderManagement = () => {
 
   if (loading) return <Loading />;
 
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.final_amount || 0), 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + parseMoney(o.final_amount ?? o.total_amount), 0);
   const pendingOrders = orders.filter(o => o.order_status === 'pending').length;
   const paidOrders = orders.filter(o => o.payment_status === 'paid').length;
 

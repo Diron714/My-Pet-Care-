@@ -61,3 +61,18 @@ export const formatDateTime = (date, formatStr = 'MMM dd, yyyy hh:mm a') => {
   }
 };
 
+/** API snake_case payment_method → readable label */
+export const formatPaymentMethod = (method) => {
+  if (method == null || method === '') return '—';
+  const labels = {
+    cash_on_delivery: 'Cash On Delivery',
+    bank_transfer: 'Bank Transfer',
+    card: 'Credit / Debit Card',
+  };
+  const key = String(method).toLowerCase().trim().replace(/\s+/g, '_');
+  if (labels[key]) return labels[key];
+  return String(method)
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+};
+
