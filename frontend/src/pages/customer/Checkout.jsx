@@ -549,8 +549,16 @@ const Checkout = () => {
                   <input
                     type="number"
                     min="0"
-                    value={loyaltyPointsUsed}
-                    onChange={(e) => setLoyaltyPointsUsed(parseInt(e.target.value) || 0)}
+                    value={loyaltyPointsUsed === 0 ? '' : loyaltyPointsUsed}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === '') {
+                        setLoyaltyPointsUsed(0);
+                        return;
+                      }
+                      const n = parseInt(v, 10);
+                      setLoyaltyPointsUsed(Number.isFinite(n) && n >= 0 ? n : 0);
+                    }}
                     className="input-field"
                     placeholder="Enter points to use"
                   />
