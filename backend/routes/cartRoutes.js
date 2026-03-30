@@ -25,6 +25,10 @@ router.get('/', authenticate, async (req, res) => {
               CASE 
                 WHEN c.item_type = 'pet' THEN p.name
                 WHEN c.item_type = 'product' THEN pr.name
+              END as name,
+              CASE 
+                WHEN c.item_type = 'pet' THEN p.name
+                WHEN c.item_type = 'product' THEN pr.name
               END as item_name,
               CASE 
                 WHEN c.item_type = 'pet' THEN p.price
@@ -41,7 +45,11 @@ router.get('/', authenticate, async (req, res) => {
               CASE 
                 WHEN c.item_type = 'pet' THEN p.stock_quantity
                 WHEN c.item_type = 'product' THEN pr.stock_quantity
-              END as stock_quantity
+              END as stock_quantity,
+              CASE WHEN c.item_type = 'pet' THEN p.species END as species,
+              CASE WHEN c.item_type = 'pet' THEN p.breed END as breed,
+              CASE WHEN c.item_type = 'pet' THEN p.age END as pet_age,
+              CASE WHEN c.item_type = 'product' THEN pr.category END as category
        FROM carts c
        LEFT JOIN pets p ON c.item_type = 'pet' AND c.item_id = p.pet_id
        LEFT JOIN products pr ON c.item_type = 'product' AND c.item_id = pr.product_id

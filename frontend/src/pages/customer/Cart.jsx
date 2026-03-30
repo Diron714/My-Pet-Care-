@@ -5,9 +5,27 @@ import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
 import { useCart } from '../../context/CartContext';
-import { formatCurrency } from '../../utils/formatters';
 import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
-import { Trash2, Plus, Minus, ShoppingCart, Package, DollarSign, ArrowRight, Tag, Truck } from 'lucide-react';
+import {
+  Trash2,
+  Plus,
+  Minus,
+  ShoppingCart,
+  Package,
+  ArrowRight,
+  Tag,
+  Truck,
+  PawPrint,
+  Dog,
+  Cat,
+  Bird,
+  Rabbit,
+  Utensils,
+  Gamepad2,
+  Sparkles,
+  Scissors,
+  Heart,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Format currency as LKR
@@ -18,12 +36,96 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const getSpeciesIcon = (species) => {
+  switch (species) {
+    case 'Dog':
+      return Dog;
+    case 'Cat':
+      return Cat;
+    case 'Bird':
+      return Bird;
+    case 'Rabbit':
+      return Rabbit;
+    default:
+      return PawPrint;
+  }
+};
+
+const getSpeciesColor = (species) => {
+  switch (species) {
+    case 'Dog':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Cat':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Bird':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Rabbit':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
+};
+
+const getCategoryIcon = (category) => {
+  switch (category) {
+    case 'Food':
+      return Utensils;
+    case 'Toys':
+      return Gamepad2;
+    case 'Accessories':
+      return Sparkles;
+    case 'Grooming':
+      return Scissors;
+    case 'Health':
+      return Heart;
+    default:
+      return Package;
+  }
+};
+
+const getCategoryStyles = (category) => {
+  switch (category) {
+    case 'Food':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Toys':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Accessories':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Grooming':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    case 'Health':
+      return { gradient: 'from-emerald-500 to-emerald-600', border: 'border-emerald-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
+};
+
+const getCartItemVisuals = (item) => {
+  if (item.item_type === 'pet') {
+    return {
+      PlaceholderIcon: getSpeciesIcon(item.species),
+      ...getSpeciesColor(item.species),
+    };
+  }
+  if (item.item_type === 'product') {
+    return {
+      PlaceholderIcon: getCategoryIcon(item.category),
+      ...getCategoryStyles(item.category),
+    };
+  }
+  return {
+    PlaceholderIcon: Package,
+    gradient: 'from-slate-500 to-slate-600',
+    border: 'border-slate-200',
+  };
+};
+
 const Cart = () => {
   const { cartItems, loading, cartTotal, updateCartItem, removeFromCart, loadCart } = useCart();
   const navigate = useNavigate();
 
   useEffect(() => {
-    loadCart();
+    loadCart({ silent: true });
   }, []);
 
   const handleQuantityChange = async (cartId, newQuantity) => {
@@ -38,6 +140,22 @@ const Cart = () => {
   const handleRemove = async (cartId) => {
     await removeFromCart(cartId);
     toast.success('Item removed from cart');
+  };
+
+  const getItemTitle = (item) => item.name || item.item_name || 'Item';
+
+  const getItemDetailLine = (item) => {
+    if (item.item_type === 'pet') {
+      const parts = [item.species, item.breed].filter(Boolean);
+      if (item.pet_age != null && item.pet_age !== '') {
+        parts.push(`${item.pet_age} months old`);
+      }
+      return parts.length ? parts.join(' · ') : null;
+    }
+    if (item.item_type === 'product' && item.category) {
+      return item.category;
+    }
+    return null;
   };
 
   if (loading) return <Layout><Loading /></Layout>;
@@ -79,23 +197,33 @@ const Cart = () => {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Cart Items */}
             <div className="lg:col-span-2 space-y-4">
-              {displayItems.map((item) => (
-                <div key={item.cart_id} className="card hover:shadow-xl transition-all duration-300 border-l-4 border-l-slate-600">
+              {displayItems.map((item) => {
+                const detailLine = getItemDetailLine(item);
+                const { PlaceholderIcon, gradient, border } = getCartItemVisuals(item);
+                return (
+                <div
+                  key={item.cart_id}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${border}`}
+                >
                   <div className="flex items-start gap-4">
-                    {/* Product Image */}
-                    <div className="relative w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 border-2 border-slate-200">
+                    {/* Item image or styled placeholder */}
+                    <div
+                      className={`relative w-32 h-32 rounded-xl overflow-hidden flex-shrink-0 border-2 ${border}`}
+                    >
                       {item.image_url ? (
                         <img
                           src={getImageSrc(item.image_url)}
-                          alt={item.name}
+                          alt={getItemTitle(item)}
                           className="w-full h-full object-cover"
                           onError={(e) => {
                             e.target.src = PLACEHOLDER_IMAGE;
                           }}
                         />
                       ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                          <Package className="w-12 h-12 text-slate-400" />
+                        <div
+                          className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`}
+                        >
+                          <PlaceholderIcon className="w-12 h-12 text-white opacity-50" />
                         </div>
                       )}
                     </div>
@@ -103,8 +231,14 @@ const Cart = () => {
                     <div className="flex-1">
                       <div className="flex items-start justify-between mb-3">
                         <div>
-                          <h3 className="font-bold text-lg text-slate-900 mb-1">{item.name}</h3>
-                          <p className="text-sm text-slate-500 capitalize">{item.item_type}</p>
+                          <h3 className="font-bold text-lg text-slate-900 mb-1">{getItemTitle(item)}</h3>
+                          {detailLine ? (
+                            <p className="text-sm text-slate-600">{detailLine}</p>
+                          ) : (
+                            <p className="text-sm text-slate-500 capitalize">
+                              {item.item_type === 'pet' ? 'Pet' : item.item_type === 'product' ? 'Product' : item.item_type}
+                            </p>
+                          )}
                         </div>
                         <button
                           onClick={() => handleRemove(item.cart_id)}
@@ -151,7 +285,8 @@ const Cart = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
 
             {/* Order Summary */}
@@ -189,7 +324,7 @@ const Cart = () => {
                   </div>
                 </div>
 
-                <div className="space-y-3">
+                <div className="flex flex-col gap-4">
                   <Button
                     onClick={() => navigate('/customer/checkout')}
                     className="w-full !bg-slate-800 hover:!bg-slate-900 !py-3.5"
@@ -197,7 +332,7 @@ const Cart = () => {
                     <ArrowRight className="w-4 h-4 inline mr-2" />
                     Proceed to Checkout
                   </Button>
-                  <Link to="/customer/products">
+                  <Link to="/customer/products" className="block w-full">
                     <Button variant="outline" className="w-full">
                       Continue Shopping
                     </Button>

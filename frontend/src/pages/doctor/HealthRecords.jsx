@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
@@ -7,12 +7,19 @@ import Button from '../../components/common/Button';
 import Modal from '../../components/common/Modal';
 import api from '../../services/api';
 import { formatDate } from '../../utils/formatters';
-import { FileText, Plus, Edit, Eye, Search, Filter, PawPrint, User, Calendar, Stethoscope, Pill, AlertCircle } from 'lucide-react';
+import { FileText, Plus, Edit, Eye, Search, Filter, PawPrint, User, Calendar, Stethoscope, Pill, AlertCircle, XCircle, RefreshCw, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
 
 const HealthRecords = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
+  const [petNameInput, setPetNameInput] = useState('');
+  const [customerNameInput, setCustomerNameInput] = useState('');
   const [filters, setFilters] = useState({
     petName: '',
     customerName: '',
@@ -23,12 +30,26 @@ const HealthRecords = () => {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
-    loadRecords();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const p = petNameInput.trim();
+      const c = customerNameInput.trim();
+      const petApplied = p.length === 0 || p.length >= SEARCH_MIN_CHARS ? p : '';
+      const custApplied = c.length === 0 || c.length >= SEARCH_MIN_CHARS ? c : '';
+      setFilters((prev) => {
+        if (prev.petName === petApplied && prev.customerName === custApplied) return prev;
+        return { ...prev, petName: petApplied, customerName: custApplied };
+      });
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [petNameInput, customerNameInput]);
 
-  const loadRecords = async () => {
+  const loadRecords = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.petName) params.append('petName', filters.petName);
       if (filters.customerName) params.append('customerName', filters.customerName);
@@ -42,8 +63,14 @@ const HealthRecords = () => {
       setRecords([]);
     } finally {
       setLoading(false);
+      setListRefreshing(false);
+      firstFetchRef.current = false;
     }
-  };
+  }, [filters.petName, filters.customerName, filters.dateFrom, filters.dateTo]);
+
+  useEffect(() => {
+    loadRecords();
+  }, [loadRecords]);
 
   const handleViewDetails = async (recordId) => {
     try {
@@ -56,7 +83,13 @@ const HealthRecords = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
+  if (loading && firstFetchRef.current) {
+    return (
+      <Layout>
+        <Loading />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -74,162 +107,222 @@ const HealthRecords = () => {
           </Link>
         </div>
 
-        {/* Filters */}
-        <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-6 mb-6">
+        {/* Filters — same pattern as admin (card, labels, placeholders, date hint) */}
+        <div className="card mb-6">
           <div className="flex items-center gap-2 mb-4">
-            <div className="h-9 w-9 rounded-2xl bg-slate-100 flex items-center justify-center">
-              <Filter className="w-5 h-5 text-slate-600" />
-            </div>
-            <h2 className="text-lg font-semibold text-slate-900">Filter Records</h2>
+            <Filter className="w-5 h-5 text-slate-500" />
+            <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by pet name"
-                value={filters.petName}
-                onChange={(e) => setFilters({ ...filters, petName: e.target.value })}
-                className="input-field !rounded-xl !py-2.5 !pl-10 pr-8"
-              />
-              {filters.petName && (
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, petName: '' })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear pet name search"
-                >
-                  ×
-                </button>
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Pet name</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={`Pet name (${SEARCH_MIN_CHARS}+ characters)...`}
+                  value={petNameInput}
+                  onChange={(e) => setPetNameInput(e.target.value)}
+                  className="input-field pl-10 pr-8"
+                />
+                {petNameInput && (
+                  <button
+                    type="button"
+                    onClick={() => setPetNameInput('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    aria-label="Clear pet name search"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {petNameInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to filter by pet name.</p>
               )}
             </div>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search by customer name"
-                value={filters.customerName}
-                onChange={(e) => setFilters({ ...filters, customerName: e.target.value })}
-                className="input-field !rounded-xl !py-2.5 !pl-10 pr-8"
-              />
-              {filters.customerName && (
-                <button
-                  type="button"
-                  onClick={() => setFilters({ ...filters, customerName: '' })}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  aria-label="Clear customer name search"
-                >
-                  ×
-                </button>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Customer name</label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder={`Customer (${SEARCH_MIN_CHARS}+ characters)...`}
+                  value={customerNameInput}
+                  onChange={(e) => setCustomerNameInput(e.target.value)}
+                  className="input-field pl-10 pr-8"
+                />
+                {customerNameInput && (
+                  <button
+                    type="button"
+                    onClick={() => setCustomerNameInput('')}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    aria-label="Clear customer name search"
+                  >
+                    <XCircle className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+              {customerNameInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to filter by customer.</p>
               )}
             </div>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="date"
-                placeholder="From date"
-                value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
-                className="input-field !rounded-2xl !py-2.5 !pl-10 !border-slate-200 focus:!ring-slate-900/10"
-              />
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">From date</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={filters.dateFrom}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
+                  title="dd/mm/yyyy"
+                  className={`input-field w-full ${filters.dateFrom ? 'text-slate-900' : 'text-transparent focus:text-slate-900'}`}
+                />
+                {!filters.dateFrom && (
+                  <span
+                    className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-sm text-slate-400"
+                    aria-hidden
+                  >
+                    dd/mm/yyyy
+                  </span>
+                )}
+              </div>
             </div>
-            <div className="relative">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
-              <input
-                type="date"
-                placeholder="To date"
-                value={filters.dateTo}
-                onChange={(e) => setFilters({ ...filters, dateTo: e.target.value })}
-                className="input-field !rounded-2xl !py-2.5 !pl-10 !border-slate-200 focus:!ring-slate-900/10"
-              />
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">To date</label>
+              <div className="relative">
+                <input
+                  type="date"
+                  value={filters.dateTo}
+                  onChange={(e) => setFilters((prev) => ({ ...prev, dateTo: e.target.value }))}
+                  title="dd/mm/yyyy"
+                  className={`input-field w-full ${filters.dateTo ? 'text-slate-900' : 'text-transparent focus:text-slate-900'}`}
+                />
+                {!filters.dateTo && (
+                  <span
+                    className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-sm text-slate-400"
+                    aria-hidden
+                  >
+                    dd/mm/yyyy
+                  </span>
+                )}
+              </div>
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPetNameInput('');
+                  setCustomerNameInput('');
+                  setFilters({ petName: '', customerName: '', dateFrom: '', dateTo: '' });
+                }}
+                className="w-full"
+              >
+                <RefreshCw className="w-4 h-4 inline mr-1" />
+                Reset
+              </Button>
             </div>
           </div>
         </div>
 
-        {records.length === 0 ? (
-          <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-8">
-            <EmptyState
-              icon={FileText}
-              title="No health records found"
-              message="Start by creating health records for your appointments"
-            />
-          </div>
-        ) : (
-          <div className="table-shell">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Record Date</th>
-                  <th>Pet Name</th>
-                  <th>Species</th>
-                  <th>Customer Name</th>
-                  <th>Diagnosis Summary</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {records.map((record) => (
-                  <tr key={record.record_id} className="hover:bg-slate-50 transition-colors">
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-slate-400" />
-                        <span>{formatDate(record.record_date)}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <PawPrint className="w-4 h-4 text-slate-600" />
-                        <span className="font-semibold text-slate-900">
-                          {record.customer_pet?.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="text-sm text-slate-600">
-                        {record.customer_pet?.species}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-slate-400" />
-                        <span className="text-sm text-slate-800">
-                          {record.customer?.user?.first_name}{' '}
-                          {record.customer?.user?.last_name}
-                        </span>
-                      </div>
-                    </td>
-                    <td>
-                      <span className="text-sm text-slate-700 line-clamp-2">
-                        {record.diagnosis
-                          ? `${record.diagnosis.substring(0, 70)}${record.diagnosis.length > 70 ? '...' : ''}`
-                          : '-'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleViewDetails(record.record_id)}
-                          className="!rounded-xl !px-3 !py-1.5 text-xs !border-slate-200 hover:!bg-slate-50"
-                        >
-                          <Eye className="w-4 h-4 inline mr-1" />
-                          View
-                        </Button>
-                        <Link to={`/doctor/health-records/${record.record_id}/edit`}>
-                          <Button variant="outline" size="sm" className="!rounded-xl !px-3 !py-1.5 text-xs !border-slate-200 hover:!bg-slate-50">
-                            <Edit className="w-4 h-4 inline mr-1" />
-                            Edit
-                          </Button>
-                        </Link>
-                      </div>
-                    </td>
+        <div className="relative min-h-[200px]">
+          {listRefreshing && (
+            <div
+              className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[1px]"
+              aria-busy="true"
+              aria-live="polite"
+            >
+              <Loader2 className="h-8 w-8 animate-spin text-slate-500" aria-hidden />
+            </div>
+          )}
+
+          {!listRefreshing && records.length === 0 ? (
+            <div className="rounded-3xl bg-white border border-slate-200/80 shadow-sm p-8">
+              <EmptyState
+                icon={FileText}
+                title="No health records found"
+                message="Start by creating health records for your appointments"
+              />
+            </div>
+          ) : records.length > 0 ? (
+            <div className="table-shell">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Record Date</th>
+                    <th>Pet Name</th>
+                    <th>Species</th>
+                    <th>Customer Name</th>
+                    <th>Diagnosis Summary</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+                </thead>
+                <tbody>
+                  {records.map((record) => (
+                    <tr key={record.record_id} className="hover:bg-slate-50 transition-colors">
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-slate-400" />
+                          <span>{formatDate(record.record_date)}</span>
+                        </div>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <PawPrint className="w-4 h-4 text-slate-600" />
+                          <span className="font-semibold text-slate-900">
+                            {record.customer_pet?.name}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="text-sm text-slate-600">
+                          {record.customer_pet?.species}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-slate-400" />
+                          <span className="text-sm text-slate-800">
+                            {record.customer?.user?.first_name}{' '}
+                            {record.customer?.user?.last_name}
+                          </span>
+                        </div>
+                      </td>
+                      <td>
+                        <span className="text-sm text-slate-700 line-clamp-2">
+                          {record.diagnosis
+                            ? `${record.diagnosis.substring(0, 70)}${record.diagnosis.length > 70 ? '...' : ''}`
+                            : '-'}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="flex space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDetails(record.record_id)}
+                            className="!rounded-xl !px-3 !py-1.5 text-xs !border-slate-200 hover:!bg-slate-50"
+                          >
+                            <Eye className="w-4 h-4 inline mr-1" />
+                            View
+                          </Button>
+                          <Link to={`/doctor/health-records/${record.record_id}/edit`}>
+                            <Button variant="outline" size="sm" className="!rounded-xl !px-3 !py-1.5 text-xs !border-slate-200 hover:!bg-slate-50">
+                              <Edit className="w-4 h-4 inline mr-1" />
+                              Edit
+                            </Button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="flex min-h-[200px] items-center justify-center rounded-3xl border border-slate-200/80 bg-white shadow-sm">
+              <Loader2 className="h-8 w-8 animate-spin text-slate-400" aria-hidden />
+            </div>
+          )}
+        </div>
 
         {/* Record Details Modal */}
         {showDetails && selectedRecord && (

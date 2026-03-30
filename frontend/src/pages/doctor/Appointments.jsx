@@ -165,16 +165,19 @@ const Appointments = () => {
           {filters.map((f) => {
             const Icon = f.icon;
             const isActive = filter === f.value;
+            const isCancelled = f.value === 'cancelled';
             return (
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200 ${isActive
-                    ? 'bg-slate-900 text-white shadow-sm'
+                    ? isCancelled
+                      ? 'bg-red-600 text-white shadow-md shadow-red-500/35 ring-2 ring-red-500/40'
+                      : 'bg-slate-900 text-white shadow-sm'
                     : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 hover:border-slate-300'
                   }`}
               >
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-500'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : isCancelled ? 'text-red-600' : 'text-slate-500'}`} />
                 {f.label}
               </button>
             );

@@ -4,16 +4,22 @@ import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import api from '../../services/api';
-import { formatCurrency, formatDate } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
 import { getStatusColor } from '../../utils/helpers';
 import { FileText, ShoppingCart, Package, Calendar, Filter, ArrowRight, CheckCircle, Clock, XCircle, Truck } from 'lucide-react';
 
-// Format currency as LKR
+const parseMoney = (value) => {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
+// Format currency as LKR (safe for string DECIMALs from API)
 const formatCurrencyLKR = (amount) => {
+  const safe = parseMoney(amount);
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency: 'LKR',
-  }).format(amount || 0);
+  }).format(safe);
 };
 
 const Orders = () => {
@@ -65,7 +71,10 @@ const Orders = () => {
   ];
 
   const totalOrders = orders.length;
-  const totalSpent = orders.reduce((sum, order) => sum + (order.final_amount || 0), 0);
+  const totalSpent = orders.reduce((sum, order) => {
+    const line = parseMoney(order.final_amount ?? order.total_amount);
+    return sum + line;
+  }, 0);
 
   return (
     <Layout>
@@ -110,12 +119,15 @@ const Orders = () => {
           {filters.map((f) => {
             const Icon = f.icon;
             const isActive = filter === f.value;
+            const isCancelled = f.value === 'cancelled';
             return (
               <button
                 key={f.value}
                 onClick={() => setFilter(f.value)}
                 className={`flex items-center gap-2 px-5 py-3 rounded-xl font-semibold transition-all duration-200 ${isActive
-                  ? 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
+                  ? isCancelled
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-500/35 ring-2 ring-red-500/40'
+                    : 'bg-slate-800 text-white shadow-lg shadow-slate-500/30'
                   : 'bg-white border-2 border-slate-200 text-slate-600 hover:bg-slate-50'
                   }`}
               >

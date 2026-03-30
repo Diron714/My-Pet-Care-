@@ -14,6 +14,9 @@ import { Clock, Plus, Edit, Trash2, Check, Calendar, Syringe, Pill, Utensils, Al
 import toast from 'react-hot-toast';
 import Input from '../../components/common/Input';
 
+/** MySQL returns is_completed as 0/1; avoid `{n && <X/>}` which renders "0" when n is 0 */
+const isCompleted = (r) => r.is_completed === true || r.is_completed === 1;
+
 const Reminders = () => {
   const [reminders, setReminders] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -133,12 +136,12 @@ const Reminders = () => {
     }
   };
 
-  const upcomingCount = reminders.filter(r => !r.is_completed).length;
-  const completedCount = reminders.filter(r => r.is_completed).length;
+  const upcomingCount = reminders.filter((r) => !isCompleted(r)).length;
+  const completedCount = reminders.filter((r) => isCompleted(r)).length;
 
   const filteredReminders = reminders.filter((r) => {
-    if (filter === 'upcoming') return !r.is_completed;
-    if (filter === 'completed') return r.is_completed;
+    if (filter === 'upcoming') return !isCompleted(r);
+    if (filter === 'completed') return isCompleted(r);
     return true;
   });
 
@@ -244,8 +247,16 @@ const Reminders = () => {
               return (
                 <div
                   key={reminder.reminder_id}
-                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${reminder.is_completed ? 'opacity-60 border-l-slate-400' : `border-l-${colors.gradient.split('-')[1]}-500`
-                    }`}
+                  className={`card hover:shadow-xl transition-all duration-300 border-l-4 ${
+                    isCompleted(reminder)
+                      ? 'opacity-60 border-l-slate-400'
+                      : {
+                          vaccination: 'border-l-blue-500',
+                          medication: 'border-l-purple-500',
+                          food: 'border-l-amber-500',
+                          appointment: 'border-l-emerald-500',
+                        }[reminder.reminder_type] || 'border-l-slate-500'
+                  }`}
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
@@ -257,12 +268,12 @@ const Reminders = () => {
                         <p className="text-xs text-slate-500 capitalize">{reminder.reminder_type}</p>
                       </div>
                     </div>
-                    {reminder.is_completed && (
+                    {isCompleted(reminder) ? (
                       <span className="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-emerald-100 text-emerald-800 flex items-center gap-1">
                         <CheckCircle className="w-3 h-3" />
                         Completed
                       </span>
-                    )}
+                    ) : null}
                   </div>
                   {reminder.description && (
                     <div className={`p-3 ${colors.bg} rounded-xl border ${colors.border} mb-4`}>
@@ -281,7 +292,7 @@ const Reminders = () => {
                       </div>
                     )}
                   </div>
-                  {!reminder.is_completed && (
+                  {!isCompleted(reminder) ? (
                     <div className="flex gap-2 pt-4 border-t border-slate-100">
                       <Button
                         variant="outline"
@@ -310,7 +321,7 @@ const Reminders = () => {
                         Delete
                       </Button>
                     </div>
-                  )}
+                  ) : null}
                 </div>
               );
             })}

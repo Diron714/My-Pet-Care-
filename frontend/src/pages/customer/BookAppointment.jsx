@@ -21,6 +21,12 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const formatPetAgeLabel = (age) => {
+  if (age == null || age === '' || Number.isNaN(Number(age))) return '';
+  const n = Number(age);
+  return `${n} month${n === 1 ? '' : 's'} old`;
+};
+
 const BookAppointment = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -51,6 +57,7 @@ const BookAppointment = () => {
 
   const selectedDoctorId = watch('doctorId');
   const selectedDate = watch('appointmentDate');
+  const selectedTime = watch('appointmentTime');
   const selectedPetId = watch('customerPetId');
 
   useEffect(() => {
@@ -142,7 +149,8 @@ const BookAppointment = () => {
   };
 
   const minDate = new Date().toISOString().split('T')[0];
-  const selectedPet = pets.find(p => p.customer_pet_id === parseInt(selectedPetId));
+  const selectedPet = pets.find((p) => p.customer_pet_id === parseInt(selectedPetId, 10));
+  const selectedPetAgeLabel = selectedPet ? formatPetAgeLabel(selectedPet.age) : '';
 
   return (
     <Layout>
@@ -245,11 +253,18 @@ const BookAppointment = () => {
                 </label>
                 <select {...register('customerPetId')} className="input-field">
                   <option value="">Select a pet</option>
-                  {pets.map((pet) => (
-                    <option key={pet.customer_pet_id} value={pet.customer_pet_id}>
-                      {pet.name} - {pet.species} ({pet.breed})
-                    </option>
-                  ))}
+                  {pets.map((pet) => {
+                    const ageLabel = formatPetAgeLabel(pet.age);
+                    const breedPart = pet.breed ? ` (${pet.breed})` : '';
+                    const ageSuffix = ageLabel ? ` · ${ageLabel}` : '';
+                    return (
+                      <option key={pet.customer_pet_id} value={pet.customer_pet_id}>
+                        {pet.name} - {pet.species}
+                        {breedPart}
+                        {ageSuffix}
+                      </option>
+                    );
+                  })}
                 </select>
                 {errors.customerPetId && (
                   <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
@@ -276,7 +291,11 @@ const BookAppointment = () => {
                     )}
                     <div>
                       <p className="font-bold text-blue-900">{selectedPet.name}</p>
-                      <p className="text-sm text-blue-700">{selectedPet.species} - {selectedPet.breed}</p>
+                      <p className="text-sm text-blue-700">
+                        {selectedPet.species}
+                        {selectedPet.breed ? ` · ${selectedPet.breed}` : ''}
+                        {selectedPetAgeLabel ? ` · ${selectedPetAgeLabel}` : ''}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -296,12 +315,24 @@ const BookAppointment = () => {
                   <Calendar className="w-4 h-4 inline mr-1" />
                   Appointment Date <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="date"
-                  {...register('appointmentDate')}
-                  min={minDate}
-                  className="input-field"
-                />
+                <div className="relative">
+                  <input
+                    type="date"
+                    {...register('appointmentDate')}
+                    min={minDate}
+                    placeholder="dd/mm/yyyy"
+                    title="dd/mm/yyyy"
+                    className={`input-field w-full ${selectedDate ? 'text-slate-900' : 'text-transparent focus:text-slate-900'}`}
+                  />
+                  {!selectedDate && (
+                    <span
+                      className="pointer-events-none absolute left-4 top-1/2 z-10 -translate-y-1/2 text-sm text-slate-400"
+                      aria-hidden
+                    >
+                      dd/mm/yyyy
+                    </span>
+                  )}
+                </div>
                 {errors.appointmentDate && (
                   <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                     <AlertCircle className="w-4 h-4" />
@@ -324,8 +355,11 @@ const BookAppointment = () => {
                     <p className="text-rose-700 font-semibold">No available slots for this date</p>
                   </div>
                 ) : (
-                  <select {...register('appointmentTime')} className="input-field">
-                    <option value="">Select time</option>
+                  <select
+                    {...register('appointmentTime')}
+                    className={`input-field ${selectedTime ? 'text-slate-900' : 'text-slate-400'}`}
+                  >
+                    <option value="">-- --</option>
                     {availableSlots.map((slot) => (
                       <option key={slot} value={slot}>
                         {slot}
@@ -360,6 +394,20 @@ const BookAppointment = () => {
                         Dr. {selectedDoctor.first_name} {selectedDoctor.last_name}
                       </p>
                       <p className="text-sm text-slate-700">{selectedDoctor.specialization}</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-4 bg-white/80 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-3">
+                    <PawPrint className="w-5 h-5 text-slate-600" />
+                    <div>
+                      <p className="text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1">Pet</p>
+                      <p className="font-bold text-slate-800">{selectedPet.name}</p>
+                      <p className="text-sm text-slate-700">
+                        {selectedPet.species}
+                        {selectedPet.breed ? ` · ${selectedPet.breed}` : ''}
+                        {selectedPetAgeLabel ? ` · ${selectedPetAgeLabel}` : ''}
+                      </p>
                     </div>
                   </div>
                 </div>

@@ -72,6 +72,11 @@ export const getAllOrders = async (req, res) => {
 
     const [orders] = await pool.query(query, params);
 
+    const num = (v) => {
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
     // Format response with nested customer object
     const formattedOrders = orders.map(order => ({
       order_id: order.order_id,
@@ -84,10 +89,10 @@ export const getAllOrders = async (req, res) => {
           email: order.email
         }
       },
-      total_amount: order.total_amount,
-      discount_amount: order.discount_amount,
-      loyalty_points_used: order.loyalty_points_used,
-      final_amount: order.final_amount,
+      total_amount: num(order.total_amount),
+      discount_amount: num(order.discount_amount),
+      loyalty_points_used: parseInt(order.loyalty_points_used, 10) || 0,
+      final_amount: num(order.final_amount) || num(order.total_amount),
       shipping_address: order.shipping_address,
       payment_method: order.payment_method,
       payment_status: order.payment_status,
@@ -143,13 +148,40 @@ export const getOrderById = async (req, res) => {
       });
     }
 
-    // Get order items
+    // Order lines + live image/species/category (JOINs case-insensitive; name fallback from catalog)
     const [items] = await pool.query(
-      `SELECT * FROM order_items WHERE order_id = ?`,
+      `SELECT oi.order_item_id, oi.order_id, oi.item_type, oi.item_id,
+              COALESCE(
+                NULLIF(TRIM(oi.item_name), ''),
+                NULLIF(TRIM(p.name), ''),
+                NULLIF(TRIM(pr.name), ''),
+                CASE
+                  WHEN p.pet_id IS NOT NULL THEN NULLIF(TRIM(CONCAT_WS(' · ', NULLIF(p.species, ''), NULLIF(p.breed, ''))), '')
+                END
+              ) AS item_name,
+              oi.quantity, oi.unit_price, oi.subtotal,
+              CASE WHEN LOWER(TRIM(oi.item_type)) = 'pet' THEN p.image_url
+                   WHEN LOWER(TRIM(oi.item_type)) = 'product' THEN pr.image_url END AS image_url,
+              CASE WHEN LOWER(TRIM(oi.item_type)) = 'pet' THEN p.species END AS species,
+              CASE WHEN LOWER(TRIM(oi.item_type)) = 'pet' THEN p.breed END AS breed,
+              CASE WHEN LOWER(TRIM(oi.item_type)) = 'product' THEN pr.category END AS category
+       FROM order_items oi
+       LEFT JOIN pets p ON LOWER(TRIM(oi.item_type)) = 'pet' AND oi.item_id = p.pet_id
+       LEFT JOIN products pr ON LOWER(TRIM(oi.item_type)) = 'product' AND oi.item_id = pr.product_id
+       WHERE oi.order_id = ?`,
       [id]
     );
 
     const order = orders[0];
+    const num = (v) => {
+      const n = parseFloat(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+    const totalAmt = num(order.total_amount);
+    const discountAmt = num(order.discount_amount);
+    const finalAmt = num(order.final_amount);
+    const loyaltyUsed = parseInt(order.loyalty_points_used, 10) || 0;
+
     res.json({
       success: true,
       data: {
@@ -163,17 +195,22 @@ export const getOrderById = async (req, res) => {
             phone: order.phone
           }
         },
-        total_amount: order.total_amount,
-        discount_amount: order.discount_amount,
-        loyalty_points_used: order.loyalty_points_used,
-        final_amount: order.final_amount,
+        total_amount: totalAmt,
+        discount_amount: discountAmt,
+        loyalty_points_used: loyaltyUsed,
+        final_amount: finalAmt || totalAmt,
         shipping_address: order.shipping_address,
         payment_method: order.payment_method,
         payment_status: order.payment_status,
         order_status: order.order_status,
         transaction_reference: order.transaction_reference,
-        loyalty_points_earned: order.loyalty_points_earned,
-        items,
+        loyalty_points_earned: parseInt(order.loyalty_points_earned, 10) || 0,
+        items: items.map((i) => ({
+          ...i,
+          quantity: parseInt(i.quantity, 10) || 0,
+          unit_price: num(i.unit_price),
+          subtotal: num(i.subtotal),
+        })),
         created_at: order.created_at,
         updated_at: order.updated_at
       }
@@ -427,7 +464,15 @@ export const createOrder = async (req, res) => {
       await connection.query(
         `INSERT INTO order_items (order_id, item_type, item_id, item_name, quantity, unit_price, subtotal)
          VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [orderId, item.item_type, item.item_id, item.item_name, item.quantity, item.price, item.price * item.quantity]
+        [
+          orderId,
+          item.item_type,
+          item.item_id,
+          item.item_name || item.name || null,
+          item.quantity,
+          item.price,
+          item.price * item.quantity,
+        ]
       );
 
       // Update stock

@@ -37,7 +37,9 @@ const PAYHERE_CONFIG = {
     return `${backendUrl}/api/payments/payhere/notify`;
   },
   returnUrl: process.env.PAYHERE_RETURN_URL || `${process.env.FRONTEND_URL || 'http://localhost:5173'}/customer/orders`,
-  cancelUrl: process.env.PAYHERE_CANCEL_URL || `${process.env.FRONTEND_URL || 'http://localhost:5173'}/customer/checkout`
+  cancelUrl:
+    process.env.PAYHERE_CANCEL_URL ||
+    `${process.env.FRONTEND_URL || 'http://localhost:5173'}/customer/checkout?payment=cancelled`
 };
 
 /**

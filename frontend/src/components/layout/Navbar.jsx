@@ -48,7 +48,8 @@ const Navbar = () => {
                 My Pet <span className="text-slate-800">Care+</span>
               </span>
             </Link>
-            {(!isAuthenticated || user?.role !== 'customer') && (
+            {/* Pets / Products / Doctors: hidden for doctor dashboard; shown for guests & admin/staff */}
+            {(!isAuthenticated || user?.role !== 'customer') && user?.role !== 'doctor' && (
               <div className="hidden md:flex items-center gap-1">
                 <Link
                   to="/pets"

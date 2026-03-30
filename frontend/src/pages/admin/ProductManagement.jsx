@@ -19,13 +19,20 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const ProductManagement = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
+  const [searchInput, setSearchInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [filters, setFilters] = useState({
     category: '',
     available: '',
@@ -49,12 +56,21 @@ const ProductManagement = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    loadProducts();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadProducts = async () => {
+  const loadProducts = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.category) params.append('category', filters.category);
       if (filters.available) params.append('available', filters.available);
@@ -69,11 +85,16 @@ const ProductManagement = () => {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, [filters.category, filters.available, filters.search]);
+
+  useEffect(() => {
+    loadProducts();
+  }, [loadProducts]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setRemoveImage(false);
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
@@ -118,6 +139,7 @@ const ProductManagement = () => {
       stock_quantity: stockQty,
       is_available: formData.get('is_available') === 'on',
       ...(imageDataUrl && { image_url: imageDataUrl }),
+      ...(editingProduct && removeImage && !imageDataUrl && { remove_image: true }),
     };
 
     try {
@@ -129,6 +151,7 @@ const ProductManagement = () => {
       setEditingProduct(null);
       setImageDataUrl(null);
       setImagePreview(null);
+      setRemoveImage(false);
       loadProducts();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save product');
@@ -230,6 +253,7 @@ const ProductManagement = () => {
             setEditingProduct(null);
             setImageDataUrl(null);
             setImagePreview(null);
+            setRemoveImage(false);
             setShowForm(true);
           }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
@@ -322,12 +346,15 @@ const ProductManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Category</label>
               <select
                 value={filters.category}
-                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, category: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Categories</option>
@@ -342,7 +369,7 @@ const ProductManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Availability</label>
               <select
                 value={filters.available}
-                onChange={(e) => setFilters({ ...filters, available: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, available: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -469,6 +496,7 @@ const ProductManagement = () => {
                           setEditingProduct(product);
                           setImageDataUrl(null);
                           setImagePreview(null);
+                          setRemoveImage(false);
                           setShowForm(true);
                         }}
                         className="flex-1"
@@ -490,6 +518,7 @@ const ProductManagement = () => {
             })}
           </div>
         )}
+        </div>
 
         {/* Product Form Modal */}
         <Modal
@@ -497,6 +526,9 @@ const ProductManagement = () => {
           onClose={() => {
             setShowForm(false);
             setEditingProduct(null);
+            setImageDataUrl(null);
+            setImagePreview(null);
+            setRemoveImage(false);
           }}
           title={editingProduct ? 'Edit Product' : 'Add New Product'}
           size="lg"
@@ -588,7 +620,7 @@ const ProductManagement = () => {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Product Image</label>
-              {(imagePreview || editingProduct?.image_url) && (
+              {(imagePreview || (editingProduct?.image_url && !removeImage)) && (
                 <div className="mb-2 w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                   <img
                     src={imagePreview || getImageSrc(editingProduct?.image_url)}
@@ -597,7 +629,26 @@ const ProductManagement = () => {
                   />
                 </div>
               )}
-              <input type="file" accept="image/*" className="input-field" onChange={handleImageChange} />
+              {editingProduct && removeImage && !imagePreview && (
+                <p className="text-xs text-amber-700 mb-2 font-medium">Saved image will be removed when you update.</p>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <input type="file" accept="image/*" className="input-field flex-1 min-w-[200px]" onChange={handleImageChange} />
+                {(imagePreview || (editingProduct?.image_url && !removeImage)) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setImageDataUrl(null);
+                      setImagePreview(null);
+                      if (editingProduct) setRemoveImage(true);
+                    }}
+                  >
+                    Remove image
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-slate-500 mt-1">Upload a high-quality image of the product</p>
             </div>
 
@@ -625,6 +676,9 @@ const ProductManagement = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingProduct(null);
+                  setImageDataUrl(null);
+                  setImagePreview(null);
+                  setRemoveImage(false);
                 }}
               >
                 Cancel

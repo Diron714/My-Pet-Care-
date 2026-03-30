@@ -205,7 +205,8 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, category, description, price, stock_quantity, is_available, image_url } = req.body;
+    const { name, category, description, price, stock_quantity, is_available, image_url, remove_image } = req.body;
+    const shouldRemoveImage = remove_image === true || remove_image === 'true';
 
     // Check if product exists
     const [existing] = await pool.query(`SELECT product_id FROM products WHERE product_id = ?`, [id]);
@@ -226,19 +227,27 @@ export const updateProduct = async (req, res) => {
       }
     }
 
-    await pool.query(
-      `UPDATE products SET 
-        name = COALESCE(?, name),
-        category = COALESCE(?, category),
-        description = COALESCE(?, description),
-        price = COALESCE(?, price),
-        stock_quantity = COALESCE(?, stock_quantity),
-        is_available = COALESCE(?, is_available),
-        image_url = COALESCE(?, image_url),
-        updated_at = NOW()
-       WHERE product_id = ?`,
-      [name, category, description, price, stock_quantity, is_available, dbImageUrl, id]
-    );
+    const setParts = [
+      'name = COALESCE(?, name)',
+      'category = COALESCE(?, category)',
+      'description = COALESCE(?, description)',
+      'price = COALESCE(?, price)',
+      'stock_quantity = COALESCE(?, stock_quantity)',
+      'is_available = COALESCE(?, is_available)',
+    ];
+    const params = [name, category, description, price, stock_quantity, is_available];
+
+    if (dbImageUrl !== undefined) {
+      setParts.push('image_url = ?');
+      params.push(dbImageUrl);
+    } else if (shouldRemoveImage) {
+      setParts.push('image_url = NULL');
+    }
+
+    setParts.push('updated_at = NOW()');
+    params.push(id);
+
+    await pool.query(`UPDATE products SET ${setParts.join(', ')} WHERE product_id = ?`, params);
 
     // Log action
     await pool.query(

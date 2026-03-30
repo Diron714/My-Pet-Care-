@@ -169,7 +169,7 @@ const PreBookingManagement = () => {
                 case 'emerald':
                   return 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30';
                 case 'rose':
-                  return 'bg-rose-600 text-white shadow-lg shadow-rose-500/30';
+                  return 'bg-red-600 text-white shadow-lg shadow-red-500/35 ring-2 ring-red-500/40';
                 default:
                   return 'bg-slate-800 text-white shadow-lg shadow-slate-500/30';
               }
@@ -183,7 +183,7 @@ const PreBookingManagement = () => {
                 case 'emerald':
                   return 'text-emerald-600';
                 case 'rose':
-                  return 'text-rose-600';
+                  return 'text-red-600';
                 default:
                   return 'text-slate-600';
               }

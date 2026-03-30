@@ -88,7 +88,7 @@ const Appointments = () => {
       amber: { active: 'bg-amber-600 text-white shadow-lg shadow-amber-500/30', inactive: 'text-amber-600 border-amber-200 hover:bg-amber-50' },
       emerald: { active: 'bg-emerald-600 text-white shadow-lg shadow-emerald-500/30', inactive: 'text-emerald-600 border-emerald-200 hover:bg-emerald-50' },
       blue: { active: 'bg-blue-600 text-white shadow-lg shadow-blue-500/30', inactive: 'text-blue-600 border-blue-200 hover:bg-blue-50' },
-      rose: { active: 'bg-rose-600 text-white shadow-lg shadow-rose-500/30', inactive: 'text-rose-600 border-rose-200 hover:bg-rose-50' },
+      rose: { active: 'bg-red-600 text-white shadow-lg shadow-red-500/35 ring-2 ring-red-500/40', inactive: 'text-red-700 border-red-200 hover:bg-red-50' },
     };
     return styles[color] || styles.slate;
   };

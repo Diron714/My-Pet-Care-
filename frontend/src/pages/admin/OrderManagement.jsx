@@ -9,17 +9,27 @@ import { getStatusColor } from '../../utils/helpers';
 import { Eye, Edit, ShoppingCart, User, Package, DollarSign, Calendar, Filter, Search, RefreshCw, CheckCircle, XCircle, Clock, Truck, CreditCard } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Format currency as LKR
+const parseMoney = (value) => {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
 const formatCurrencyLKR = (amount) => {
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency: 'LKR',
-  }).format(amount || 0);
+  }).format(parseMoney(amount));
 };
+
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
 
 const OrderManagement = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
+  const [searchInput, setSearchInput] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [filters, setFilters] = useState({
@@ -44,12 +54,21 @@ const OrderManagement = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    loadOrders();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadOrders = async () => {
+  const loadOrders = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.status) params.append('status', filters.status);
       if (filters.paymentStatus) params.append('paymentStatus', filters.paymentStatus);
@@ -65,7 +84,11 @@ const OrderManagement = () => {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, [filters.status, filters.paymentStatus, filters.dateFrom, filters.dateTo, filters.search]);
+
+  useEffect(() => {
+    loadOrders();
+  }, [loadOrders]);
 
   const handleUpdateStatus = async (orderId, newStatus) => {
     try {
@@ -114,7 +137,7 @@ const OrderManagement = () => {
 
   if (initialLoad && loading) return <Loading />;
 
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.final_amount || 0), 0);
+  const totalRevenue = orders.reduce((sum, o) => sum + parseMoney(o.final_amount ?? o.total_amount), 0);
   const pendingOrders = orders.filter(o => o.order_status === 'pending').length;
   const paidOrders = orders.filter(o => o.payment_status === 'paid').length;
 
@@ -201,12 +224,15 @@ const OrderManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Order Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -222,7 +248,7 @@ const OrderManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Payment Status</label>
               <select
                 value={filters.paymentStatus}
-                onChange={(e) => setFilters({ ...filters, paymentStatus: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, paymentStatus: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Payment</option>
@@ -237,7 +263,7 @@ const OrderManagement = () => {
               <input
                 type="date"
                 value={filters.dateFrom}
-                onChange={(e) => setFilters({ ...filters, dateFrom: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, dateFrom: e.target.value }))}
                 className="input-field"
               />
             </div>
@@ -373,6 +399,7 @@ const OrderManagement = () => {
             })}
           </div>
         )}
+        </div>
 
         {/* Status Update Modal */}
         {showStatusModal && selectedOrder && (

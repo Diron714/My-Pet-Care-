@@ -4,15 +4,19 @@ import Layout from '../../components/layout/Layout';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import api from '../../services/api';
-import { formatDate, formatCurrency } from '../../utils/formatters';
+import { formatDate } from '../../utils/formatters';
 import { Package, Calendar, Gift, Bell, ShoppingCart, Heart, Users, MessageSquare, Star, Clock, ArrowRight, ChevronRight, PawPrint } from 'lucide-react';
 
-// Format currency as LKR
+const parseMoney = (value) => {
+  const n = parseFloat(value);
+  return Number.isFinite(n) ? n : 0;
+};
+
 const formatCurrencyLKR = (amount) => {
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency: 'LKR',
-  }).format(amount || 0);
+  }).format(parseMoney(amount));
 };
 
 const heroSlides = [

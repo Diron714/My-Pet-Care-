@@ -71,6 +71,8 @@ export const getStatusColor = (status) => {
     completed: 'bg-green-100 text-green-800',
     active: 'bg-green-100 text-green-800',
     inactive: 'bg-gray-100 text-gray-800',
+    approved: 'bg-emerald-100 text-emerald-800',
+    fulfilled: 'bg-emerald-100 text-emerald-800',
   };
   return colors[status?.toLowerCase()] || 'bg-gray-100 text-gray-800';
 };

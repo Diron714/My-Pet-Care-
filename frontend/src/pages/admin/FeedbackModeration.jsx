@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -25,13 +25,13 @@ const FeedbackModeration = () => {
   const [rejectTarget, setRejectTarget] = useState(null);
   const [rejectLoading, setRejectLoading] = useState(false);
 
-  useEffect(() => {
-    loadFeedbacks();
-  }, [filters]);
-
-  const loadFeedbacks = async () => {
+  const loadFeedbacks = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.type) params.append('type', filters.type);
       if (filters.status) params.append('status', filters.status);
@@ -45,7 +45,11 @@ const FeedbackModeration = () => {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, [filters.type, filters.status, filters.rating]);
+
+  useEffect(() => {
+    loadFeedbacks();
+  }, [loadFeedbacks]);
 
   const handleApprove = async (feedbackId) => {
     try {
@@ -159,7 +163,7 @@ const FeedbackModeration = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Type</label>
               <select
                 value={filters.type}
-                onChange={(e) => setFilters({ ...filters, type: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, type: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Types</option>
@@ -172,7 +176,7 @@ const FeedbackModeration = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -185,7 +189,7 @@ const FeedbackModeration = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Rating</label>
               <select
                 value={filters.rating}
-                onChange={(e) => setFilters({ ...filters, rating: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, rating: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Ratings</option>
@@ -332,6 +336,7 @@ const FeedbackModeration = () => {
             })}
           </div>
         )}
+        </div>
 
         {/* Response Modal */}
         {showResponseModal && selectedFeedback && (

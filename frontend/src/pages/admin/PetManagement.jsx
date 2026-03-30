@@ -20,13 +20,20 @@ const formatCurrencyLKR = (amount) => {
   }).format(amount || 0);
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const PetManagement = () => {
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
+  const [searchInput, setSearchInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [filters, setFilters] = useState({
     species: '',
     breed: '',
@@ -51,12 +58,21 @@ const PetManagement = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    loadPets();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadPets = async () => {
+  const loadPets = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.species) params.append('species', filters.species);
       if (filters.breed) params.append('breed', filters.breed);
@@ -72,11 +88,16 @@ const PetManagement = () => {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, [filters.species, filters.breed, filters.available, filters.search]);
+
+  useEffect(() => {
+    loadPets();
+  }, [loadPets]);
 
   const handleImageChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setRemoveImage(false);
     const reader = new FileReader();
     reader.onloadend = () => {
       setImagePreview(reader.result);
@@ -134,6 +155,7 @@ const PetManagement = () => {
       stock_quantity: stockQty,
       is_available: formData.get('is_available') === 'on',
       ...(imageDataUrl && { image_url: imageDataUrl }),
+      ...(editingPet && removeImage && !imageDataUrl && { remove_image: true }),
     };
 
     try {
@@ -145,6 +167,7 @@ const PetManagement = () => {
       setEditingPet(null);
       setImageDataUrl(null);
       setImagePreview(null);
+      setRemoveImage(false);
       loadPets();
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save pet');
@@ -248,6 +271,7 @@ const PetManagement = () => {
             setEditingPet(null);
             setImageDataUrl(null);
             setImagePreview(null);
+            setRemoveImage(false);
             setShowForm(true);
           }} className="!bg-slate-800 hover:!bg-slate-900">
             <Plus className="w-4 h-4 inline mr-2" />
@@ -329,12 +353,15 @@ const PetManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Species</label>
               <select
                 value={filters.species}
-                onChange={(e) => setFilters({ ...filters, species: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, species: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Species</option>
@@ -348,7 +375,7 @@ const PetManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Availability</label>
               <select
                 value={filters.available}
-                onChange={(e) => setFilters({ ...filters, available: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, available: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -500,6 +527,7 @@ const PetManagement = () => {
                           setEditingPet(pet);
                           setImageDataUrl(null);
                           setImagePreview(null);
+                          setRemoveImage(false);
                           setShowForm(true);
                         }}
                       >
@@ -520,6 +548,7 @@ const PetManagement = () => {
             </div>
           </div>
         )}
+        </div>
 
         {/* Pet Form Modal */}
         <Modal
@@ -527,6 +556,9 @@ const PetManagement = () => {
           onClose={() => {
             setShowForm(false);
             setEditingPet(null);
+            setImageDataUrl(null);
+            setImagePreview(null);
+            setRemoveImage(false);
           }}
           title={editingPet ? 'Edit Pet' : 'Add New Pet'}
           size="lg"
@@ -646,7 +678,7 @@ const PetManagement = () => {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">Pet Image</label>
-              {(imagePreview || editingPet?.image_url) && (
+              {(imagePreview || (editingPet?.image_url && !removeImage)) && (
                 <div className="mb-2 w-24 h-24 rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
                   <img
                     src={imagePreview || getImageSrc(editingPet?.image_url)}
@@ -655,7 +687,26 @@ const PetManagement = () => {
                   />
                 </div>
               )}
-              <input type="file" accept="image/*" className="input-field" onChange={handleImageChange} />
+              {editingPet && removeImage && !imagePreview && (
+                <p className="text-xs text-amber-700 mb-2 font-medium">Saved image will be removed when you update.</p>
+              )}
+              <div className="flex flex-wrap items-center gap-2">
+                <input type="file" accept="image/*" className="input-field flex-1 min-w-[200px]" onChange={handleImageChange} />
+                {(imagePreview || (editingPet?.image_url && !removeImage)) && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setImageDataUrl(null);
+                      setImagePreview(null);
+                      if (editingPet) setRemoveImage(true);
+                    }}
+                  >
+                    Remove image
+                  </Button>
+                )}
+              </div>
               <p className="text-xs text-slate-500 mt-1">Upload a high-quality image of the pet</p>
             </div>
 
@@ -683,6 +734,9 @@ const PetManagement = () => {
                 onClick={() => {
                   setShowForm(false);
                   setEditingPet(null);
+                  setImageDataUrl(null);
+                  setImagePreview(null);
+                  setRemoveImage(false);
                 }}
               >
                 Cancel

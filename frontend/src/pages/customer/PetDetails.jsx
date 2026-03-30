@@ -7,7 +7,22 @@ import { useCart } from '../../context/CartContext';
 import api from '../../services/api';
 import { formatCurrency } from '../../utils/formatters';
 import { getImageSrc, PLACEHOLDER_IMAGE } from '../../utils/helpers';
-import { PawPrint, ShoppingCart, Clock, ArrowLeft, Heart, Calendar, CheckCircle, XCircle, User, DollarSign, Plus } from 'lucide-react';
+import {
+  PawPrint,
+  ShoppingCart,
+  Clock,
+  ArrowLeft,
+  Heart,
+  Calendar,
+  CheckCircle,
+  XCircle,
+  User,
+  DollarSign,
+  Dog,
+  Cat,
+  Bird,
+  Rabbit,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 
 // Format currency as LKR
@@ -16,6 +31,36 @@ const formatCurrencyLKR = (amount) => {
     style: 'currency',
     currency: 'LKR',
   }).format(amount || 0);
+};
+
+const getSpeciesIcon = (species) => {
+  switch (species) {
+    case 'Dog':
+      return Dog;
+    case 'Cat':
+      return Cat;
+    case 'Bird':
+      return Bird;
+    case 'Rabbit':
+      return Rabbit;
+    default:
+      return PawPrint;
+  }
+};
+
+const getSpeciesColor = (species) => {
+  switch (species) {
+    case 'Dog':
+      return { gradient: 'from-amber-500 to-amber-600', border: 'border-amber-200' };
+    case 'Cat':
+      return { gradient: 'from-purple-500 to-purple-600', border: 'border-purple-200' };
+    case 'Bird':
+      return { gradient: 'from-blue-500 to-blue-600', border: 'border-blue-200' };
+    case 'Rabbit':
+      return { gradient: 'from-pink-500 to-pink-600', border: 'border-pink-200' };
+    default:
+      return { gradient: 'from-slate-500 to-slate-600', border: 'border-slate-200' };
+  }
 };
 
 const PetDetails = () => {
@@ -69,6 +114,9 @@ const PetDetails = () => {
   if (loading) return <Layout><Loading /></Layout>;
   if (!pet) return <Layout><div className="text-center py-12">Pet not found</div></Layout>;
 
+  const SpeciesIcon = getSpeciesIcon(pet.species);
+  const speciesColors = getSpeciesColor(pet.species);
+
   return (
     <Layout>
       <div className="page-shell">
@@ -80,7 +128,7 @@ const PetDetails = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
           {/* Image Gallery */}
           <div>
-            <div className="relative h-96 rounded-2xl overflow-hidden border-4 border-slate-200 shadow-xl">
+            <div className={`relative h-96 rounded-2xl overflow-hidden border-4 shadow-xl ${speciesColors.border}`}>
               {pet.image_url ? (
                 <img
                   src={getImageSrc(pet.image_url)}
@@ -91,8 +139,10 @@ const PetDetails = () => {
                   }}
                 />
               ) : (
-                <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                  <PawPrint className="w-24 h-24 text-slate-600 opacity-50" />
+                <div
+                  className={`h-full w-full bg-gradient-to-br ${speciesColors.gradient} flex items-center justify-center`}
+                >
+                  <SpeciesIcon className="w-24 h-24 text-white opacity-50" />
                 </div>
               )}
               <div className="absolute top-4 right-4">
@@ -191,33 +241,41 @@ const PetDetails = () => {
           <div>
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Related Pets</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedPets.map((relatedPet) => (
-                <Link key={relatedPet.pet_id} to={`/customer/pets/${relatedPet.pet_id}`}>
-                  <div className="card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 border-l-slate-600">
-                    <div className="relative h-48 overflow-hidden rounded-t-2xl">
-                      {relatedPet.image_url ? (
-                        <img
-                          src={getImageSrc(relatedPet.image_url)}
-                          alt={relatedPet.name}
-                          className="h-full w-full object-cover transition-transform duration-300 hover:scale-105"
-                          onError={(e) => {
-                            e.target.src = PLACEHOLDER_IMAGE;
-                          }}
-                        />
-                      ) : (
-                        <div className="h-full w-full bg-gradient-to-br from-slate-200 to-slate-300 flex items-center justify-center">
-                          <PawPrint className="w-16 h-16 text-slate-600 opacity-50" />
-                        </div>
-                      )}
+              {relatedPets.map((relatedPet) => {
+                const RelIcon = getSpeciesIcon(relatedPet.species);
+                const relColors = getSpeciesColor(relatedPet.species);
+                return (
+                  <Link key={relatedPet.pet_id} to={`/customer/pets/${relatedPet.pet_id}`}>
+                    <div
+                      className={`card hover:shadow-xl transition-all duration-300 overflow-hidden border-l-4 ${relColors.border}`}
+                    >
+                      <div className="relative h-48 overflow-hidden rounded-t-2xl">
+                        {relatedPet.image_url ? (
+                          <img
+                            src={getImageSrc(relatedPet.image_url)}
+                            alt={relatedPet.name}
+                            className="h-full w-full object-cover"
+                            onError={(e) => {
+                              e.target.src = PLACEHOLDER_IMAGE;
+                            }}
+                          />
+                        ) : (
+                          <div
+                            className={`h-full w-full bg-gradient-to-br ${relColors.gradient} flex items-center justify-center`}
+                          >
+                            <RelIcon className="w-16 h-16 text-white opacity-50" />
+                          </div>
+                        )}
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-bold text-lg text-slate-900 mb-1">{relatedPet.name}</h3>
+                        <p className="text-sm text-slate-600 mb-2">{relatedPet.breed}</p>
+                        <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(relatedPet.price)}</p>
+                      </div>
                     </div>
-                    <div className="p-4">
-                      <h3 className="font-bold text-lg text-slate-900 mb-1">{relatedPet.name}</h3>
-                      <p className="text-sm text-slate-600 mb-2">{relatedPet.breed}</p>
-                      <p className="text-lg font-black text-slate-600">{formatCurrencyLKR(relatedPet.price)}</p>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         )}

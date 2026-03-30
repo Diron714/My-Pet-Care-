@@ -18,13 +18,19 @@ const defaultCreateForm = {
   role: 'customer',
 };
 
+const SEARCH_MIN_CHARS = 2;
+const SEARCH_DEBOUNCE_MS = 400;
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [listRefreshing, setListRefreshing] = useState(false);
+  const firstFetchRef = useRef(true);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [createForm, setCreateForm] = useState(defaultCreateForm);
   const [createLoading, setCreateLoading] = useState(false);
   const [createErrors, setCreateErrors] = useState({});
+  const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({
     role: '',
     status: '',
@@ -48,12 +54,21 @@ const UserManagement = () => {
   }, [searchInput]);
 
   useEffect(() => {
-    loadUsers();
-  }, [filters]);
+    const t = setTimeout(() => {
+      const trimmed = searchInput.trim();
+      const applied = trimmed.length === 0 || trimmed.length >= SEARCH_MIN_CHARS ? trimmed : '';
+      setFilters((prev) => (prev.search === applied ? prev : { ...prev, search: applied }));
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [searchInput]);
 
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
-      setLoading(true);
+      if (firstFetchRef.current) {
+        setLoading(true);
+      } else {
+        setListRefreshing(true);
+      }
       const params = new URLSearchParams();
       if (filters.role) params.append('role', filters.role);
       if (filters.status) params.append('status', filters.status);
@@ -69,7 +84,11 @@ const UserManagement = () => {
       setLoading(false);
       setInitialLoad(false);
     }
-  };
+  }, [filters.role, filters.status, filters.verified, filters.search]);
+
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   const handleToggleStatus = async (user) => {
     try {
@@ -385,12 +404,15 @@ const UserManagement = () => {
                   </button>
                 )}
               </div>
+              {searchInput.trim().length === 1 && (
+                <p className="mt-1.5 text-xs text-amber-700">Enter at least {SEARCH_MIN_CHARS} characters to search.</p>
+              )}
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Role</label>
               <select
                 value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, role: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Roles</option>
@@ -404,7 +426,7 @@ const UserManagement = () => {
               <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Status</label>
               <select
                 value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value }))}
                 className="input-field"
               >
                 <option value="">All Status</option>
@@ -555,6 +577,7 @@ const UserManagement = () => {
             })}
           </div>
         )}
+        </div>
       </div>
   );
 };

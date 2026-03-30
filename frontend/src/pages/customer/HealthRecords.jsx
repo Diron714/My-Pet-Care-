@@ -16,40 +16,56 @@ const HealthRecords = () => {
   const [selectedPet, setSelectedPet] = useState('');
   const [selectedRecord, setSelectedRecord] = useState(null);
   const [showDetails, setShowDetails] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [petsLoading, setPetsLoading] = useState(true);
+  const [recordsLoading, setRecordsLoading] = useState(false);
 
   useEffect(() => {
     loadPets();
   }, []);
 
   useEffect(() => {
-    if (selectedPet) {
-      loadRecords();
+    if (!selectedPet) {
+      setRecords([]);
+      return;
     }
+    const controller = new AbortController();
+    (async () => {
+      try {
+        setRecordsLoading(true);
+        const response = await api.get(`/health-records/pet/${selectedPet}`, {
+          signal: controller.signal,
+        });
+        setRecords(response.data.data || []);
+      } catch (error) {
+        if (error?.code === 'ERR_CANCELED' || error?.name === 'CanceledError' || error?.name === 'AbortError') {
+          return;
+        }
+        console.error('Error loading health records:', error);
+        setRecords([]);
+      } finally {
+        if (!controller.signal.aborted) {
+          setRecordsLoading(false);
+        }
+      }
+    })();
+    return () => controller.abort();
   }, [selectedPet]);
 
   const loadPets = async () => {
     try {
+      setPetsLoading(true);
       const response = await api.get('/customer-pets');
       const petList = response.data.data || [];
       setPets(petList);
       if (petList.length > 0) {
         setSelectedPet(petList[0].customer_pet_id.toString());
+      } else {
+        setSelectedPet('');
       }
     } catch (error) {
       console.error('Error loading pets:', error);
-    }
-  };
-
-  const loadRecords = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get(`/health-records/pet/${selectedPet}`);
-      setRecords(response.data.data || []);
-    } catch (error) {
-      console.error('Error loading health records:', error);
     } finally {
-      setLoading(false);
+      setPetsLoading(false);
     }
   };
 
@@ -82,8 +98,6 @@ const HealthRecords = () => {
     }
   };
 
-  if (loading) return <Layout><Loading /></Layout>;
-
   const selectedPetData = pets.find(p => p.customer_pet_id.toString() === selectedPet);
 
   return (
@@ -102,6 +116,11 @@ const HealthRecords = () => {
             <PawPrint className="w-5 h-5 text-slate-600" />
             <h2 className="text-lg font-bold text-slate-900">Select Pet</h2>
           </div>
+          {petsLoading ? (
+            <div className="py-12 flex justify-center">
+              <Loading />
+            </div>
+          ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {pets.map((pet) => (
               <button
@@ -135,15 +154,20 @@ const HealthRecords = () => {
               </button>
             ))}
           </div>
+          )}
         </div>
 
-        {!selectedPet ? (
+        {!petsLoading && !selectedPet ? (
           <div className="card">
             <EmptyState
               icon={FileText}
-              title="Select a pet"
-              message="Choose a pet to view health records"
+              title="No pets yet"
+              message="Add a pet to view health records"
             />
+          </div>
+        ) : selectedPet && recordsLoading ? (
+          <div className="card py-12 flex justify-center">
+            <Loading />
           </div>
         ) : records.length === 0 ? (
           <div className="card">
