@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -30,7 +30,6 @@ const UserManagement = () => {
   const [createForm, setCreateForm] = useState(defaultCreateForm);
   const [createLoading, setCreateLoading] = useState(false);
   const [createErrors, setCreateErrors] = useState({});
-  const [searchInput, setSearchInput] = useState('');
   const [filters, setFilters] = useState({
     role: '',
     status: '',
@@ -41,17 +40,6 @@ const UserManagement = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const { user: currentUser } = useAuth();
   const canEditRoles = currentUser?.role === 'admin';
-  const searchDebounceRef = useRef(null);
-
-  useEffect(() => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: searchInput }));
-    }, 400);
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -577,7 +565,6 @@ const UserManagement = () => {
             })}
           </div>
         )}
-        </div>
       </div>
   );
 };

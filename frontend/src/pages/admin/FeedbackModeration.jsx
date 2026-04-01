@@ -336,7 +336,6 @@ const FeedbackModeration = () => {
             })}
           </div>
         )}
-        </div>
 
         {/* Response Modal */}
         {showResponseModal && selectedFeedback && (

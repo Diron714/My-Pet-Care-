@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
@@ -28,7 +28,6 @@ const PetManagement = () => {
   const [loading, setLoading] = useState(true);
   const [listRefreshing, setListRefreshing] = useState(false);
   const firstFetchRef = useRef(true);
-  const [searchInput, setSearchInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingPet, setEditingPet] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
@@ -44,18 +43,6 @@ const PetManagement = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const searchDebounceRef = useRef(null);
-
-  // Debounce search: update filters.search after user stops typing
-  useEffect(() => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: searchInput }));
-    }, 400);
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -548,7 +535,6 @@ const PetManagement = () => {
             </div>
           </div>
         )}
-        </div>
 
         {/* Pet Form Modal */}
         <Modal
