@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -27,7 +27,6 @@ const ProductManagement = () => {
   const [loading, setLoading] = useState(true);
   const [listRefreshing, setListRefreshing] = useState(false);
   const firstFetchRef = useRef(true);
-  const [searchInput, setSearchInput] = useState('');
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [imageDataUrl, setImageDataUrl] = useState(null);
@@ -42,18 +41,6 @@ const ProductManagement = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const searchDebounceRef = useRef(null);
-
-  // Debounce search: update filters.search after user stops typing
-  useEffect(() => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: searchInput }));
-    }, 400);
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -518,7 +505,6 @@ const ProductManagement = () => {
             })}
           </div>
         )}
-        </div>
 
         {/* Product Form Modal */}
         <Modal

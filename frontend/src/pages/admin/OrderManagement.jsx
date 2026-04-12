@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Loading from '../../components/common/Loading';
 import EmptyState from '../../components/common/EmptyState';
 import Button from '../../components/common/Button';
@@ -29,7 +29,6 @@ const OrderManagement = () => {
   const [loading, setLoading] = useState(true);
   const [listRefreshing, setListRefreshing] = useState(false);
   const firstFetchRef = useRef(true);
-  const [searchInput, setSearchInput] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [filters, setFilters] = useState({
@@ -41,17 +40,6 @@ const OrderManagement = () => {
   });
   const [searchInput, setSearchInput] = useState('');
   const [initialLoad, setInitialLoad] = useState(true);
-  const searchDebounceRef = useRef(null);
-
-  useEffect(() => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    searchDebounceRef.current = setTimeout(() => {
-      setFilters((prev) => ({ ...prev, search: searchInput }));
-    }, 400);
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [searchInput]);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -399,7 +387,6 @@ const OrderManagement = () => {
             })}
           </div>
         )}
-        </div>
 
         {/* Status Update Modal */}
         {showStatusModal && selectedOrder && (
